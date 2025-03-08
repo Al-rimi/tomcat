@@ -1,0 +1,104 @@
+{
+  "name": "tomcat",
+  "displayName": "tomcat",
+  "description": "",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.98.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "workspaceContains:**/*"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "keybindings": [
+      {
+        "command": "tomcat.deployOnCtrlS",
+        "key": "ctrl+s",
+        "when": "editorTextFocus"
+      }
+    ],
+    "commands": [
+      {
+        "command": "tomcat.start",
+        "title": "Tomcat: Start"
+      },
+      {
+        "command": "tomcat.stop",
+        "title": "Tomcat: Stop"
+      },
+      {
+        "command": "tomcat.clean",
+        "title": "Tomcat: Clean"
+      },
+      {
+        "command": "tomcat.deploy",
+        "title": "Tomcat: Deploy"
+      },
+      {
+        "command": "tomcat.help",
+        "title": "Tomcat: Help"
+      }
+    ],
+    "configuration": {
+      "title": "Tomcat",
+      "properties": {
+        "tomcat.home": {
+          "type": "string",
+          "default": "",
+          "description": "The path to the Tomcat installation. Example C:\\Java\\apache-tomcat-11.0.4"
+        },
+        "tomcat.defaultBrowser": {
+          "type": "string",
+          "enum": ["Google Chrome", "Firefox", "Microsoft Edge", "Safari", "Brave", "Opera"],
+          "default": "Google Chrome",
+          "description": "Select your preferred browser to launch the app."
+        },
+        "tomcat.enableLogger": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable or disable logging output in the Output channel."
+        },
+        "tomcat.autoDeploy": {
+          "type": "string",
+          "enum": ["Disabled", "On Save", "On Ctrl+S"],
+          "default": "Disabled"
+        },
+        "tomcat.autoDeployType": {
+          "type": "string",
+          "enum": ["Fast", "Maven"],
+          "default": "Fast",
+          "description": "Select the deployment type for auto deployment."
+        }
+    }
+}
+
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "20.x",
+    "@types/vscode": "^1.98.0",
+    "@typescript-eslint/eslint-plugin": "^8.25.0",
+    "@typescript-eslint/parser": "^8.25.0",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1",
+    "eslint": "^9.21.0",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "@types/ws": "^8.18.0",
+    "ws": "^8.18.1"
+  }
+}
