@@ -20,6 +20,13 @@ export function registerAutoDeploy(context: vscode.ExtensionContext) {
         if (autoDeploy === 'On Save') {
             const saveDisposable = vscode.workspace.onDidSaveTextDocument(async (document) => {
                 info(`File saved: ${document.fileName}`);
+                const filesConfig = vscode.workspace.getConfiguration('files');
+                const autoSave = filesConfig.get<string>('autoSave', 'off');
+                
+                if (autoSave === 'afterDelay') {
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                }
+
                 deploy(autoDeployType as 'Fast' | 'Maven');
             });
             autoDeployDisposables.push(saveDisposable);
