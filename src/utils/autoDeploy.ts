@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import { deploy } from './deploy';
-import { info, error } from './logger';
+import { info } from './logger';
+
+let autoDeployDisposables: vscode.Disposable[] = [];
 
 export function registerAutoDeploy(context: vscode.ExtensionContext) {
     let config = vscode.workspace.getConfiguration('tomcat');
@@ -12,28 +14,31 @@ export function registerAutoDeploy(context: vscode.ExtensionContext) {
         autoDeploy = config.get<string>('autoDeploy', 'disabled');
         autoDeployType = config.get<string>('autoDeployType', 'Fast');
 
-        context.subscriptions.forEach((disposable) => disposable.dispose());
-        context.subscriptions.length = 0;
+        autoDeployDisposables.forEach(disposable => disposable.dispose());
+        autoDeployDisposables = [];
 
         if (autoDeploy === 'On Save') {
             const saveDisposable = vscode.workspace.onDidSaveTextDocument(async (document) => {
                 info(`File saved: ${document.fileName}`);
                 deploy(autoDeployType as 'Fast' | 'Maven');
             });
+            autoDeployDisposables.push(saveDisposable);
             context.subscriptions.push(saveDisposable);
             info('Auto Deploy On Save Registered');
         }
 
         const ctrlSDisposable = vscode.commands.registerCommand('tomcat.deployOnCtrlS', async () => {
             if (autoDeploy === 'On Ctrl+S') {
-            const editor = vscode.window.activeTextEditor;
-            if (editor) {
-                await editor.document.save();
-                deploy(autoDeployType as 'Fast' | 'Maven');
-                info('Auto Deploy on Ctrl+S Triggered');
-            }
+                const editor = vscode.window.activeTextEditor;
+                if (editor) {
+                    await editor.document.save();
+                    deploy(autoDeployType as 'Fast' | 'Maven');
+                    info('Auto Deploy on Ctrl+S Triggered');
+                }
             }
         });
+
+        autoDeployDisposables.push(ctrlSDisposable);
         context.subscriptions.push(ctrlSDisposable);
         info('Auto Deploy On Ctrl+S Registered');
     }
