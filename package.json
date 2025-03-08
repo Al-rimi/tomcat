@@ -3,6 +3,7 @@
   "displayName": "Tomcat",
   "description": "Easy way to manage Apache Tomcat servers directly from VS Code.",
   "version": "1.0.0",
+  "publisher": "Al-rimi",
   "icon": "resources/tomcat-logo.png",
   "repository": {
     "type": "git",

@@ -1,5 +1,3 @@
-[![Tomcat Logo](resources/tomcat-logo.png)](https://github.com/Al-rimi/tomcat)
-
 # Tomcat for VSCode
 
 Easy way to manage Apache Tomcat servers directly from VS Code. It allows you to start, stop, clean, and deploy applications to Tomcat, along with configurable auto-deployment options and browser integration.
