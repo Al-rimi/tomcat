@@ -1,8 +1,30 @@
 {
   "name": "tomcat",
-  "displayName": "tomcat",
-  "description": "",
-  "version": "0.0.1",
+  "displayName": "Tomcat",
+  "description": "Easy way to manage Apache Tomcat servers directly from VS Code.",
+  "version": "1.0.0",
+  "icon": "resources/tomcat-logo.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Al-rimi/tomcat"
+  },
+  "bugs": {
+    "url": "https://github.com/Al-rimi/tomcat-extension/issues"
+  },
+  "homepage": "https://github.com/Al-rimi/tomcat#readme",
+  "keywords": [
+    "tomcat",
+    "server",
+    "deployment",
+    "javaEE",
+    "java",
+    "jsp",
+    "vscode"
+  ],
+  "galleryBanner": {
+    "color": "#4A90E2",
+    "theme": "dark"
+  },
   "engines": {
     "vscode": "^1.98.0"
   },
@@ -74,9 +96,8 @@
           "default": "Fast",
           "description": "Select the deployment type for auto deployment."
         }
+      }
     }
-}
-
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

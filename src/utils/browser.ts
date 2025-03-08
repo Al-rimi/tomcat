@@ -33,7 +33,7 @@ export async function runBrowser(appName: string) {
 
     exec(`curl ${debugUrl}`, (err, stdout) => {
         if (err || !stdout.trim()) {
-            info(`No active sessions, opening a new ${browserCommand} window...`);
+            info(`No active sessions, opening a new ${browser} window`);
             exec(`${browserCommand} --remote-debugging-port=${targetPort} ${appUrl}`);
             return;
         }
@@ -48,14 +48,14 @@ export async function runBrowser(appName: string) {
                     ws.send(JSON.stringify({ id: 1, method: 'Page.reload', params: {} }));
                     ws.send(JSON.stringify({ id: 2, method: 'Target.activateTarget', params: { targetId: target.id } }));
                     ws.close();
-                    info('Browser reloaded');
+                    info(`${browser} reloaded`);
                 });
                 ws.on('error', (err) => {
                     error(`WebSocket Error: ${err}`);
                     exec(`${browserCommand} --remote-debugging-port=${targetPort} ${appUrl}`);
                 });
             } else {
-                info(`No matching session, opening a new ${browserCommand} window...`);
+                info(`No matching session, opening a new ${browser} window`);
                 exec(`${browserCommand} --remote-debugging-port=${targetPort} ${appUrl}`);
             }
         } catch (parseErr) {
