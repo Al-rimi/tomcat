@@ -1,7 +1,12 @@
-# Tomcat VS Code Extension
+<p align="center">
+   <img src="resources/tomcat-logo.png" alt="Tomcat Logo" />
+</p>
 
-## Overview
-The **Tomcat VS Code Extension** provides an easy way to manage Apache Tomcat servers directly from VS Code. It allows you to start, stop, clean, and deploy applications to Tomcat, along with configurable auto-deployment options and browser integration.
+# Tomcat for VSCode
+
+Easy way to manage Apache Tomcat servers directly from VS Code. It allows you to start, stop, clean, and deploy applications to Tomcat, along with configurable auto-deployment options and browser integration.
+
+![Tomcat Auto Deploy on Save](resources/tomcat-auto-ex.gif)
 
 ## Features
 - **Start & Stop Tomcat**: Quickly start or stop your Tomcat server.
