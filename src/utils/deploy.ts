@@ -3,24 +3,33 @@ import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { tomcat } from './tomcat';
 import { runBrowser } from './browser';
-import { error, info } from './logger';
+import { error, info , done } from './logger';
 import path from 'path';
 
-if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
+async function createNewProject() {
+    const answer = await vscode.window.showInformationMessage(
+        'No Java EE project found. Do you want to create a new one?',
+        'Yes',
+        'No'
+    );
 
-    (vscode.commands.executeCommand('java.project.create', {
-        name: 'NewWebApp',
-        type: 'maven',
-        archetype: 'maven-archetype-webapp'
-    }) as Promise<void>).then(() => {
-        info('New Maven web app project created');
-    }).catch((err: any) => {
-        error(`Failed to create new project: ${err}`);
-    });
+    if (answer === 'Yes') {
+        try {
+            await vscode.commands.executeCommand('java.project.create', {
+                type: 'maven',
+                archetype: 'maven-archetype-webapp'
+            });
+            info('New Maven web app project created');
+        } catch (err) {
+            error(`Failed to create new project: ${err}`);
+        }
 
-    process.exit(0);
+        process.exit(0);
+    } else {
+        done('Tomcat deploy canceled.');
+        process.exit(0);
+    }
 }
-const projectDir = vscode.workspace.workspaceFolders[0].uri.fsPath;
 
 export function cleanOldDeployments() {
     const tomcatHome = process.env.CATALINA_HOME;
@@ -44,6 +53,26 @@ export function cleanOldDeployments() {
 }
 
 export async function deploy(type: 'Fast' | 'Maven') {
+
+    if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
+        createNewProject();
+        return;
+    }
+    const projectDir = vscode.workspace.workspaceFolders[0].uri.fsPath;
+
+    const webAppPath = path.join(projectDir, 'src', 'main', 'webapp');
+    const javaEEPaths = [
+        path.join(projectDir, 'src', 'main', 'java'),
+        path.join(projectDir, 'src', 'main', 'resources'),
+        path.join(projectDir, 'src', 'main', 'webapp', 'WEB-INF')
+    ];
+
+    const isJavaEEProject = javaEEPaths.some(p => fs.existsSync(p));
+
+    if (!fs.existsSync(webAppPath) || !isJavaEEProject) {
+        createNewProject();
+        return;
+    }
     const loadingMessage = vscode.window.setStatusBarMessage(`$(sync~spin)` + (type === 'Fast' ? ` Fast Deploying` : ` Maven`));
 
     await vscode.workspace.saveAll();
