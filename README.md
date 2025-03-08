@@ -1,6 +1,4 @@
-<p align="center">
-   <img src="resources/tomcat-logo.png" alt="Tomcat Logo" />
-</p>
+[![Tomcat Logo](resources/tomcat-logo.png)](https://github.com/Al-rimi/tomcat)
 
 # Tomcat for VSCode
 
