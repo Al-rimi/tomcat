@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-export function showHelp() {
+export function showHelp(): void {
     const helpMessage = `
 =============================================================
              Tomcat Extension - Deployment Script Help

@@ -4,12 +4,11 @@ import WebSocket from 'ws';
 import * as vscode from 'vscode';
 
 function getBrowserCommand(): string {
-    const browser = vscode.workspace.getConfiguration('tomcat').get<string>('defaultBrowser');
+    const browser = vscode.workspace.getConfiguration('tomcat').get<string>('defaultBrowser') || 'chrome';
 
     switch (browser) {
         case 'Firefox':
-            // TODO: Add support for Firefox doesn't use chrome devtools protocol
-            return process.platform === 'win32' ? 'start firefox' : 'firefox';        
+            return process.platform === 'win32' ? 'start firefox' : 'firefox';
         case 'Microsoft Edge':
             return process.platform === 'win32' ? 'start msedge' : 'msedge';
         case 'Safari':
@@ -23,21 +22,14 @@ function getBrowserCommand(): string {
     }
 }
 
-export async function runBrowser(appName: string) {
-
-    const browser = vscode.workspace.getConfiguration('tomcat').get<string>('defaultBrowser');
+export async function runBrowser(appName: string): Promise<void> {
+    const browser = vscode.workspace.getConfiguration('tomcat').get<string>('defaultBrowser') || 'chrome';
     const targetPort = browser === 'firefox' ? 6000 : 9222;
     const appUrl = `http://localhost:8080/${appName}`;
     const debugUrl = `http://localhost:${targetPort}/json`;
     const browserCommand = getBrowserCommand();
 
-    exec(`curl ${debugUrl}`, (err, stdout) => {
-        if (err || !stdout.trim()) {
-            info(`No active sessions, opening a new ${browser} window`);
-            exec(`${browserCommand} --remote-debugging-port=${targetPort} ${appUrl}`);
-            return;
-        }
-
+    exec(`curl ${debugUrl}`, async (err, stdout) => {
         try {
             const sessions = JSON.parse(stdout);
             const target = sessions.find((session: any) => session.url.includes(appUrl));
@@ -55,12 +47,44 @@ export async function runBrowser(appName: string) {
                     exec(`${browserCommand} --remote-debugging-port=${targetPort} ${appUrl}`);
                 });
             } else {
-                info(`No matching session, opening a new ${browser} window`);
+                info(`No active sessions, opening a new ${browser} window`);
                 exec(`${browserCommand} --remote-debugging-port=${targetPort} ${appUrl}`);
+                return;
             }
         } catch (parseErr) {
-            error(`JSON Parsing Error: ${parseErr}`);
-            exec(`${browserCommand} --remote-debugging-port=${targetPort} ${appUrl}`);
+            async function isBrowserRunning(browser: string): Promise<boolean> {
+                return new Promise((resolve) => {
+                    const command = process.platform === 'win32'
+                        ? `tasklist | findstr /i "${browser}"`
+                        : `ps aux | grep -i "${browser}" | grep -v "grep"`;
+
+                    exec(command, (_, stdout) => {
+                        resolve(stdout !== '');
+                    });
+                });
+            }
+
+            if (await isBrowserRunning(browser)) {
+                const userResponse = await vscode.window.showInformationMessage(
+                    `${browser} is not in debug mode. Do you want to reopen it in debug mode?`,
+                    'Yes', 'No'
+                );
+
+                if (userResponse === 'Yes') {
+                    exec('taskkill /IM chrome.exe /F', (killErr) => {
+                        if (killErr) {
+                            error(`Error closing ${browser}: ${killErr}`);
+                        } else {
+                            exec(`${browserCommand} --remote-debugging-port=${targetPort} ${appUrl}`);
+                        }
+                    });
+                } else {
+                    info(`User chose not to reopen ${browser}`);
+                }
+            } else {
+                info(`No active sessions, opening a new ${browser} window`);
+                exec(`${browserCommand} --remote-debugging-port=${targetPort} ${appUrl}`);
+            }
         }
     });
 }

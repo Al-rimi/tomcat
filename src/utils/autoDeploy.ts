@@ -4,12 +4,40 @@ import { info } from './logger';
 
 let autoDeployDisposables: vscode.Disposable[] = [];
 
-export function registerAutoDeploy(context: vscode.ExtensionContext) {
+async function isJavaEEProject(): Promise<boolean> {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders) {
+        return false;
+    }
+
+    for (const folder of workspaceFolders) {
+        const javaEEConfigFile = vscode.Uri.joinPath(folder.uri, 'WEB-INF', 'web.xml');
+        try {
+            await vscode.workspace.fs.stat(javaEEConfigFile);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+    return false;
+}
+
+export function registerAutoDeploy(context: vscode.ExtensionContext): void {
+    if (!isJavaEEProject()) {
+        info('Project does not meet JavaEE standards. Auto Deploy will not be registered.');
+        return;
+    }
+
     let config = vscode.workspace.getConfiguration('tomcat');
     let autoDeploy = config.get<string>('autoDeploy', 'disabled');
     let autoDeployType = config.get<string>('autoDeployType', 'Fast');
 
-    function updateAutoDeploy() {
+    function updateAutoDeploy(): void {
+        if (!isJavaEEProject()) {
+            info('Project does not meet JavaEE standards. Auto Deploy will not be registered.');
+            return;
+        }
+
         config = vscode.workspace.getConfiguration('tomcat');
         autoDeploy = config.get<string>('autoDeploy', 'disabled');
         autoDeployType = config.get<string>('autoDeployType', 'Fast');
@@ -22,7 +50,7 @@ export function registerAutoDeploy(context: vscode.ExtensionContext) {
                 info(`File saved: ${document.fileName}`);
                 const filesConfig = vscode.workspace.getConfiguration('files');
                 const autoSave = filesConfig.get<string>('autoSave', 'off');
-                
+
                 if (autoSave === 'afterDelay') {
                     await new Promise(resolve => setTimeout(resolve, 200));
                 }

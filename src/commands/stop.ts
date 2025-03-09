@@ -1,5 +1,5 @@
 import { tomcat } from '../utils/tomcat';
 
-export function stopTomcat() {
+export function stopTomcat(): void {
     tomcat('stop');
 }

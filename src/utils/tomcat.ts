@@ -18,7 +18,7 @@ export function isTomcatRunning(): Promise<boolean> {
     });
 }
 
-export async function tomcat(action: 'start' | 'stop' | 'reload') {
+export async function tomcat(action: 'start' | 'stop' | 'reload'): Promise<void> {
 
     let tomcatHome = process.env.CATALINA_HOME;
     if (!tomcatHome) {

@@ -3,10 +3,10 @@ import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { tomcat } from './tomcat';
 import { runBrowser } from './browser';
-import { error, info , done } from './logger';
+import { error, info, done } from './logger';
 import path from 'path';
 
-async function createNewProject() {
+async function createNewProject(): Promise<void> {
     const answer = await vscode.window.showInformationMessage(
         'No Java EE project found. Do you want to create a new one?',
         'Yes',
@@ -23,7 +23,6 @@ async function createNewProject() {
         } catch (err) {
             error(`Failed to create new project: ${err}`);
         }
-
         process.exit(0);
     } else {
         done('Tomcat deploy canceled.');
@@ -31,7 +30,7 @@ async function createNewProject() {
     }
 }
 
-export function cleanOldDeployments() {
+export function cleanOldDeployments(): void {
     const tomcatHome = process.env.CATALINA_HOME;
     if (!tomcatHome) {
         error('CATALINA_HOME environment variable is not set');
@@ -52,14 +51,13 @@ export function cleanOldDeployments() {
     }
 }
 
-export async function deploy(type: 'Fast' | 'Maven') {
-
+export async function deploy(type: 'Fast' | 'Maven'): Promise<void> {
     if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
         createNewProject();
         return;
     }
-    const projectDir = vscode.workspace.workspaceFolders[0].uri.fsPath;
 
+    const projectDir = vscode.workspace.workspaceFolders[0].uri.fsPath;
     const webAppPath = path.join(projectDir, 'src', 'main', 'webapp');
     const javaEEPaths = [
         path.join(projectDir, 'src', 'main', 'java'),
@@ -73,8 +71,8 @@ export async function deploy(type: 'Fast' | 'Maven') {
         createNewProject();
         return;
     }
-    const loadingMessage = vscode.window.setStatusBarMessage(`$(sync~spin)` + (type === 'Fast' ? ` Fast Deploying` : ` Maven`));
 
+    const loadingMessage = vscode.window.setStatusBarMessage(`$(sync~spin)` + (type === 'Fast' ? ` Fast Deploying` : ` Maven`));
     await vscode.workspace.saveAll();
 
     const appName = path.basename(projectDir);
@@ -102,7 +100,6 @@ export async function deploy(type: 'Fast' | 'Maven') {
         if (fs.existsSync(`${projectDir}/WEB-INF/classes`)) {
             fs.cpSync(`${projectDir}/WEB-INF/classes`, `${targetDir}/WEB-INF/classes`, { recursive: true });
         }
-
     } else if (type === 'Maven') {
         if (!fs.existsSync(`${projectDir}/pom.xml`)) {
             error('pom.xml not found');

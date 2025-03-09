@@ -20,7 +20,6 @@ export function updateStatusBarItem(isRunning: boolean): void {
     if (!statusBarItem) {
         statusBarItem = createStatusBarItem();
     }
-
     statusBarItem.text = isRunning ? '$(sync~spin) Tomcat' : '$(circle-slash) Tomcat';
     statusBarItem.show();
 }

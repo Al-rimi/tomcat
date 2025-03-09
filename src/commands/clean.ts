@@ -1,5 +1,5 @@
 import { cleanOldDeployments } from '../utils/deploy';
 
-export function cleanTomcat() {
+export function cleanTomcat(): void {
     cleanOldDeployments();
 }
