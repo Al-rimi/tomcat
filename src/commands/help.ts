@@ -175,7 +175,7 @@ export function showHelp(): void {
                         </li>
                         <li>
                             <span class="command">tomcat.autoDeploy</span>
-                            <span class="badge">Options: On Save, Ctrl+S</span>
+                            <span class="badge">Options: Disabled, On Save, Ctrl+S</span>
                             <div>Automatic deployment trigger</div>
                         </li>
                     </ul>
