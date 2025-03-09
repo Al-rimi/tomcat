@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [1.1.1] - 2025-03-11
+### Fixed
+- Auto-deploy On Ctrl+S logic now properly checks deployment trigger conditions
+- Removed disruptive process.exit() calls from configuration flows
+- Improved error handling for missing Tomcat/Java home directories
+- Added proper promise rejection in command execution failures
+
 ## [1.1.0] - 2025-03-10
 ### Added
 - Gradle deployment support

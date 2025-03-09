@@ -39,7 +39,7 @@ export async function findTomcatHome(): Promise<string> {
                 const catalinaPath = `${selectedPath}/bin/catalina${process.platform === 'win32' ? '.bat' : '.sh'}`;
                 if (!require('fs').existsSync(catalinaPath)) {
                     error('Selected folder is incorrect. Please select the base folder of Apache Tomcat.');
-                    process.exit(1);
+                    return '';
                 }
     
                 tomcatHome = selectedFolder[0].fsPath;
@@ -47,7 +47,7 @@ export async function findTomcatHome(): Promise<string> {
                 return tomcatHome || '';
             } else {
                 error('No folder selected.');
-                process.exit(1);
+                return '';
             }
         }
     }
@@ -74,7 +74,7 @@ export async function findJavaHome(): Promise<string> {
                 const javaExecutablePath = `${selectedPath}/bin/java${process.platform === 'win32' ? '.exe' : ''}`;
                 if (!require('fs').existsSync(javaExecutablePath)) {
                     error('Selected folder is incorrect. Please select the base folder of Java.');
-                    process.exit(1);
+                    return '';
                 }
     
                 javaHome = selectedFolder[0].fsPath;
@@ -82,7 +82,7 @@ export async function findJavaHome(): Promise<string> {
                 return javaHome || '';
             } else {
                 error('No folder selected.');
-                process.exit(1);
+                return '';
             }
         }
         
@@ -93,7 +93,10 @@ export async function findJavaHome(): Promise<string> {
 export async function tomcat(action: 'start' | 'stop' | 'reload'): Promise<void> {
 
     let tomcatHome = findTomcatHome();
+    if (!tomcatHome) { return; }
+
     let javaHome = findJavaHome();
+    if (!javaHome) { return; }
 
     if (await isTomcatRunning()) {
         if (action === 'start') {

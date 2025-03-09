@@ -48,19 +48,14 @@ export async function registerAutoDeploy(context: vscode.ExtensionContext): Prom
     context.subscriptions.push(configChangeDisposable);
 
     async function updateAutoDeploy(): Promise<void> {
+
         const config = vscode.workspace.getConfiguration('tomcat');
-        const autoDeploy = config.get<string>('autoDeploy', 'disabled');
+        const autoDeployType = config.get<string>('autoDeployType', 'Fast') as 'Fast' | 'Maven' | 'Gradle';
+        let autoDeploy = config.get<string>('autoDeploy', 'Disabled');
 
-        if (autoDeploy !== 'disabled') {
-            if (!await isJavaEEProject()) {
-                info('Project does not meet JavaEE standards. Auto Deploy will not be registered.');
-                process.exit(0);
-            }
+        if (!await isJavaEEProject()) { autoDeploy = 'Disabled'; }
 
-            const config = vscode.workspace.getConfiguration('tomcat');
-            const autoDeploy = config.get<string>('autoDeploy', 'disabled');
-            const autoDeployType = config.get<string>('autoDeployType', 'Fast') as 'Fast' | 'Maven' | 'Gradle';
-
+        if (autoDeploy !== 'Disabled') {
             autoDeployDisposables.forEach(disposable => disposable.dispose());
             autoDeployDisposables = [];
 
@@ -88,11 +83,10 @@ export async function registerAutoDeploy(context: vscode.ExtensionContext): Prom
             const editor = vscode.window.activeTextEditor;
             if (editor) {
                 await editor.document.save();
-                if (autoDeploy === 'On Ctrl+S') {
-                    const config = vscode.workspace.getConfiguration('tomcat');
-                    const autoDeployType = config.get<string>('autoDeployType', 'Fast') as 'Fast' | 'Maven' | 'Gradle';
+        
+                if (autoDeploy === 'On Ctrl+S' || autoDeploy === 'On Save') {
                     await deploy(autoDeployType);
-                    info('Deploy On Ctrl+S');
+                    info('Deploy triggered by Ctrl+S');
                 }
             }
         });
@@ -121,16 +115,16 @@ async function createNewProject(): Promise<void> {
         } catch (err) {
             error(`Failed to create new project: ${err}`);
         }
-        process.exit(0);
+        return;
     } else {
         done('Tomcat deploy canceled.');
-        process.exit(0);
+        return;
     }
 }
 
 export async function cleanOldDeployments(): Promise<void> {
     const tomcatHome = await findTomcatHome();
-    if (!tomcatHome) { process.exit(1); }
+    if (!tomcatHome) { return; }
 
     const appName = path.basename(process.cwd());
     const targetDir = path.join(tomcatHome, 'webapps', appName);
@@ -237,7 +231,7 @@ async function executeCommand(command: string, cwd: string): Promise<void> {
             if (err) {
                 error(`Command failed: ${command}\n${stderr || stdout || 'Unknown error'}`);
                 reject(new Error(stderr || stdout || 'Unknown error.'));
-                process.exit(1);
+                return;
             }
             resolve();
         });

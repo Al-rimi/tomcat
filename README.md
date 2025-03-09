@@ -53,7 +53,7 @@ Modify settings via **Settings (`Ctrl+,`)** under `Tomcat`:
 [Report issues](https://github.com/Al-rimi/tomcat/issues)
 
 ## Changelog
-### [1.1.0] - 2025-03-10
+### [1.1.1] - 2025-03-10
 - Added Gradle deployment support
 - Configurable server port
 - Enhanced project detection logic
