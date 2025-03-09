@@ -2,16 +2,36 @@
 
 ## [Unreleased]
 
+## [1.1.0] - 2025-03-10
+### Added
+- Gradle deployment support
+- Configurable Tomcat server port
+- Java Home configuration option
+- Enhanced Java EE project detection
+- Interactive HTML help panel
+- Browser session management improvements
+
+### Changed
+- Default auto-deploy behavior to "On Save"
+- Improved deployment reliability
+- Restructured configuration system
+- Enhanced status bar integration
+
+### Fixed
+- Deployment failures with non-ASCII paths
+- Maven build detection issues
+- Browser reload race conditions
+- Configuration change handling
+- Project validation false positives
+
 ## [1.0.1] - 2025-03-09
 ### Fixed
-- Resolved an issue in the deployment functionality where the process would fail if a Java EE project was not detected. The updated logic now includes a more robust project detection mechanism and prompts the user to create a new project if none is found, ensuring a smoother and more intuitive workflow.
-
-### Enhanced
-- Improved project creation flow in the deployment functionality.
+- Deployment failure when Java EE project not detected
+- Project creation flow improvements
 
 ## [1.0.0] - Initial Release
 ### Added
-- Start, Stop, Clean, and Deploy commands.
-- Auto-deployment on Save and Ctrl+S using Fast deployment or Maven.
-- Configurable settings for Tomcat home, browser, and logging.
-- WebSocket-based browser reloading.
+- Basic Tomcat management commands
+- Auto-deployment functionality
+- Browser integration
+- Configuration system
