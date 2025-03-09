@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { exec } from 'child_process';
 import * as fs from 'fs';
 import path from 'path';
-import { tomcat } from './tomcat';
+import { tomcat, findTomcatHome } from './tomcat';
 import { runBrowser } from './browser';
 import { error, info, done } from './logger';
 
@@ -54,7 +54,7 @@ export async function registerAutoDeploy(context: vscode.ExtensionContext): Prom
         if (autoDeploy !== 'disabled') {
             if (!await isJavaEEProject()) {
                 info('Project does not meet JavaEE standards. Auto Deploy will not be registered.');
-                return;
+                process.exit(0);
             }
 
             const config = vscode.workspace.getConfiguration('tomcat');
@@ -128,12 +128,9 @@ async function createNewProject(): Promise<void> {
     }
 }
 
-export function cleanOldDeployments(): void {
-    const tomcatHome = process.env.CATALINA_HOME;
-    if (!tomcatHome) {
-        error('CATALINA_HOME environment variable is not set');
-        return;
-    }
+export async function cleanOldDeployments(): Promise<void> {
+    const tomcatHome = await findTomcatHome();
+    if (!tomcatHome) { process.exit(1); }
 
     const appName = path.basename(process.cwd());
     const targetDir = path.join(tomcatHome, 'webapps', appName);
@@ -149,26 +146,22 @@ export function cleanOldDeployments(): void {
     }
 }
 
-
 export async function deploy(type: 'Fast' | 'Maven' | 'Gradle'): Promise<void> {
     const projectDir = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
     if (!projectDir || !await isJavaEEProject()) {
-        createNewProject();
+        await createNewProject();
         return;
     }
 
     const appName = path.basename(projectDir);
-    const tomcatHome = process.env.CATALINA_HOME;
-    if (!tomcatHome) {
-        error('CATALINA_HOME environment variable is not set.');
-        return;
-    }
+    const tomcatHome = await findTomcatHome();
+    if (!tomcatHome) { return; }
 
     const loadingMessage = vscode.window.setStatusBarMessage(`$(sync~spin) Deploying (${type})...`);
     await vscode.workspace.saveAll();
 
     try {
-        cleanOldDeployments();
+        await cleanOldDeployments();
         
         if (type === 'Fast') {
             await fastDeploy(projectDir, tomcatHome, appName);
@@ -244,7 +237,7 @@ async function executeCommand(command: string, cwd: string): Promise<void> {
             if (err) {
                 error(`Command failed: ${command}\n${stderr || stdout || 'Unknown error'}`);
                 reject(new Error(stderr || stdout || 'Unknown error.'));
-                return;
+                process.exit(1);
             }
             resolve();
         });

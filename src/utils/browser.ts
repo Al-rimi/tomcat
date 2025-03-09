@@ -25,7 +25,7 @@ function getBrowserCommand(): string {
 export async function runBrowser(appName: string): Promise<void> {
     const browser = vscode.workspace.getConfiguration('tomcat').get<string>('defaultBrowser') || 'chrome';
     const targetPort = browser === 'firefox' ? 6000 : 9222;
-    const appUrl = `http://localhost:8080/${appName}`;
+    const appUrl = `http://localhost:${vscode.workspace.getConfiguration().get('tomcat.port', 8080)}/${appName}`;
     const debugUrl = `http://localhost:${targetPort}/json`;
     const browserCommand = getBrowserCommand();
 

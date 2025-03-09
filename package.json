@@ -2,7 +2,7 @@
   "name": "tomcat",
   "displayName": "Tomcat",
   "description": "Easy way to manage Apache Tomcat servers directly from VS Code.",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "publisher": "Al-rimi",
   "icon": "resources/tomcat-logo.png",
   "repository": {
@@ -77,6 +77,16 @@
           "default": "",
           "description": "The path to the Tomcat installation. Example C:\\Java\\apache-tomcat-11.0.4"
         },
+        "tomcat.java.home": {
+          "type": "string",
+          "default": "",
+          "description": "The path to the Java installation. Example C:\\Program Files\\Java\\jdk-21"
+        },
+        "tomcat.port": {
+          "type": "number",
+          "default": 8080,
+          "description": "The port number for the Tomcat server."
+        },
         "tomcat.defaultBrowser": {
           "type": "string",
           "enum": ["Google Chrome", "Firefox", "Microsoft Edge", "Safari", "Brave", "Opera"],
@@ -91,7 +101,7 @@
         "tomcat.autoDeploy": {
           "type": "string",
           "enum": ["Disabled", "On Save", "On Ctrl+S"],
-          "default": "Disabled"
+          "default": "On Save"
         },
         "tomcat.autoDeployType": {
           "type": "string",

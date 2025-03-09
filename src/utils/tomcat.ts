@@ -14,42 +14,86 @@ export function isTomcatRunning(): Promise<boolean> {
             server.close();
             resolve(false);
         });
-        server.listen(8080);
+        server.listen(vscode.workspace.getConfiguration().get('tomcat.port', 8080));
     });
 }
 
-export async function tomcat(action: 'start' | 'stop' | 'reload'): Promise<void> {
-
+export async function findTomcatHome(): Promise<string> {
     let tomcatHome = process.env.CATALINA_HOME;
-    if (!tomcatHome) {
+
+    if (tomcatHome) { return tomcatHome; } else {
         const config = vscode.workspace.getConfiguration();
         tomcatHome = config.get('tomcat.home', '');
-
-        if (!tomcatHome) {
+        
+        if (tomcatHome) { return tomcatHome; } else {
+    
             const selectedFolder = await vscode.window.showOpenDialog({
                 canSelectFolders: true,
                 canSelectFiles: false,
                 canSelectMany: false,
                 openLabel: 'Select Tomcat Home Folder'
             });
-
-            const selectedPath = selectedFolder[0].fsPath;
-            const catalinaPath = `${selectedPath}/bin/catalina${process.platform === 'win32' ? '.bat' : '.sh'}`;
-            if (!require('fs').existsSync(catalinaPath)) {
-                error('Selected folder is incorrect. Please select the base folder of Apache Tomcat.');
-                return;
+    
+            if (selectedFolder && selectedFolder.length > 0) {
+                const selectedPath = selectedFolder[0].fsPath;
+                const catalinaPath = `${selectedPath}/bin/catalina${process.platform === 'win32' ? '.bat' : '.sh'}`;
+                if (!require('fs').existsSync(catalinaPath)) {
+                    error('Selected folder is incorrect. Please select the base folder of Apache Tomcat.');
+                    process.exit(1);
+                }
+    
+                tomcatHome = selectedFolder[0].fsPath;
+                await config.update('tomcat.home', tomcatHome, vscode.ConfigurationTarget.Global);
+                return tomcatHome || '';
+            } else {
+                error('No folder selected.');
+                process.exit(1);
             }
-
-            tomcatHome = selectedFolder[0].fsPath;
-            await config.update('tomcat.home', tomcatHome, vscode.ConfigurationTarget.Global);
         }
     }
+}
 
-    const javaHome = process.env.JAVA_HOME;
-    if (!javaHome) {
-        error('JAVA_HOME is not set please set it in your environment variables');
-        return;
+export async function findJavaHome(): Promise<string> {
+    let javaHome = process.env.JAVA_HOME;
+
+    if (javaHome) { return javaHome; } else {
+        const config = vscode.workspace.getConfiguration();
+        javaHome = config.get('tomcat.java.home', '');
+
+        if (javaHome) { return javaHome; } else {
+
+            const selectedFolder = await vscode.window.showOpenDialog({
+                canSelectFolders: true,
+                canSelectFiles: false,
+                canSelectMany: false,
+                openLabel: 'Select Java Home Folder'
+            });
+
+            if (selectedFolder && selectedFolder.length > 0) {
+                const selectedPath = selectedFolder[0].fsPath;
+                const javaExecutablePath = `${selectedPath}/bin/java${process.platform === 'win32' ? '.exe' : ''}`;
+                if (!require('fs').existsSync(javaExecutablePath)) {
+                    error('Selected folder is incorrect. Please select the base folder of Java.');
+                    process.exit(1);
+                }
+    
+                javaHome = selectedFolder[0].fsPath;
+                await config.update('tomcat.java.home', javaHome, vscode.ConfigurationTarget.Global);
+                return javaHome || '';
+            } else {
+                error('No folder selected.');
+                process.exit(1);
+            }
+        }
+        
     }
+}
+
+
+export async function tomcat(action: 'start' | 'stop' | 'reload'): Promise<void> {
+
+    let tomcatHome = findTomcatHome();
+    let javaHome = findJavaHome();
 
     if (await isTomcatRunning()) {
         if (action === 'start') {
