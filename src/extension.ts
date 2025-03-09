@@ -1,10 +1,11 @@
+// extension.ts
 import * as vscode from 'vscode';
 import { startTomcat } from './commands/start';
 import { stopTomcat } from './commands/stop';
 import { cleanTomcat } from './commands/clean';
 import { deployTomcat } from './commands/deploy';
 import { showHelp } from './commands/help';
-import { registerAutoDeploy } from './utils/autoDeploy';
+import { registerAutoDeploy } from './utils/deploy';
 
 let statusBarItem: vscode.StatusBarItem;
 
@@ -33,7 +34,7 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('tomcat.stop', stopTomcat),
         vscode.commands.registerCommand('tomcat.clean', cleanTomcat),
         vscode.commands.registerCommand('tomcat.deploy', deployTomcat),
-        vscode.commands.registerCommand('tomcat.help', showHelp)
+        vscode.commands.registerCommand('tomcat.help', showHelp),
     );
 
     registerAutoDeploy(context);
