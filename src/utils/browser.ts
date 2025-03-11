@@ -6,8 +6,8 @@ import { defaultStatusBar, updateStatusBar } from '../extension';
 
 function getBrowserCommand(browser: string): string {
     switch (browser) {
-        case 'Firefox':
-            return process.platform === 'win32' ? 'start firefox' : 'firefox';
+        // case 'Firefox': // Not supported.
+        //     return process.platform === 'win32' ? 'start firefox' : 'firefox';
         case 'Microsoft Edge':
             return process.platform === 'win32' ? 'start msedge' : 'msedge';
         case 'Safari':
@@ -23,7 +23,7 @@ function getBrowserCommand(browser: string): string {
 
 export async function runBrowser(appName: string): Promise<void> {
     const browser = vscode.workspace.getConfiguration('tomcat').get<string>('defaultBrowser') || 'chrome';
-    const targetPort = browser === 'firefox' ? 6000 : 9222;
+    const targetPort = 9222;
     const appUrl = `http://localhost:${vscode.workspace.getConfiguration().get('tomcat.port', 8080)}/${appName}`;
     const debugUrl = `http://localhost:${targetPort}/json`;
     const browserCommand = getBrowserCommand(browser);

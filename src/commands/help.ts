@@ -113,6 +113,28 @@ export function showHelpPanel(): void {
                     font-size: 0.9em;
                     text-align: center;
                 }
+
+                .new-feature {
+                    border-left: 3px solid var(--vscode-focusBorder);
+                    padding-left: 8px;
+                    margin: 12px 0;
+                }
+
+                .status-indicator {
+                    display: inline-block;
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 50%;
+                    margin-right: 6px;
+                }
+
+                .status-indicator.active {
+                    background-color: #4CAF50;
+                }
+
+                .status-indicator.inactive {
+                    background-color: #F44336;
+                }
             </style>
         </head>
         <body>
@@ -120,8 +142,34 @@ export function showHelpPanel(): void {
                 <h2>Tomcat Extension Help</h2>
 
                 <div class="section">
+                    <h3>What's New in v1.2.1</h3>
+                    <ul>
+                        <li class="new-feature">
+                            <strong>Integrated Deploy Button</strong>
+                            <p>Access deployment options directly from the editor toolbar.</p>
+                        </li>
+                        <li class="new-feature">
+                            <strong>Real-time Status Indicators</strong>
+                            <p>
+                                <span class="status-indicator active"></span> Deployment Status
+                                <span class="status-indicator inactive"></span> Server Status
+                            </p>
+                        </li>
+                        <li class="new-feature">
+                            <strong>Auto Admin Setup</strong>
+                            <p>Automatic configuration of admin credentials for management access.</p>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Core Commands Section -->
+                <div class="section">
                     <h3>Core Commands</h3>
                     <ul>
+                        <li>
+                            <span class="command">start</span> - 
+                            <span>Starts the Tomcat service</span>
+                        </li>
                         <li>
                             <span class="command">stop</span> - 
                             <span>Gracefully stops the Tomcat service</span>
@@ -131,12 +179,13 @@ export function showHelpPanel(): void {
                             <span>Cleans the Tomcat deployment directory</span>
                         </li>
                         <li>
-                            <span class="command">start</span> - 
-                            <span>Starts the Tomcat service</span>
+                            <span class="command">reload</span> - 
+                            <span>Reloads applications without restart</span>
                         </li>
                     </ul>
                 </div>
 
+                <!-- Deployment Section -->
                 <div class="section">
                     <h3>Deployment Options</h3>
                     <ul>
@@ -155,6 +204,7 @@ export function showHelpPanel(): void {
                     </ul>
                 </div>
 
+                <!-- Configuration Section -->
                 <div class="section">
                     <h3>Configuration Settings</h3>
                     <ul>
@@ -174,7 +224,7 @@ export function showHelpPanel(): void {
                             <div>Server port configuration</div>
                         </li>
                         <li>
-                            <span class="command">tomcat.autoDeploy</span>
+                            <span class="command">tomcat.defaultDeployMood</span>
                             <span class="badge">Options: Disabled, On Save, Ctrl+S</span>
                             <div>Automatic deployment trigger</div>
                         </li>
@@ -183,7 +233,6 @@ export function showHelpPanel(): void {
                     <h3>Browser Configuration</h3>
                     <div class="browsers">
                         <div class="browser-item">Google Chrome</div>
-                        <div class="browser-item">Firefox</div>
                         <div class="browser-item">Microsoft Edge</div>
                         <div class="browser-item">Safari</div>
                         <div class="browser-item">Brave</div>
@@ -193,7 +242,7 @@ export function showHelpPanel(): void {
 
                 <div class="footer">
                     <div>Developed by Al-rimi</div>
-                    <div>Version 1.2.0</div>
+                    <div>Version 1.2.1</div>
                 </div>
             </div>
         </body>

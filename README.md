@@ -44,7 +44,7 @@ Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 
 | Setting                | Type    | Default       | Values/Options                         | Description                                      |
 |------------------------|---------|---------------|----------------------------------------|--------------------------------------------------|
-| `tomcat.home`*         | `string`|`""`           | Valid path                             | Tomcat installation directory (e.g., `C:\Java\apache-tomcat-11.0.4`)|
+| `tomcat.home`          | `string`|`""`           | Valid path                             | Tomcat installation directory (e.g., `C:\Java\apache-tomcat-11.0.4`)|
 | `tomcat.java.home`     | `string`|`""`           | Valid JDK path                         | JDK installation path (e.g., `C:\Program Files\Java\jdk-21`)   |
 | `tomcat.port`          | `number`|`8080`         | 1024-65535                             | Tomcat server listen port                        |
 | `tomcat.defaultBrowser`| `string`|`Google Chrome`| Chrome/Firefox/Edge/Safari/Brave/Opera | Browser for app launch & debug                   |

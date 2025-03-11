@@ -2,7 +2,7 @@
   "name": "tomcat",
   "displayName": "Tomcat",
   "description": "Fully Automated Support for Visual Studio Code",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "publisher": "Al-rimi",
   "author": {
     "email": "abdullah@syalux.com",
@@ -62,7 +62,7 @@
       },
       {
         "command": "tomcat.deployButton",
-        "title": "Tomcat Deploy",
+        "title": "Deploy Application",
         "category": "Tomcat",
         "icon": {
           "light": "resources/tomcat-icon-light.svg",
@@ -72,6 +72,10 @@
       {
         "command": "tomcat.showdeployButton",
         "title": "Show Deploy Button"
+      },
+      {
+        "command": "tomcat.toggleDeploySetting",
+        "title": "Toggle Deploy Setting"
       },
       {
         "command": "tomcat.start",
@@ -124,7 +128,7 @@
         },
         "tomcat.defaultBrowser": {
           "type": "string",
-          "enum": ["Google Chrome", "Firefox", "Microsoft Edge", "Safari", "Brave", "Opera"],
+          "enum": ["Google Chrome", "Microsoft Edge", "Safari", "Brave", "Opera"],
           "default": "Google Chrome",
           "description": "Select your preferred browser to launch the app."
         },
@@ -133,17 +137,17 @@
           "default": false,
           "description": "Enable or disable logging output in the Output channel."
         },
-        "tomcat.autoDeploy": {
+        "tomcat.defaultDeployMood": {
           "type": "string",
           "enum": ["Disabled", "On Save", "On Shortcut"],
           "default": "On Save",
-          "description": "Select the auto deployment mode. 'Disabled' will turn off auto deployment, 'On Save' will deploy the application automatically when a file is saved, and 'On Shortcut' will deploy the application when a specific shortcut key is pressed."
+          "description": "Select the default deployment mode. 'Disabled' will turn off auto deployment, 'On Save' will deploy the application automatically when a file is saved, and 'On Shortcut' will deploy the application for Windows/Linux on ctrl+s, Mac on cmd+s."
         },
-        "tomcat.adefaultDeployType": {
+        "tomcat.defaultDeployType": {
           "type": "string",
           "enum": ["Fast", "Maven", "Gradle"],
           "default": "Fast",
-          "description": "Select the deployment type for auto deployment."
+          "description": "Select the default deployment type."
         }
       }
     }

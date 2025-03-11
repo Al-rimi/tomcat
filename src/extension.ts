@@ -10,12 +10,12 @@ let statusBarItem: vscode.StatusBarItem;
 
 export function defaultStatusBar(): void {
     if (statusBarItem) {
-        let setting = vscode.workspace.getConfiguration().get<string>('tomcat.autoDeploy', 'On Save');
+        let setting = vscode.workspace.getConfiguration().get<string>('tomcat.defaultDeployMood', 'On Save');
         if (setting === 'On Shortcut') {
             setting = process.platform === 'darwin' ? 'Cmd+S' : 'Ctrl+S';
         }
         statusBarItem.text = `${setting === 'On Save' ? '$(sync~spin)' : '$(server)'} Tomcat deploy: ${setting}`;
-        statusBarItem.tooltip = `Tomcat auto deploy: ${setting}`;
+        statusBarItem.tooltip = 'Click to change deploy mode';
     }
 }
 
@@ -33,7 +33,11 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('tomcat.clean', cleanTomcat),
         vscode.commands.registerCommand('tomcat.deploy', deployTomcat),
         vscode.commands.registerCommand('tomcat.help', showHelpPanel),
-        vscode.commands.registerCommand('tomcat.deployButton', toggleTomcatDeploySetting)
+        vscode.commands.registerCommand('tomcat.deployButton', deployTomcat)
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('tomcat.toggleDeploySetting', toggleTomcatDeploySetting)
     );
 
     if (isJavaEEProject()) {
@@ -62,7 +66,7 @@ export function deactivate() {
 function createStatusBar(): vscode.StatusBarItem {
     if (!statusBarItem) {
         statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
-        statusBarItem.command = 'tomcat.stop';
+        statusBarItem.command = 'tomcat.toggleDeploySetting';
         statusBarItem.show();
     }
     return statusBarItem;
@@ -70,7 +74,7 @@ function createStatusBar(): vscode.StatusBarItem {
 
 async function toggleTomcatDeploySetting() {
     const config = vscode.workspace.getConfiguration();
-    let setting = config.get<string>('tomcat.autoDeploy', 'On Save');
+    let setting = config.get<string>('tomcat.defaultDeployMood', 'On Save');
 
     switch (setting) {
         case 'Disabled':
@@ -85,6 +89,6 @@ async function toggleTomcatDeploySetting() {
             break;
     }
 
-    await config.update('tomcat.autoDeploy', setting, vscode.ConfigurationTarget.Global);
+    await config.update('tomcat.defaultDeployMood', setting, vscode.ConfigurationTarget.Global);
     defaultStatusBar();
 }
