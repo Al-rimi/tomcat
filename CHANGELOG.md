@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [1.2.1] - 2025-03-12
+### Changed
+- better visual feedback for deployment modes.
+- Renamed `autoDeploy` to `defaultDeployMood` for consistency.
+- Improved handling of deployment triggers and save events.
+- More descriptive error messages for invalid Tomcat and Java paths.
+
+### Fixed
+- Removed Firefox support due to legacy protocol limitations.
+- Issues with path validation for `catalina.bat` and `java.exe` on win.
+- Resolved issues with toggling deployment modes in the status bar.
+- Improved reliability of browser reload functionality.
+
 ## [1.2.0] - 2025-03-11
 ### Added
 - Tomcat reload functionality with basic authentication.
@@ -22,7 +35,7 @@
 - Status bar flickering during operations.
 - Configuration validation edge cases.
 - Help panel styling inconsistencies.
-- Multiple save requests resulting crashing.
+- Multiple save requests resulting in crashes.
 
 ## [1.1.1] - 2025-03-10
 ### Fixed

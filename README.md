@@ -12,7 +12,6 @@ Advanced Apache Tomcat management directly in your editor. Full server control, 
 | **UI Enhancements**    | Status bar integration • Contextual hover • Interactive help         |
 | **Optimization**       | WAR caching • Smart browser reload • Configuration versioning        |
 
-
 ## Installation
 
 1. Open VS Code (`Ctrl+Shift+N`)
@@ -67,11 +66,10 @@ Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 
 [![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square)](https://github.com/Al-rimi/tomcat/issues)
 
-## What's New in 1.2.0
-- **Faster Deployment** - Deployment time for all methods reduced by 200 milliseconds
-- **Editor Deployment Widget** - Integrated button with type selector
-- **Enhanced Status Tracking** - Real-time deployment states in status bar
-- **Hover-Aware UI** - Visual feedback for deployment controls
+## What's New in 1.2.1
+- **Firefox Support Removed**: Streamlined browser support for better reliability.
+- **Improved Path Validation**: Better handling of Tomcat and Java installation paths.
+- **Enhanced Status Bar**: Added tooltips and clearer deployment mode indicators.
 
 [View Full Changelog](#changelog)
 
