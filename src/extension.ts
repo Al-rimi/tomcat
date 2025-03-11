@@ -1,47 +1,90 @@
-// extension.ts
 import * as vscode from 'vscode';
 import { startTomcat } from './commands/start';
 import { stopTomcat } from './commands/stop';
 import { cleanTomcat } from './commands/clean';
 import { deployTomcat } from './commands/deploy';
-import { showHelp } from './commands/help';
-import { registerAutoDeploy } from './utils/deploy';
+import { showHelpPanel } from './commands/help';
+import { registerAutoDeploy, isJavaEEProject } from './utils/deploy';
 
 let statusBarItem: vscode.StatusBarItem;
 
-export function createStatusBarItem(): vscode.StatusBarItem {
-    if (!statusBarItem) {
-        statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
-        statusBarItem.show();
+export function defaultStatusBar(): void {
+    if (statusBarItem) {
+        let setting = vscode.workspace.getConfiguration().get<string>('tomcat.autoDeploy', 'On Save');
+        if (setting === 'On Shortcut') {
+            setting = process.platform === 'darwin' ? 'Cmd+S' : 'Ctrl+S';
+        }
+        statusBarItem.text = `${setting === 'On Save' ? '$(sync~spin)' : '$(server)'} Tomcat deploy: ${setting}`;
+        statusBarItem.tooltip = `Tomcat auto deploy: ${setting}`;
     }
-    return statusBarItem;
 }
 
-export function updateStatusBarItem(isRunning: boolean): void {
-    if (!statusBarItem) {
-        statusBarItem = createStatusBarItem();
+export function updateStatusBar(value: String): void {
+    if (statusBarItem) {
+        statusBarItem.text = `$(sync~spin) ${value}`;
+        statusBarItem.tooltip = `${value} Loading...`;
     }
-    statusBarItem.text = isRunning ? '$(sync~spin) Tomcat' : '$(circle-slash) Tomcat';
-    statusBarItem.show();
 }
 
 export function activate(context: vscode.ExtensionContext) {
-    statusBarItem = createStatusBarItem();
-    context.subscriptions.push(statusBarItem);
-
     context.subscriptions.push(
         vscode.commands.registerCommand('tomcat.start', startTomcat),
         vscode.commands.registerCommand('tomcat.stop', stopTomcat),
         vscode.commands.registerCommand('tomcat.clean', cleanTomcat),
         vscode.commands.registerCommand('tomcat.deploy', deployTomcat),
-        vscode.commands.registerCommand('tomcat.help', showHelp),
+        vscode.commands.registerCommand('tomcat.help', showHelpPanel),
+        vscode.commands.registerCommand('tomcat.deployButton', toggleTomcatDeploySetting)
     );
 
-    registerAutoDeploy(context);
+    if (isJavaEEProject()) {
+        statusBarItem = createStatusBar();
+        defaultStatusBar();
+        context.subscriptions.push(statusBarItem);
+        vscode.commands.executeCommand('setContext', 'tomcat.showdeployButton', true);
+        registerAutoDeploy(context);
+    } else {
+        const deployOnShortcutCommand = vscode.commands.registerCommand('tomcat.deployOnShortcut', async () => {
+            const editor = vscode.window.activeTextEditor;
+            if (editor) {
+                await editor.document.save();
+            }
+        });
+        context.subscriptions.push(deployOnShortcutCommand);
+    }
 }
 
 export function deactivate() {
     if (statusBarItem) {
         statusBarItem.dispose();
     }
+}
+
+function createStatusBar(): vscode.StatusBarItem {
+    if (!statusBarItem) {
+        statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
+        statusBarItem.command = 'tomcat.stop';
+        statusBarItem.show();
+    }
+    return statusBarItem;
+}
+
+async function toggleTomcatDeploySetting() {
+    const config = vscode.workspace.getConfiguration();
+    let setting = config.get<string>('tomcat.autoDeploy', 'On Save');
+
+    switch (setting) {
+        case 'Disabled':
+            setting = 'On Shortcut';
+            break;
+        case 'On Shortcut':
+            setting = 'On Save';
+            break;
+        case 'On Save':
+        default:
+            setting = 'Disabled';
+            break;
+    }
+
+    await config.update('tomcat.autoDeploy', setting, vscode.ConfigurationTarget.Global);
+    defaultStatusBar();
 }

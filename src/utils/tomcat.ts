@@ -1,8 +1,9 @@
 import { exec } from 'child_process';
 import * as net from 'net';
-import { updateStatusBarItem } from '../extension';
 import { error , info } from './logger';
 const vscode = require('vscode');
+const fs = require('fs');
+const path = require('path');
 
 export function isTomcatRunning(): Promise<boolean> {
     return new Promise((resolve) => {
@@ -89,25 +90,51 @@ export async function findJavaHome(): Promise<string> {
     }
 }
 
-
 export async function tomcat(action: 'start' | 'stop' | 'reload'): Promise<void> {
-
-    let tomcatHome = findTomcatHome();
+    let tomcatHome = await findTomcatHome();
     if (!tomcatHome) { return; }
 
-    let javaHome = findJavaHome();
+    let javaHome = await findJavaHome();
     if (!javaHome) { return; }
 
     if (await isTomcatRunning()) {
         if (action === 'start') {
             info('Tomcat is already running');
-            updateStatusBarItem(true);
+            return;
+        }
+        if (action === 'reload') {
+            const appName = path.basename(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '');
+            if (!appName) { return; }
+            const creds = Buffer.from('admin:admin').toString('base64');
+            const options = {
+                hostname: 'localhost',
+                port: vscode.workspace.getConfiguration().get('tomcat.port', 8080),
+                path: `/manager/text/reload?path=/${appName}`,
+                method: 'GET',
+                headers: {
+                    'Authorization': `Basic ${creds}`
+                }
+            };
+
+            const req = require('http').request(options, (res: any) => {
+                if (res.statusCode === 200) {
+                    info('Tomcat reloaded');
+                } else {
+                    info(`Failed to reload Tomcat: ${res.statusCode}`);
+                    addTomcatUser();
+                }
+            });
+            req.on('error', (e: any) => {
+                info(`Failed to reload Tomcat: ${e.message}`);
+                addTomcatUser();
+            });
+
+            req.end();
             return;
         }
     } else {
         if (action === 'stop') {
             info('Tomcat is not running');
-            updateStatusBarItem(false);
             return;
         }
         if (action === 'reload') {
@@ -115,7 +142,7 @@ export async function tomcat(action: 'start' | 'stop' | 'reload'): Promise<void>
         }
     }
 
-    const javaExecutable = `${javaHome}/bin/java`;
+    const javaExecutable = `${javaHome}/bin/java${process.platform === 'win32' ? '.exe' : ''}`;
     const classpath = `${tomcatHome}/bin/bootstrap.jar${process.platform === 'win32' ? ';' : ':'}${tomcatHome}/bin/tomcat-juli.jar`;
     const mainClass = 'org.apache.catalina.startup.Bootstrap';
     const catalinaOpts = `-Dcatalina.base=${tomcatHome} -Dcatalina.home=${tomcatHome} -Djava.io.tmpdir=${tomcatHome}/temp`;
@@ -127,9 +154,45 @@ export async function tomcat(action: 'start' | 'stop' | 'reload'): Promise<void>
             error(`Failed to ${action} Tomcat: ${stderr}`);
             return;
         }
+        info(`Tomcat ${action}ed`);
     });
+}
 
-    info(`Tomcat ${action}ed`);
+async function addTomcatUser(): Promise<void> {
+    try {
+        const tomcatHome = await findTomcatHome();
+        if (!tomcatHome) { return; }
 
-    updateStatusBarItem(!(action === 'stop'));
+        const filePath = path.join(tomcatHome, 'conf', 'tomcat-users.xml');
+        
+        let content: string;
+        try {
+            content = fs.readFileSync(filePath, 'utf8');
+        } catch (err) {
+            error(`Unable to read ${filePath}: ${(err as Error).message}, Please add "<user username="admin" password="admin" roles="manager-gui,manager-script"/>" to the file.`);
+            return;
+        }
+        const newUserLine = '<user username="admin" password="admin" roles="manager-gui,manager-script"/>';
+
+        if (content.includes('<user username="admin"')) {
+            info('Admin user already exists in tomcat-users.xml. Removing existing user.');
+            content = content.replace(/<user username="admin".*\/>/, '');
+        }
+
+        const updatedContent = content.replace(
+            /(\s*<\/tomcat-users>)/,
+            `\n  ${newUserLine}\n$1`
+        );
+
+        try {
+            fs.writeFileSync(filePath, updatedContent);
+            info('Successfully added admin user to tomcat-users.xml.');
+        } catch (err) {
+            error(`Failed to write to tomcat-users.xml: ${(err as Error).message}`);
+        }
+    } catch (err) {
+        error(`Unexpected error adding Tomcat user: ${(err as Error).message}`);
+    } finally {
+        tomcat('stop');
+    }
 }

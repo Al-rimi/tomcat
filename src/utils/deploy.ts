@@ -5,6 +5,7 @@ import path from 'path';
 import { tomcat, findTomcatHome } from './tomcat';
 import { runBrowser } from './browser';
 import { error, info, done } from './logger';
+import { defaultStatusBar, updateStatusBar } from '../extension';
 
 let autoDeployDisposables: vscode.Disposable[] = [];
 
@@ -37,90 +38,6 @@ export function isJavaEEProject(): boolean {
     return false;
 }
 
-export async function registerAutoDeploy(context: vscode.ExtensionContext): Promise<void> {
-    const configChangeDisposable = vscode.workspace.onDidChangeConfiguration(async (event) => {
-        if (event.affectsConfiguration('tomcat.autoDeploy') || event.affectsConfiguration('tomcat.autoDeployType')) {
-            info('Configuration changed, reloading Auto Deploy settings');
-            await updateAutoDeploy();
-        }
-    });
-
-    context.subscriptions.push(configChangeDisposable);
-
-    async function updateAutoDeploy(): Promise<void> {
-
-        const config = vscode.workspace.getConfiguration('tomcat');
-        const autoDeployType = config.get<string>('autoDeployType', 'Fast') as 'Fast' | 'Maven' | 'Gradle';
-        let autoDeploy = config.get<string>('autoDeploy', 'Disabled');
-
-        if (!await isJavaEEProject()) { autoDeploy = 'Disabled'; }
-
-        if (autoDeploy !== 'Disabled') {
-            autoDeployDisposables.forEach(disposable => disposable.dispose());
-            autoDeployDisposables = [];
-
-            if (autoDeploy === 'On Save') {
-                const saveDisposable = vscode.workspace.onDidSaveTextDocument(async (document) => {
-                    info(`File saved: ${document.fileName}`);
-
-                    const filesConfig = vscode.workspace.getConfiguration('files');
-                    const autoSave = filesConfig.get<string>('autoSave', 'off');
-
-                    if (autoSave === 'afterDelay') {
-                        await new Promise(resolve => setTimeout(resolve, 200));
-                    }
-
-                    await deploy(autoDeployType);
-                    info('Deploy On Save');
-                });
-
-                autoDeployDisposables.push(saveDisposable);
-                context.subscriptions.push(saveDisposable);
-            }
-        }
-
-        const ctrlSDisposable = vscode.commands.registerCommand('tomcat.deployOnCtrlS', async () => {
-            const editor = vscode.window.activeTextEditor;
-            if (editor) {
-                await editor.document.save();
-        
-                if (autoDeploy === 'On Ctrl+S' || autoDeploy === 'On Save') {
-                    await deploy(autoDeployType);
-                    info('Deploy triggered by Ctrl+S');
-                }
-            }
-        });
-
-        autoDeployDisposables.push(ctrlSDisposable);
-        context.subscriptions.push(ctrlSDisposable);
-    }
-
-    await updateAutoDeploy();
-}
-
-async function createNewProject(): Promise<void> {
-    const answer = await vscode.window.showInformationMessage(
-        'No Java EE project found. Do you want to create a new one?',
-        'Yes',
-        'No'
-    );
-
-    if (answer === 'Yes') {
-        try {
-            await vscode.commands.executeCommand('java.project.create', {
-                type: 'maven',
-                archetype: 'maven-archetype-webapp'
-            });
-            info('New Maven web app project created');
-        } catch (err) {
-            error(`Failed to create new project: ${err}`);
-        }
-        return;
-    } else {
-        done('Tomcat deploy canceled.');
-        return;
-    }
-}
 
 export async function cleanOldDeployments(): Promise<void> {
     const tomcatHome = await findTomcatHome();
@@ -151,7 +68,7 @@ export async function deploy(type: 'Fast' | 'Maven' | 'Gradle'): Promise<void> {
     const tomcatHome = await findTomcatHome();
     if (!tomcatHome) { return; }
 
-    const loadingMessage = vscode.window.setStatusBarMessage(`$(sync~spin) Deploying (${type})...`);
+    updateStatusBar(type);
     await vscode.workspace.saveAll();
 
     try {
@@ -169,12 +86,98 @@ export async function deploy(type: 'Fast' | 'Maven' | 'Gradle'): Promise<void> {
         }
 
         info('Deployment completed successfully.');
-        await tomcat('reload');
+        await tomcat('reload');        
         runBrowser(appName);
     } catch (err) {
         error(`Deployment failed: ${(err instanceof Error) ? err.message : 'Unknown error'}`);
     } finally {
-        loadingMessage.dispose();
+        defaultStatusBar();
+    }
+}
+
+export async function registerAutoDeploy(context: vscode.ExtensionContext): Promise<void> {
+    let isDeploying = false;
+
+    const configChangeDisposable = vscode.workspace.onDidChangeConfiguration(async (event) => {
+        if (event.affectsConfiguration('tomcat.autoDeploy') || event.affectsConfiguration('tomcat.adefaultDeployType')) {
+            info('Configuration changed, reloading Auto Deploy settings');
+            await updateAutoDeploy();
+        }
+    });
+
+    context.subscriptions.push(configChangeDisposable);
+
+    async function updateAutoDeploy(): Promise<void> {
+        const config = vscode.workspace.getConfiguration('tomcat');
+        const adefaultDeployType = config.get<string>('adefaultDeployType', 'Fast') as 'Fast' | 'Maven' | 'Gradle';
+        let autoDeploy = config.get<string>('autoDeploy', 'Disabled');
+
+        if (!await isJavaEEProject()) { autoDeploy = 'Disabled'; }
+
+        if (autoDeploy !== 'Disabled') {
+            autoDeployDisposables.forEach(disposable => disposable.dispose());
+            autoDeployDisposables = [];
+
+            if (autoDeploy === 'On Save') {
+                const saveDisposable = vscode.workspace.onDidSaveTextDocument(async (document) => {
+                    if (isDeploying) { return; }
+                    isDeploying = true;
+
+                    info(`File saved: ${document.fileName}`);
+
+                    await deploy(adefaultDeployType);
+                    info('Deploy On Save');
+                    isDeploying = false;
+                });
+
+                autoDeployDisposables.push(saveDisposable);
+                context.subscriptions.push(saveDisposable);
+            }
+        }
+
+        const ShortcutDisposable = vscode.commands.registerCommand('tomcat.deployOnShortcut', async () => {
+            if (isDeploying) { return; }
+            isDeploying = true;
+
+            const editor = vscode.window.activeTextEditor;
+            if (editor) { 
+                await editor.document.save();
+                if (autoDeploy === 'On Shortcut' || autoDeploy === 'On Save') {
+                    await deploy(adefaultDeployType);
+                    info('Deploy triggered by Ctrl+S');
+                }
+            }
+            isDeploying = false;
+        });
+
+        autoDeployDisposables.push(ShortcutDisposable);
+        context.subscriptions.push(ShortcutDisposable);
+    }
+
+    await updateAutoDeploy();
+}
+
+async function createNewProject(): Promise<void> {
+    const answer = await vscode.window.showInformationMessage(
+        'No Java EE project found. Do you want to create a new one?',
+        'Yes',
+        'No'
+    );
+
+    if (answer === 'Yes') {
+        try {
+            await vscode.commands.executeCommand('java.project.create', {
+                type: 'maven',
+                archetype: 'maven-archetype-webapp'
+            });
+            info('New Maven web app project created');
+        } catch (err) {
+            error(`Failed to create new project: ${err}`);
+        }
+        return;
+    } else {
+        done('Tomcat deploy canceled.');
+        return;
     }
 }
 

@@ -1,9 +1,14 @@
 {
   "name": "tomcat",
   "displayName": "Tomcat",
-  "description": "Easy way to manage Apache Tomcat servers directly from VS Code.",
-  "version": "1.1.1",
+  "description": "Fully Automated Support for Visual Studio Code",
+  "version": "1.2.0",
   "publisher": "Al-rimi",
+  "author": {
+    "email": "abdullah@syalux.com",
+    "name": "Abdullah Al raimi",
+    "url": "https://syalux.com"
+  },
   "icon": "resources/tomcat-logo.png",
   "repository": {
     "type": "git",
@@ -42,12 +47,32 @@
   "contributes": {
     "keybindings": [
       {
-        "command": "tomcat.deployOnCtrlS",
-        "key": "ctrl+s",
+        "command": "tomcat.deployOnShortcut",
+        "win": "ctrl+s",
+        "mac": "cmd+s",
+        "linux": "ctrl+s",
         "when": "editorTextFocus"
       }
     ],
     "commands": [
+      {
+        "command": "tomcat.deployOnShortcut",
+        "title": "Deploy Tomcat Application via Shortcut",
+        "category": "Tomcat"
+      },
+      {
+        "command": "tomcat.deployButton",
+        "title": "Tomcat Deploy",
+        "category": "Tomcat",
+        "icon": {
+          "light": "resources/tomcat-icon-light.svg",
+          "dark": "resources/tomcat-icon-dark.svg"
+        }
+      },
+      {
+        "command": "tomcat.showdeployButton",
+        "title": "Show Deploy Button"
+      },
       {
         "command": "tomcat.start",
         "title": "Tomcat: Start"
@@ -69,6 +94,16 @@
         "title": "Tomcat: Help"
       }
     ],
+    "menus": {
+      "editor/title": [
+      {
+        "command": "tomcat.deployButton",
+        "when": "tomcat.showdeployButton",
+        "group": "navigation",
+        "tooltip": "Open Tomcat Dashboard"
+      }
+      ]
+    },
     "configuration": {
       "title": "Tomcat",
       "properties": {
@@ -100,10 +135,11 @@
         },
         "tomcat.autoDeploy": {
           "type": "string",
-          "enum": ["Disabled", "On Save", "On Ctrl+S"],
-          "default": "On Save"
+          "enum": ["Disabled", "On Save", "On Shortcut"],
+          "default": "On Save",
+          "description": "Select the auto deployment mode. 'Disabled' will turn off auto deployment, 'On Save' will deploy the application automatically when a file is saved, and 'On Shortcut' will deploy the application when a specific shortcut key is pressed."
         },
-        "tomcat.autoDeployType": {
+        "tomcat.adefaultDeployType": {
           "type": "string",
           "enum": ["Fast", "Maven", "Gradle"],
           "default": "Fast",

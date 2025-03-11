@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-export function showHelp(): void {
+export function showHelpPanel(): void {
     const panel = vscode.window.createWebviewPanel(
         'tomcatHelp',
         'Tomcat Extension - Help',
@@ -193,7 +193,7 @@ export function showHelp(): void {
 
                 <div class="footer">
                     <div>Developed by Al-rimi</div>
-                    <div>Version 1.1.0</div>
+                    <div>Version 1.2.0</div>
                 </div>
             </div>
         </body>

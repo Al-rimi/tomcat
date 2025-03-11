@@ -2,10 +2,9 @@ import { exec } from 'child_process';
 import { info, error } from './logger';
 import WebSocket from 'ws';
 import * as vscode from 'vscode';
+import { defaultStatusBar, updateStatusBar } from '../extension';
 
-function getBrowserCommand(): string {
-    const browser = vscode.workspace.getConfiguration('tomcat').get<string>('defaultBrowser') || 'chrome';
-
+function getBrowserCommand(browser: string): string {
     switch (browser) {
         case 'Firefox':
             return process.platform === 'win32' ? 'start firefox' : 'firefox';
@@ -27,9 +26,11 @@ export async function runBrowser(appName: string): Promise<void> {
     const targetPort = browser === 'firefox' ? 6000 : 9222;
     const appUrl = `http://localhost:${vscode.workspace.getConfiguration().get('tomcat.port', 8080)}/${appName}`;
     const debugUrl = `http://localhost:${targetPort}/json`;
-    const browserCommand = getBrowserCommand();
+    const browserCommand = getBrowserCommand(browser);
 
-    exec(`curl ${debugUrl}`, async (err, stdout) => {
+    updateStatusBar(browser);
+
+    exec(`curl ${debugUrl}`, async (_, stdout) => {
         try {
             const sessions = JSON.parse(stdout);
             const target = sessions.find((session: any) => session.url.includes(appUrl));
@@ -41,14 +42,17 @@ export async function runBrowser(appName: string): Promise<void> {
                     ws.send(JSON.stringify({ id: 2, method: 'Target.activateTarget', params: { targetId: target.id } }));
                     ws.close();
                     info(`${browser} reloaded`);
+                    defaultStatusBar();
                 });
                 ws.on('error', (err) => {
                     error(`WebSocket Error: ${err}`);
                     exec(`${browserCommand} --remote-debugging-port=${targetPort} ${appUrl}`);
+                    defaultStatusBar();
                 });
             } else {
                 info(`No active sessions, opening a new ${browser} window`);
                 exec(`${browserCommand} --remote-debugging-port=${targetPort} ${appUrl}`);
+                defaultStatusBar();
                 return;
             }
         } catch (parseErr) {
@@ -77,12 +81,15 @@ export async function runBrowser(appName: string): Promise<void> {
                         } else {
                             exec(`${browserCommand} --remote-debugging-port=${targetPort} ${appUrl}`);
                         }
+                        defaultStatusBar();
                     });
                 } else {
                     info(`User chose not to reopen ${browser}`);
+                    defaultStatusBar();
                 }
             } else {
                 info(`No active sessions, opening a new ${browser} window`);
+                defaultStatusBar();
                 exec(`${browserCommand} --remote-debugging-port=${targetPort} ${appUrl}`);
             }
         }
