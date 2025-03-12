@@ -76,7 +76,6 @@ export async function runBrowser(appName: string): Promise<void> {
         const response = await httpGet(debugUrl);
         const sessions = JSON.parse(response);
         const target = sessions.find((session: any) => {
-            info(`Session URL: ${session.url}`);
             return session.url && session.url.includes(appUrl);
         });
         

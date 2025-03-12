@@ -142,27 +142,23 @@ export function showHelpPanel(): void {
                 <h2>Tomcat Extension Help</h2>
 
                 <div class="section">
-                    <h3>What's New in v1.2.1</h3>
+                    <h3>What's New in v1.2.2</h3>
                     <ul>
                         <li class="new-feature">
-                            <strong>Integrated Deploy Button</strong>
-                            <p>Access deployment options directly from the editor toolbar.</p>
+                            <strong>Expanded Browser Support</strong>
+                            <p>Firefox and Safari integrated to always open a new tab instead</p>
                         </li>
                         <li class="new-feature">
-                            <strong>Real-time Status Indicators</strong>
-                            <p>
-                                <span class="status-indicator active"></span> Deployment Status
-                                <span class="status-indicator inactive"></span> Server Status
-                            </p>
+                            <strong>Build Type Configuration</strong>
+                            <p>New <span class="command">defaultBuildType</span> setting for deployment strategies</p>
                         </li>
                         <li class="new-feature">
-                            <strong>Auto Admin Setup</strong>
-                            <p>Automatic configuration of admin credentials for management access.</p>
+                            <strong>Cross-Platform Improvements</strong>
+                            <p>Enhanced browser path detection for macOS and Linux systems</p>
                         </li>
                     </ul>
                 </div>
 
-                <!-- Core Commands Section -->
                 <div class="section">
                     <h3>Core Commands</h3>
                     <ul>
@@ -185,7 +181,6 @@ export function showHelpPanel(): void {
                     </ul>
                 </div>
 
-                <!-- Deployment Section -->
                 <div class="section">
                     <h3>Deployment Options</h3>
                     <ul>
@@ -204,10 +199,19 @@ export function showHelpPanel(): void {
                     </ul>
                 </div>
 
-                <!-- Configuration Section -->
                 <div class="section">
                     <h3>Configuration Settings</h3>
                     <ul>
+                        <li>
+                            <span class="command">tomcat.defaultDeployMood</span>
+                            <span class="badge">Options: Disabled, On Save, Ctrl+S</span>
+                            <div>Automatic deployment trigger behavior</div>
+                        </li>
+                        <li>
+                            <span class="command">tomcat.defaultBuildType</span>
+                            <span class="badge">Options: Fast, Maven, Gradle</span>
+                            <div>Default build strategy for deployments</div>
+                        </li>
                         <li>
                             <span class="command">tomcat.home</span>
                             <span class="badge">Required</span>
@@ -223,17 +227,13 @@ export function showHelpPanel(): void {
                             <span class="badge">Default: 8080</span>
                             <div>Server port configuration</div>
                         </li>
-                        <li>
-                            <span class="command">tomcat.defaultDeployMood</span>
-                            <span class="badge">Options: Disabled, On Save, Ctrl+S</span>
-                            <div>Automatic deployment trigger</div>
-                        </li>
                     </ul>
 
                     <h3>Browser Configuration</h3>
                     <div class="browsers">
                         <div class="browser-item">Google Chrome</div>
                         <div class="browser-item">Microsoft Edge</div>
+                        <div class="browser-item">Firefox</div>
                         <div class="browser-item">Safari</div>
                         <div class="browser-item">Brave</div>
                         <div class="browser-item">Opera</div>

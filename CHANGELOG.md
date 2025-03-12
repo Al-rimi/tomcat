@@ -2,12 +2,33 @@
 
 ## [Unreleased]
 
+## [1.2.2] - 2025-03-13
+### Added
+- Half support for Firefox and Safari browsers.
+
+### Changed
+- Renamed `autoDeployType` to `defaultBuildType` for clarity
+- Improved browser process management across platforms
+- Refactored deployment configuration system
+
+### Fixed
+- Browser detection logic for non-Chromium browsers
+- Path validation for Java executable locations
+- Deployment trigger conflicts during save operations
+- Status bar tooltip consistency across platforms
+
 ## [1.2.1] - 2025-03-12
 ### Changed
-- better visual feedback for deployment modes.
-- Renamed `autoDeploy` to `defaultDeployMood` for consistency.
-- Improved handling of deployment triggers and save events.
-- More descriptive error messages for invalid Tomcat and Java paths.
+- Better visual feedback for deployment modes
+- Renamed `autoDeploy` to `defaultDeployMood` for consistency
+- Improved handling of deployment triggers and save events
+- More descriptive error messages for invalid Tomcat and Java paths
+
+### Fixed
+- Removed Firefox support due to legacy protocol limitations
+- Issues with path validation for `catalina.bat` and `java.exe` on win
+- Resolved issues with toggling deployment modes in the status bar
+- Improved reliability of browser reload functionality
 
 ### Fixed
 - Removed Firefox support due to legacy protocol limitations.

@@ -41,15 +41,15 @@ code --install-extension Al-rimi.tomcat
 
 Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 
-| Setting                | Type    | Default       | Values/Options                         | Description                                      |
-|------------------------|---------|---------------|----------------------------------------|--------------------------------------------------|
-| `tomcat.home`          | `string`|`""`           | Valid path                             | Tomcat installation directory (e.g., `C:\Java\apache-tomcat-11.0.4`)|
-| `tomcat.java.home`     | `string`|`""`           | Valid JDK path                         | JDK installation path (e.g., `C:\Program Files\Java\jdk-21`)   |
-| `tomcat.port`          | `number`|`8080`         | 1024-65535                             | Tomcat server listen port                        |
-| `tomcat.defaultBrowser`| `string`|`Google Chrome`| Chrome/Firefox/Edge/Safari/Brave/Opera | Browser for app launch & debug                   |
-| `tomcat.autoDeploy`    | `string`| `On Save`     | Disabled/On Save/On Ctrl+S             | Automatic deployment trigger                     |
-| `tomcat.autoDeployType`| `string`| `Fast`        | Fast/Maven/Gradle                      | Deployment strategy for auto-deploy              |
-| `tomcat.enableLogger`  |`boolean`| `false`       | true/false                             | Toggle logging in Output channel                 |
+| Setting                   | Type    | Default       | Values/Options                         | Description                                      |
+|---------------------------|---------|---------------|----------------------------------------|--------------------------------------------------|
+| `tomcat.defaultBrowser`   | `string`|`Google Chrome`| Chrome/Edge/Firefox/Safari/Brave/Opera | Browser for app launch & debug                   |
+| `tomcat.defaultDeployMood`| `string`| `On Save`     | Disabled/On Save/On Ctrl+S             | Automatic deployment trigger behavior            |
+| `tomcat.defaultBuildType` | `string`| `Fast`        | Fast/Maven/Gradle                      | Default build strategy for deployments           |
+| `tomcat.java.home`        | `string`|`JAVA_HOME`    | Valid JDK path                         | JDK installation path (e.g., `C:\Program Files\Java\jdk-21`)   |
+| `tomcat.home`             | `string`|`CATALINA_HOME`| Valid path                             | Tomcat installation directory (e.g., `C:\Java\apache-tomcat-11.0.4`)|
+| `tomcat.port`             | `number`|`8080`         | 1024-65535                             | Tomcat server listen port                        |
+| `tomcat.enableLogger`     |`boolean`| `false`       | true/false                             | Toggle logging in Output channel                 |
 
 ## Requirements
 
@@ -62,14 +62,15 @@ Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 
 ## Known Issues
 
-- Firefox debugging uses legacy protocol No time for learning a whole new protocol... just for one browser :(
+- Firefox and Safari will always open a new tab instead of reusing the existing one due to browser limitations.
 
 [![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square)](https://github.com/Al-rimi/tomcat/issues)
 
-## What's New in 1.2.1
-- **Firefox Support Removed**: Streamlined browser support for better reliability.
-- **Improved Path Validation**: Better handling of Tomcat and Java installation paths.
-- **Enhanced Status Bar**: Added tooltips and clearer deployment mode indicators.
+## What's New in 1.2.2
+- **Cross-Platform Fixes**: Improved reliability on macOS and Linux
+- **Half Browser Support**: Added Firefox and Safari integration
+- **Build Strategy Control**: Separate configuration for deployment methods
+- **Enhanced Debugging**: Better browser session management
 
 [View Full Changelog](#changelog)
 

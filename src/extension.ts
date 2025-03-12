@@ -33,7 +33,6 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('tomcat.clean', cleanTomcat),
         vscode.commands.registerCommand('tomcat.deploy', deployTomcat),
         vscode.commands.registerCommand('tomcat.help', showHelpPanel),
-        vscode.commands.registerCommand('tomcat.deployButton', deployTomcat)
     );
 
     context.subscriptions.push(

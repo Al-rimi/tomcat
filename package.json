@@ -2,7 +2,7 @@
   "name": "tomcat",
   "displayName": "Tomcat",
   "description": "Fully Automated Support for Visual Studio Code",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "publisher": "Al-rimi",
   "author": {
     "email": "abdullah@syalux.com",
@@ -56,26 +56,13 @@
     ],
     "commands": [
       {
-        "command": "tomcat.deployOnShortcut",
-        "title": "Deploy Tomcat Application via Shortcut",
-        "category": "Tomcat"
-      },
-      {
-        "command": "tomcat.deployButton",
-        "title": "Deploy Application",
+        "command": "tomcat.deploy",
+        "title": "Deploy",
         "category": "Tomcat",
         "icon": {
           "light": "resources/tomcat-icon-light.svg",
           "dark": "resources/tomcat-icon-dark.svg"
         }
-      },
-      {
-        "command": "tomcat.showdeployButton",
-        "title": "Show Deploy Button"
-      },
-      {
-        "command": "tomcat.toggleDeploySetting",
-        "title": "Toggle Deploy Setting"
       },
       {
         "command": "tomcat.start",
@@ -90,10 +77,6 @@
         "title": "Tomcat: Clean"
       },
       {
-        "command": "tomcat.deploy",
-        "title": "Tomcat: Deploy"
-      },
-      {
         "command": "tomcat.help",
         "title": "Tomcat: Help"
       }
@@ -101,7 +84,7 @@
     "menus": {
       "editor/title": [
         {
-          "command": "tomcat.deployButton",
+          "command": "tomcat.deploy",
           "when": "tomcat.showdeployButton",
           "group": "navigation",
           "tooltip": "Open Tomcat Dashboard"
@@ -129,25 +112,25 @@
             "Gradle"
           ],
           "default": "Fast",
-          "description": "Select the default build type."
+          "description": "Select the default build type for auto deployment."
         },
         "tomcat.defaultBrowser": {
           "type": "string",
           "enum": [
             "Google Chrome",
-            "Firefox",
             "Microsoft Edge",
+            "Firefox",
             "Safari",
             "Brave",
             "Opera"
           ],
           "default": "Google Chrome",
-          "description": "Select your preferred browser to launch the app."
+          "description": "Select your preferred browser to launch the app. Note that Firefox and Safari do not support the Chrome Debug Protocol, and automation is not supported in these browsers."
         },
         "tomcat.enableLogger": {
           "type": "boolean",
           "default": false,
-          "description": "Enable or disable logging output in the Output channel."
+          "description": "Enable or disable logging status in the Output channel."
         },
         "tomcat.port": {
           "type": "number",
@@ -177,6 +160,7 @@
   },
   "devDependencies": {
     "@types/node": "20.x",
+    "@types/tail": "^2.2.3",
     "@types/vscode": "^1.56.0",
     "@typescript-eslint/eslint-plugin": "^8.25.0",
     "@typescript-eslint/parser": "^8.25.0",
@@ -185,9 +169,7 @@
     "typescript": "^5.7.3"
   },
   "dependencies": {
-    "@types/extract-zip": "^2.0.0",
     "@types/ws": "^7.4.0",
-    "extract-zip": "^2.0.1",
     "ws": "^7.4.6"
   }
 }

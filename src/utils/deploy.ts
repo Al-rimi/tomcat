@@ -85,7 +85,7 @@ export async function deploy(type: 'Fast' | 'Maven' | 'Gradle'): Promise<void> {
             return;
         }
 
-        info('Deployment completed successfully.');
+        info('Deployment completed');
         await tomcat('reload');        
         runBrowser(appName);
     } catch (err) {
@@ -99,7 +99,7 @@ export async function registerAutoDeploy(context: vscode.ExtensionContext): Prom
     let isDeploying = false;
 
     const configChangeDisposable = vscode.workspace.onDidChangeConfiguration(async (event) => {
-        if (event.affectsConfiguration('tomcat.defaultDeployMood') || event.affectsConfiguration('tomcat.defaultDeployType')) {
+        if (event.affectsConfiguration('tomcat.defaultDeployMood') || event.affectsConfiguration('tomcat.defaultBuildType')) {
             info('Configuration changed, reloading Auto Deploy settings');
             await updateAutoDeploy();
         }
@@ -109,7 +109,7 @@ export async function registerAutoDeploy(context: vscode.ExtensionContext): Prom
 
     async function updateAutoDeploy(): Promise<void> {
         const config = vscode.workspace.getConfiguration('tomcat');
-        const defaultDeployType = config.get<string>('defaultDeployType', 'Fast') as 'Fast' | 'Maven' | 'Gradle';
+        const defaultBuildType = config.get<string>('defaultBuildType', 'Fast') as 'Fast' | 'Maven' | 'Gradle';
         let defaultDeployMood = config.get<string>('defaultDeployMood', 'Disabled');
 
         if (!await isJavaEEProject()) { defaultDeployMood = 'Disabled'; }
@@ -122,10 +122,7 @@ export async function registerAutoDeploy(context: vscode.ExtensionContext): Prom
                 const saveDisposable = vscode.workspace.onDidSaveTextDocument(async (document) => {
                     if (isDeploying) { return; }
                     isDeploying = true;
-
-                    info(`File saved: ${document.fileName}`);
-
-                    await deploy(defaultDeployType);
+                    await deploy(defaultBuildType);
                     info('Deploy On Save');
                     isDeploying = false;
                 });
@@ -143,7 +140,7 @@ export async function registerAutoDeploy(context: vscode.ExtensionContext): Prom
             if (editor) { 
                 await editor.document.save();
                 if (defaultDeployMood === 'On Shortcut' || defaultDeployMood === 'On Save') {
-                    await deploy(defaultDeployType);
+                    await deploy(defaultBuildType);
                     info('Deploy triggered by Ctrl+S');
                 }
             }
