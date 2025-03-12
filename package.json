@@ -100,35 +100,47 @@
     ],
     "menus": {
       "editor/title": [
-      {
-        "command": "tomcat.deployButton",
-        "when": "tomcat.showdeployButton",
-        "group": "navigation",
-        "tooltip": "Open Tomcat Dashboard"
-      }
+        {
+          "command": "tomcat.deployButton",
+          "when": "tomcat.showdeployButton",
+          "group": "navigation",
+          "tooltip": "Open Tomcat Dashboard"
+        }
       ]
     },
     "configuration": {
       "title": "Tomcat",
       "properties": {
-        "tomcat.home": {
+        "tomcat.defaultDeployMood": {
           "type": "string",
-          "default": "",
-          "description": "The path to the Tomcat installation. Example C:\\Java\\apache-tomcat-11.0.4"
+          "enum": [
+            "Disabled",
+            "On Save",
+            "On Shortcut"
+          ],
+          "default": "On Save",
+          "description": "Select the default deployment mode. 'Disabled' will turn off auto deployment, 'On Save' will deploy the application automatically when a file is saved, and 'On Shortcut' will deploy the application for Windows/Linux on ctrl+s, Mac on cmd+s."
         },
-        "tomcat.java.home": {
+        "tomcat.defaultBuildType": {
           "type": "string",
-          "default": "",
-          "description": "The path to the Java installation. Example C:\\Program Files\\Java\\jdk-21"
-        },
-        "tomcat.port": {
-          "type": "number",
-          "default": 8080,
-          "description": "The port number for the Tomcat server."
+          "enum": [
+            "Fast",
+            "Maven",
+            "Gradle"
+          ],
+          "default": "Fast",
+          "description": "Select the default build type."
         },
         "tomcat.defaultBrowser": {
           "type": "string",
-          "enum": ["Google Chrome", "Microsoft Edge", "Safari", "Brave", "Opera"],
+          "enum": [
+            "Google Chrome",
+            "Firefox",
+            "Microsoft Edge",
+            "Safari",
+            "Brave",
+            "Opera"
+          ],
           "default": "Google Chrome",
           "description": "Select your preferred browser to launch the app."
         },
@@ -137,17 +149,20 @@
           "default": false,
           "description": "Enable or disable logging output in the Output channel."
         },
-        "tomcat.defaultDeployMood": {
-          "type": "string",
-          "enum": ["Disabled", "On Save", "On Shortcut"],
-          "default": "On Save",
-          "description": "Select the default deployment mode. 'Disabled' will turn off auto deployment, 'On Save' will deploy the application automatically when a file is saved, and 'On Shortcut' will deploy the application for Windows/Linux on ctrl+s, Mac on cmd+s."
+        "tomcat.port": {
+          "type": "number",
+          "default": 8080,
+          "description": "The port number for the Tomcat server."
         },
-        "tomcat.defaultDeployType": {
+        "tomcat.home": {
           "type": "string",
-          "enum": ["Fast", "Maven", "Gradle"],
-          "default": "Fast",
-          "description": "Select the default deployment type."
+          "default": "",
+          "description": "The path to the Tomcat installation (e.g., C:\\Java\\apache-tomcat-xx)."
+        },
+        "tomcat.java.home": {
+          "type": "string",
+          "default": "",
+          "description": "The path to the Java installation. (e.g., C:\\Java\\jdk-xx)."
         }
       }
     }
@@ -170,7 +185,9 @@
     "typescript": "^5.7.3"
   },
   "dependencies": {
+    "@types/extract-zip": "^2.0.0",
     "@types/ws": "^7.4.0",
+    "extract-zip": "^2.0.1",
     "ws": "^7.4.6"
   }
 }
