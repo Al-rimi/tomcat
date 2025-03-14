@@ -6,6 +6,7 @@ import { tomcat, findTomcatHome } from './tomcat';
 import { runBrowser } from './browser';
 import { error, info, done } from './logger';
 import { defaultStatusBar, updateStatusBar } from '../extension';
+import { warn } from 'console';
 
 let autoDeployDisposables: vscode.Disposable[] = [];
 
@@ -97,10 +98,10 @@ export async function deploy(type: 'Fast' | 'Maven' | 'Gradle'): Promise<void> {
 
 export async function registerAutoDeploy(context: vscode.ExtensionContext): Promise<void> {
     let isDeploying = false;
+    let autoDeployDisposables: vscode.Disposable[] = [];
 
     const configChangeDisposable = vscode.workspace.onDidChangeConfiguration(async (event) => {
         if (event.affectsConfiguration('tomcat.defaultDeployMood') || event.affectsConfiguration('tomcat.defaultBuildType')) {
-            info('Configuration changed, reloading Auto Deploy settings');
             await updateAutoDeploy();
         }
     });
@@ -108,38 +109,37 @@ export async function registerAutoDeploy(context: vscode.ExtensionContext): Prom
     context.subscriptions.push(configChangeDisposable);
 
     async function updateAutoDeploy(): Promise<void> {
+        autoDeployDisposables.forEach(d => d.dispose());
+        autoDeployDisposables = [];
+
         const config = vscode.workspace.getConfiguration('tomcat');
         const defaultBuildType = config.get<string>('defaultBuildType', 'Fast') as 'Fast' | 'Maven' | 'Gradle';
         let defaultDeployMood = config.get<string>('defaultDeployMood', 'Disabled');
 
-        if (!await isJavaEEProject()) { defaultDeployMood = 'Disabled'; }
-
-        if (defaultDeployMood !== 'Disabled') {
-            autoDeployDisposables.forEach(disposable => disposable.dispose());
-            autoDeployDisposables = [];
-
-            if (defaultDeployMood === 'On Save') {
-                const saveDisposable = vscode.workspace.onDidSaveTextDocument(async (document) => {
-                    if (isDeploying) { return; }
-                    isDeploying = true;
-                    await deploy(defaultBuildType);
-                    info('Deploy On Save');
-                    isDeploying = false;
-                });
-
-                autoDeployDisposables.push(saveDisposable);
-                context.subscriptions.push(saveDisposable);
-            }
+        if (!await isJavaEEProject()) { 
+            defaultDeployMood = 'Disabled'; 
         }
 
-        const ShortcutDisposable = vscode.commands.registerCommand('tomcat.deployOnShortcut', async () => {
-            if (isDeploying) { return; }
+        if (defaultDeployMood === 'On Save') {
+            const saveDisposable = vscode.workspace.onDidSaveTextDocument(async (document) => {
+                if (isDeploying) {return;}
+                isDeploying = true;
+                await deploy(defaultBuildType);
+                info('Deploy On Save');
+                isDeploying = false;
+            });
+            autoDeployDisposables.push(saveDisposable);
+        }
+
+        const shortcutDisposable = vscode.commands.registerCommand('tomcat.deployOnShortcut', async () => {
+            if (isDeploying) {return;}
             isDeploying = true;
 
             const editor = vscode.window.activeTextEditor;
             if (editor) { 
                 await editor.document.save();
-                if (defaultDeployMood === 'On Shortcut' || defaultDeployMood === 'On Save') {
+                const currentDeployMood = vscode.workspace.getConfiguration('tomcat').get<string>('defaultDeployMood', 'Disabled');
+                if (currentDeployMood === 'On Shortcut' || currentDeployMood === 'On Save') {
                     await deploy(defaultBuildType);
                     info('Deploy triggered by Ctrl+S');
                 }
@@ -147,8 +147,8 @@ export async function registerAutoDeploy(context: vscode.ExtensionContext): Prom
             isDeploying = false;
         });
 
-        autoDeployDisposables.push(ShortcutDisposable);
-        context.subscriptions.push(ShortcutDisposable);
+        autoDeployDisposables.push(shortcutDisposable);
+        context.subscriptions.push(...autoDeployDisposables);
     }
 
     await updateAutoDeploy();
@@ -212,7 +212,8 @@ async function mavenDeploy(projectDir: string, tomcatHome: string) {
 
 async function gradleDeploy(projectDir: string, tomcatHome: string) {
     if (!fs.existsSync(path.join(projectDir, 'build.gradle'))) {
-        throw new Error('build.gradle not found.');
+        warn(' build.gradle not found.');
+        return;
     }
 
     await executeCommand('./gradlew build', projectDir);
