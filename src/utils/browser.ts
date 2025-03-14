@@ -84,7 +84,6 @@ export async function runBrowser(appName: string): Promise<void> {
             ws.on('open', () => {
                 ws.send(JSON.stringify({ id: 1, method: 'Page.reload', params: {} }));
                 ws.send(JSON.stringify({ id: 2, method: 'Target.activateTarget', params: { targetId: target.id } }));
-                ws.send(JSON.stringify({ id: 3, method: 'Page.bringToFront', params: {} })); 
                 ws.close();
                 info(`${browser} reloaded`);
                 defaultStatusBar();
