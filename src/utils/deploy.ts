@@ -65,6 +65,7 @@ export async function deploy(type: 'Fast' | 'Maven' | 'Gradle'): Promise<void> {
         return;
     }
 
+    info(`Build type: ${type}`);
     const appName = path.basename(projectDir);
     const tomcatHome = await findTomcatHome();
     if (!tomcatHome) { return; }
@@ -87,10 +88,11 @@ export async function deploy(type: 'Fast' | 'Maven' | 'Gradle'): Promise<void> {
         }
 
         info('Deployment completed');
-        await tomcat('reload');        
+        await tomcat('reload');
+        await new Promise(resolve => setTimeout(resolve, 20));
         runBrowser(appName);
     } catch (err) {
-        error(`Deployment failed: ${(err instanceof Error) ? err.message : 'Unknown error'}`);
+        error(`${type} build failed: ${(err instanceof Error) ? err.message : 'Unknown error'}`);
     } finally {
         defaultStatusBar();
     }
@@ -125,7 +127,6 @@ export async function registerAutoDeploy(context: vscode.ExtensionContext): Prom
                 if (isDeploying) {return;}
                 isDeploying = true;
                 await deploy(defaultBuildType);
-                info('Deploy On Save');
                 isDeploying = false;
             });
             autoDeployDisposables.push(saveDisposable);
@@ -141,7 +142,6 @@ export async function registerAutoDeploy(context: vscode.ExtensionContext): Prom
                 const currentDeployMood = vscode.workspace.getConfiguration('tomcat').get<string>('defaultDeployMood', 'Disabled');
                 if (currentDeployMood === 'On Shortcut' || currentDeployMood === 'On Save') {
                     await deploy(defaultBuildType);
-                    info('Deploy triggered by Ctrl+S');
                 }
             }
             isDeploying = false;
@@ -212,8 +212,7 @@ async function mavenDeploy(projectDir: string, tomcatHome: string) {
 
 async function gradleDeploy(projectDir: string, tomcatHome: string) {
     if (!fs.existsSync(path.join(projectDir, 'build.gradle'))) {
-        warn(' build.gradle not found.');
-        return;
+        throw new Error('build.gradle not found.');
     }
 
     await executeCommand('./gradlew build', projectDir);
