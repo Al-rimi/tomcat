@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [1.2.3] - 2025-03-14
+### Fixed
+- Gradle build logic errors and deployment failures
+- Browser reloading before Tomcat finishes initialization
+- Auto-deploy configuration change detection issues
+- Removed intrusive browser focus behavior on macOS
+- Improved deployment error messaging
+- Windows process killing commands for browser management
+
+
 ## [1.2.2] - 2025-03-13
 ### Added
 - Half support for Firefox and Safari browsers.

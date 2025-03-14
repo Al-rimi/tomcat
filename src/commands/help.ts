@@ -142,19 +142,19 @@ export function showHelpPanel(): void {
                 <h2>Tomcat Extension Help</h2>
 
                 <div class="section">
-                    <h3>What's New in v1.2.2</h3>
+                    <h3>What's New in v1.2.3</h3>
                     <ul>
                         <li class="new-feature">
-                            <strong>Expanded Browser Support</strong>
-                            <p>Firefox and Safari integrated to always open a new tab instead</p>
+                            <strong>Build System Fixes</strong>
+                            <p>Resolved critical Gradle deployment pipeline issues</p>
                         </li>
                         <li class="new-feature">
-                            <strong>Build Type Configuration</strong>
-                            <p>New <span class="command">defaultBuildType</span> setting for deployment strategies</p>
+                            <strong>Reload Coordination</strong>
+                            <p>Ensured Tomcat readiness before browser refresh</p>
                         </li>
                         <li class="new-feature">
-                            <strong>Cross-Platform Improvements</strong>
-                            <p>Enhanced browser path detection for macOS and Linux systems</p>
+                            <strong>MacOS Optimization</strong>
+                            <p>Removed disruptive window focus behavior</p>
                         </li>
                     </ul>
                 </div>
@@ -242,7 +242,7 @@ export function showHelpPanel(): void {
 
                 <div class="footer">
                     <div>Developed by Al-rimi</div>
-                    <div>Version 1.2.1</div>
+                    <div>Version 1.2.3</div>
                 </div>
             </div>
         </body>

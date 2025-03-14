@@ -1,8 +1,8 @@
 {
   "name": "tomcat",
   "displayName": "Tomcat",
-  "description": "Fully Automated Support for Visual Studio Code",
-  "version": "1.2.2",
+  "description": "Fully Automated Support for Apache Tomcat",
+  "version": "1.2.3",
   "publisher": "Al-rimi",
   "author": {
     "email": "abdullah@syalux.com",
@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/Al-rimi/tomcat#readme",
   "keywords": [
+    "apache tomcat",
     "tomcat",
     "server",
     "deployment",

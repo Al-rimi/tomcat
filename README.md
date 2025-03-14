@@ -66,13 +66,13 @@ Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 
 [![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square)](https://github.com/Al-rimi/tomcat/issues)
 
-## What's New in 1.2.2
-- **Cross-Platform Fixes**: Improved reliability on macOS and Linux
-- **Half Browser Support**: Added Firefox and Safari integration
-- **Build Strategy Control**: Separate configuration for deployment methods
-- **Enhanced Debugging**: Better browser session management
+## What's New in 1.2.3
+- **Gradle Improvements**: Fixed critical build logic errors
+- **Reload Synchronization**: Better Tomcat-browser coordination
+- **Config Hot-Reload**: Instant detection of setting changes
+- **Mac UX Enhancements**: Removed disruptive focus stealing
 
-[View Full Changelog](#changelog)
+[View Full Changelog](https://github.com/Al-rimi/tomcat/blob/main/CHANGELOG.md)
 
 ---
 
