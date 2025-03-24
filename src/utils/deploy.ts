@@ -6,7 +6,7 @@ import { env } from 'vscode';
 import { glob } from 'glob';
 import { tomcat, findTomcatHome, findJavaHome } from './tomcat';
 import { defaultStatusBar, updateStatusBar } from '../extension';
-import { error, info, done } from './logger';
+import { error, info, success } from './logger';
 import { runBrowser } from './browser';
 
 let autoDeployDisposables: vscode.Disposable[] = [];
@@ -76,7 +76,7 @@ export async function deploy(type: 'Fast' | 'Maven' | 'Gradle'): Promise<void> {
                 } else if (type === 'Gradle') {
                     await gradleDeploy(projectDir, targetDir, appName);
                 } else {
-                    error('Invalid deployment type.');
+                    error('Invalid deployment type: ', type);
                     return;
                 }
             }
@@ -90,7 +90,7 @@ export async function deploy(type: 'Fast' | 'Maven' | 'Gradle'): Promise<void> {
             runBrowser(appName);
         }
     } catch (err) {
-        error(`${type} build failed: ${(err instanceof Error) ? err.message : 'Unknown error'}`);
+        error(`${type} build failed`, err as Error);
     } finally {
         defaultStatusBar();
     }
@@ -180,7 +180,7 @@ async function createNewProject(): Promise<void> {
             });
             info('New Maven web app project created');
         } catch (err) {
-            error(`Failed to create new project: ${err}`);
+            error('Failed to create new project:', err as Error);
             vscode.window.showErrorMessage(
                 'Project creation failed. Ensure Java Extension Pack is installed and configured.',
                 'Open Extensions'
@@ -192,7 +192,7 @@ async function createNewProject(): Promise<void> {
         }
         return;
     } else {
-        done('Tomcat deploy canceled.');
+        success('Tomcat deploy canceled.');
         return;
     }
 }

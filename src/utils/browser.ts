@@ -2,14 +2,20 @@ import * as vscode from 'vscode';
 import * as http from 'http';
 import WebSocket from 'ws';
 import { defaultStatusBar, updateStatusBar } from '../extension';
-import { exec, execFile } from 'child_process';
+import { exec } from 'child_process';
 import { info, warn } from './logger';
+import { error } from 'console';
 
 const BROWSER_PROCESS_NAMES: { [key: string]: { [platform: string]: string[] } } = {
     'Google Chrome': {
         'win32': ['chrome'],
         'darwin': ['Google Chrome'],
         'linux': ['chrome', 'google-chrome', 'chromium']
+    },
+    'Firefox': {
+        'win32': ['firefox'],
+        'darwin': ['firefox'],
+        'linux': ['firefox']
     },
     'Microsoft Edge': {
         'win32': ['msedge', 'msedgewebview'],
@@ -28,8 +34,18 @@ const BROWSER_PROCESS_NAMES: { [key: string]: { [platform: string]: string[] } }
     }
 };
 
-function getBrowserCommand(browser: string): string[] | null {
+function getBrowserCommand(browser: string): string | null {
     const commands: { [key: string]: { [platform: string]: string[] } } = {
+        'Google Chrome': {
+            'win32': ['start', 'chrome.exe'],
+            'darwin': ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'],
+            'linux': ['google-chrome']
+        },
+        'Firefox': {
+            'win32': ['start', 'firefox.exe'],
+            'darwin': ['/Applications/Firefox.app/Contents/MacOS/firefox'],
+            'linux': ['firefox']
+        },
         'Microsoft Edge': {
             'win32': ['start', 'msedge.exe'],
             'darwin': ['/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge'],
@@ -47,11 +63,6 @@ function getBrowserCommand(browser: string): string[] | null {
         },
         'Safari': {
             'darwin': ['open', '-a', 'Safari']
-        },
-        'Google Chrome': {
-            'win32': ['start', 'chrome.exe'],
-            'darwin': ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'],
-            'linux': ['google-chrome']
         }
     };
 
@@ -60,31 +71,27 @@ function getBrowserCommand(browser: string): string[] | null {
     
     if (!browserCommands) {
         if (browser === 'Safari' && platform !== 'darwin') return null;
-        return commands['Google Chrome'][platform] || null;
+        return getBrowserCommand("Google Chrome") || null;
     }
+
+    const debugArgs = browser === 'Firefox' 
+    ? '--start-debugger-server'
+    : '--remote-debugging-port';
     
-    return browserCommands;
+    return `${browserCommands.join(' ')} ${debugArgs}=9222`;
 }
 
 export async function runBrowser(appName: string): Promise<void> {
     const config = vscode.workspace.getConfiguration('tomcat');
     const browser = config.get<string>('defaultBrowser') || 'Google Chrome';
-    const debugPort = 9222;
     const appUrl = `http://localhost:${config.get('port', 8080)}/${appName}`;
-    const debugUrl = `http://localhost:${debugPort}/json`;
+    const debugUrl = `http://localhost:${9222}/json`;
 
-    const browserCommand = getBrowserCommand(browser);
+    const browserCommand = `${getBrowserCommand(browser)} ${appUrl}`;
     if (!browserCommand) {
         warn(`${browser} is not supported on this platform`);
         return;
     }
-
-    const debugArgs = '--remote-debugging-port';
-    
-    const fullArgs = [
-        ...`${debugArgs}=${debugPort}`,
-        appUrl
-    ];
 
     updateStatusBar(browser);
 
@@ -105,7 +112,7 @@ export async function runBrowser(appName: string): Promise<void> {
             
             await new Promise<void>((resolve, reject) => {
                 ws.on('open', () => {
-                    ws.send(JSON.stringify({ id: 1, method: 'Page.reload', params: { targetId: target.id } }), (err) => {
+                    ws.send(JSON.stringify({ id: 1, method: 'Page.reload', params: { ignoreCache: true, scriptPrecedence: "userAgentOverride", targetId: target.id } }), (err) => {
                         if (err) reject(err);
                     });
                     ws.send(JSON.stringify({ id: 2, method: 'Target.activateTarget', params: { targetId: target.id } }), (err) => {
@@ -122,7 +129,7 @@ export async function runBrowser(appName: string): Promise<void> {
             info(`${browser} reloaded`);
         } else {
             info(`Opening new ${browser} window`);
-            execFile(browserCommand[0], [...browserCommand.slice(1), ...fullArgs], { shell: true });
+            execBrowserCommand(browserCommand);
         }
     } catch (err) {
         const isRunning = await checkBrowserProcess(browser);
@@ -134,14 +141,26 @@ export async function runBrowser(appName: string): Promise<void> {
             
             if (choice === 'Restart') {
                 await killBrowserProcess(browser);
-                execFile(browserCommand[0], [...browserCommand.slice(1), ...fullArgs], { shell: true });
+                execBrowserCommand(browserCommand);
             }
         } else {
-            execFile(browserCommand[0], [...browserCommand.slice(1), ...fullArgs], { shell: true });
+            execBrowserCommand(browserCommand);
         }
     } finally {
         defaultStatusBar();
     }
+}
+
+function execBrowserCommand(command: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+        exec(command, (err) => {
+            if (err){
+                error(`command failed: ${command}`, err);
+                reject(err);
+            }
+            resolve();
+        });
+    });
 }
 
 async function httpGet(url: string): Promise<string> {
@@ -164,7 +183,7 @@ async function httpGet(url: string): Promise<string> {
 }
 
 async function checkBrowserProcess(browser: string): Promise<boolean> {
-    if (browser === 'Safari') return false;
+    if (browser === 'Firefox' || browser === 'Safari') return false;
     const platform = process.platform as keyof typeof BROWSER_PROCESS_NAMES;
     const processes = BROWSER_PROCESS_NAMES[browser]?.[platform] || [];
     
@@ -204,7 +223,7 @@ async function killBrowserProcess(browser: string): Promise<void> {
     if (process.platform === 'win32') {
         const command = `Stop-Process -Force -Name '${processes.join("','")}'`;
         await new Promise<void>((resolve) => {
-            exec(`powershell -Command "${command}"`, () => resolve());
+            exec(command, { shell: 'powershell.exe' }, () => resolve());
         });
     } else {
         await new Promise<void>((resolve) => {

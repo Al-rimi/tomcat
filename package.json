@@ -116,6 +116,7 @@
           "enum": [
             "Google Chrome",
             "Microsoft Edge",
+            "Firefox",
             "Safari",
             "Brave",
             "Opera"
@@ -123,10 +124,11 @@
           "default": "Google Chrome",
           "description": "Select your preferred browser to launch the app. Note that Firefox and Safari do not support the Chrome Debug Protocol, and automation is not supported in these browsers."
         },
-        "tomcat.enableLogger": {
-          "type": "boolean",
-          "default": false,
-          "description": "Enable or disable logging status in the Output channel."
+        "tomcat.loggingLevel": {
+            "type": "string",
+            "enum": ["DEBUG", "INFO", "WARN", "ERROR", "SILENT"],
+            "default": "WARN",
+            "description": "Set the logging verbosity level"
         },
         "tomcat.port": {
           "type": "number",
@@ -155,6 +157,7 @@
     "test": "vscode-test"
   },
   "devDependencies": {
+    "@types/cross-spawn": "^6.0.6",
     "@types/node": "20.x",
     "@types/tail": "^2.2.3",
     "@types/vscode": "^1.56.0",
@@ -166,6 +169,7 @@
   },
   "dependencies": {
     "@types/ws": "^7.4.0",
+    "cross-spawn": "^7.0.6",
     "glob": "^11.0.1",
     "ws": "^7.4.6"
   }

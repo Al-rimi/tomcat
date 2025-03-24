@@ -1,6 +1,6 @@
 import { exec } from 'child_process';
 import * as net from 'net';
-import { error , info } from './logger';
+import { error, warn , info } from './logger';
 const vscode = require('vscode');
 const fs = require('fs');
 const path = require('path');
@@ -179,13 +179,12 @@ export async function tomcat(action: 'start' | 'stop' | 'reload'): Promise<void>
             process.removeListener('exit', exitHandler);
             
             if (err) {
-                const errorMessage = `Failed to ${action} Tomcat: ${stderr || stdout || err.message}`;
-                error(errorMessage);
-                return reject(new Error(errorMessage));
+                error(`Failed to ${action} Tomcat: ${stderr || stdout || err.message}`);
+                return reject(new Error(err.message));
             }
             
             if (stderr) {
-                error(`Tomcat ${action} stderr: ${stderr}`);
+                warn(`Tomcat ${action} stderr: ${stderr}`);
             }
             
             info(`Tomcat ${action}ed successfully`);
@@ -239,10 +238,10 @@ async function addTomcatUser(): Promise<void> {
             fs.writeFileSync(filePath, updatedContent);
             info('Successfully added admin user to tomcat-users.xml.');
         } catch (err) {
-            error(`Failed to write to tomcat-users.xml: ${(err as Error).message}`);
+            error('Failed to write to tomcat-users.xml', err as Error);
         }
     } catch (err) {
-        error(`Unexpected error adding Tomcat user: ${(err as Error).message}`);
+        error('Unexpected error adding Tomcat user', err as Error);
     } finally {
         tomcat('stop');
     }
