@@ -1,6 +1,7 @@
 import { exec } from 'child_process';
 import * as net from 'net';
 import { error , info } from './logger';
+import { rejects } from 'assert';
 const vscode = require('vscode');
 const fs = require('fs');
 const path = require('path');
@@ -37,7 +38,8 @@ export async function findTomcatHome(): Promise<string> {
     
             if (selectedFolder && selectedFolder.length > 0) {
                 const selectedPath = selectedFolder[0].fsPath;
-                const catalinaPath = path.join(selectedPath, 'bin', `catalina${process.platform === 'win32' ? '.bat' : ''}`);
+                const catalinaExt = process.platform === 'win32' ? '.bat' : '.sh';
+                const catalinaPath = path.join(selectedPath, 'bin', `catalina${catalinaExt}`);
                 if (!require('fs').existsSync(catalinaPath)) {
                     error(`Selected folder is incorrect: ${catalinaPath} does not exist. Please select the base folder of Apache Tomcat.`);
                     return '';
@@ -145,24 +147,60 @@ export async function tomcat(action: 'start' | 'stop' | 'reload'): Promise<void>
             info('Tomcat is not running');
             return;
         }
+        if (action === 'start') {
+            info('Starting Tomcat');
+        }
         if (action === 'reload') {
             info('Tomcat is not running. Starting Tomcat');
         }
     }
 
     const javaExecutable = `${javaHome}/bin/java${process.platform === 'win32' ? '.exe' : ''}`;
-    const classpath = `${tomcatHome}/bin/bootstrap.jar${process.platform === 'win32' ? ';' : ':'}${tomcatHome}/bin/tomcat-juli.jar`;
+    const classpath = [
+        path.join(tomcatHome, 'bin', 'bootstrap.jar'),
+        path.join(tomcatHome, 'bin', 'tomcat-juli.jar')
+    ].join(path.delimiter);    
     const mainClass = 'org.apache.catalina.startup.Bootstrap';
     const catalinaOpts = `-Dcatalina.base=${tomcatHome} -Dcatalina.home=${tomcatHome} -Djava.io.tmpdir=${tomcatHome}/temp`;
+    const quoted = (p: string) => `"${p.replace(/"/g, '\\"')}"`;
+    const command = [
+        quoted(javaExecutable),
+        `-cp ${quoted(classpath)}`,
+        catalinaOpts,
+        mainClass,
+        action === 'reload' ? 'start' : action
+    ].join(' ');
 
-    const command = `${javaExecutable} -cp ${classpath} ${catalinaOpts} ${mainClass} ${action === 'reload' ? 'start' : action}`;
-
-    exec(command, async (err, stdout, stderr) => {
-        if (err) {
-            error(`Failed to ${action} Tomcat: ${stderr}`);
-            return;
-        }
-        info(`Tomcat ${action}ed`);
+    return new Promise((resolve, reject) => {
+        const child = exec(command, {
+            shell: process.platform === 'win32' ? process.env.ComSpec || 'cmd.exe' : '/bin/sh',
+            windowsHide: true,
+            encoding: 'utf-8'
+        }, (err, stdout, stderr) => {
+            process.removeListener('exit', exitHandler);
+            
+            if (err) {
+                const errorMessage = `Failed to ${action} Tomcat: ${stderr || stdout || err.message}`;
+                error(errorMessage);
+                return reject(new Error(errorMessage));
+            }
+            
+            if (stderr) {
+                error(`Tomcat ${action} stderr: ${stderr}`);
+            }
+            
+            info(`Tomcat ${action}ed successfully`);
+            resolve();
+        });
+    
+        const exitHandler = () => {
+            if (!child.killed) {
+                child.kill(process.platform === 'win32' ? 'SIGKILL' : 'SIGTERM');
+            }
+        };
+        
+        process.once('exit', exitHandler);
+        child.once('exit', () => process.removeListener('exit', exitHandler));
     });
 }
 
@@ -172,14 +210,20 @@ async function addTomcatUser(): Promise<void> {
         if (!tomcatHome) { return; }
 
         const filePath = path.join(tomcatHome, 'conf', 'tomcat-users.xml');
-        
+
+        try {
+            await fs.promises.access(filePath, fs.constants.W_OK);
+        } catch (e) {
+            throw new Error (`Insufficient permissions to modify ${filePath}. Run as administrator?`);
+        }
+
         let content: string;
         try {
             content = fs.readFileSync(filePath, 'utf8');
         } catch (err) {
-            error(`Unable to read ${filePath}: ${(err as Error).message}, Please add "<user username="admin" password="admin" roles="manager-gui,manager-script"/>" to the file.`);
-            return;
+            throw new Error (`Unable to read ${filePath}: ${(err as Error).message}, Please add "<user username="admin" password="admin" roles="manager-gui,manager-script"/>" to the file.`);
         }
+
         const newUserLine = '<user username="admin" password="admin" roles="manager-gui,manager-script"/>';
 
         if (content.includes('<user username="admin"')) {
