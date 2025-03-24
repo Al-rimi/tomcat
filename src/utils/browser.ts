@@ -1,10 +1,9 @@
-import { exec, execFile } from 'child_process';
-import { info, error, warn } from './logger';
-import WebSocket from 'ws';
 import * as vscode from 'vscode';
-import { defaultStatusBar, updateStatusBar } from '../extension';
 import * as http from 'http';
-import * as https from 'https';
+import WebSocket from 'ws';
+import { defaultStatusBar, updateStatusBar } from '../extension';
+import { exec, execFile } from 'child_process';
+import { info, warn } from './logger';
 
 const BROWSER_PROCESS_NAMES: { [key: string]: { [platform: string]: string[] } } = {
     'Google Chrome': {
@@ -65,26 +64,6 @@ function getBrowserCommand(browser: string): string[] | null {
     }
     
     return browserCommands;
-}
-
-async function httpGet(url: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-        const protocol = url.startsWith('https') ? https : http;
-        const req = protocol.get(url, (res) => {
-            if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-                return resolve(httpGet(res.headers.location));
-            }
-            
-            let data = '';
-            res.on('data', (chunk) => data += chunk);
-            res.on('end', () => resolve(data));
-        });
-        
-        req.on('error', reject);
-        req.setTimeout(5000, () => {
-            req.destroy(new Error('Request timeout'));
-        });
-    });
 }
 
 export async function runBrowser(appName: string): Promise<void> {
@@ -163,6 +142,25 @@ export async function runBrowser(appName: string): Promise<void> {
     } finally {
         defaultStatusBar();
     }
+}
+
+async function httpGet(url: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const req = http.get(url, (res) => {
+            if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+                return resolve(httpGet(res.headers.location));
+            }
+            
+            let data = '';
+            res.on('data', (chunk) => data += chunk);
+            res.on('end', () => resolve(data));
+        });
+        
+        req.on('error', reject);
+        req.setTimeout(5000, () => {
+            req.destroy(new Error('Request timeout'));
+        });
+    });
 }
 
 async function checkBrowserProcess(browser: string): Promise<boolean> {
