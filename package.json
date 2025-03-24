@@ -74,6 +74,10 @@
         "title": "Tomcat: Stop"
       },
       {
+        "command": "tomcat.clean",
+        "title": "Tomcat: Clean"
+      },
+      {
         "command": "tomcat.help",
         "title": "Tomcat: Help"
       }

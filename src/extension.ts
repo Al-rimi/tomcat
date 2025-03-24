@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { startTomcat } from './commands/start';
 import { stopTomcat } from './commands/stop';
+import { cleanTomcat } from './commands/clean';
 import { deployTomcat } from './commands/deploy';
 import { showHelpPanel } from './commands/help';
 import { registerAutoDeploy, isJavaEEProject } from './utils/deploy';
@@ -29,6 +30,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.commands.registerCommand('tomcat.start', startTomcat),
         vscode.commands.registerCommand('tomcat.stop', stopTomcat),
+        vscode.commands.registerCommand('tomcat.clean', cleanTomcat),
         vscode.commands.registerCommand('tomcat.deploy', deployTomcat),
         vscode.commands.registerCommand('tomcat.help', showHelpPanel),
     );
