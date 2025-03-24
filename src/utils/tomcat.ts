@@ -1,7 +1,6 @@
 import { exec } from 'child_process';
 import * as net from 'net';
 import { error , info } from './logger';
-import { rejects } from 'assert';
 const vscode = require('vscode');
 const fs = require('fs');
 const path = require('path');
