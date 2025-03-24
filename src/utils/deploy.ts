@@ -1,13 +1,13 @@
 import * as vscode from 'vscode';
-import { exec } from 'child_process';
-import * as fs from 'fs';
 import * as path from 'path';
-import { tomcat, findTomcatHome, findJavaHome } from './tomcat';
-import { runBrowser } from './browser';
-import { error, info, done } from './logger';
-import { defaultStatusBar, updateStatusBar } from '../extension';
-import { warn } from 'console';
+import * as fs from 'fs';
+import { exec } from 'child_process';
 import { env } from 'vscode';
+import { glob } from 'glob';
+import { tomcat, findTomcatHome, findJavaHome } from './tomcat';
+import { defaultStatusBar, updateStatusBar } from '../extension';
+import { error, info, done } from './logger';
+import { runBrowser } from './browser';
 
 let autoDeployDisposables: vscode.Disposable[] = [];
 
@@ -40,23 +40,6 @@ export function isJavaEEProject(): boolean {
     return false;
 }
 
-
-export async function cleanOldDeployments(): Promise<void> {
-    const appName = vscode.workspace.workspaceFolders?.[0]?.name;
-    const tomcatHome = await findTomcatHome();
-    if (!tomcatHome || !appName) { return; }
-
-    const targetDir = path.join(tomcatHome, 'webapps', appName);
-
-    if (fs.existsSync(`${targetDir}.war`)) {
-        fs.unlinkSync(`${targetDir}.war`);
-    }
-
-    if (fs.existsSync(targetDir)) {
-        fs.rmdirSync(targetDir, { recursive: true });
-    }
-}
-
 export async function deploy(type: 'Fast' | 'Maven' | 'Gradle'): Promise<void> {
     const projectDir = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
     if (!projectDir || !isJavaEEProject()) {
@@ -67,7 +50,7 @@ export async function deploy(type: 'Fast' | 'Maven' | 'Gradle'): Promise<void> {
     info(`Build type: ${type}`);
     const appName = path.basename(projectDir);
     const tomcatHome = await findTomcatHome();
-    
+
     if (!tomcatHome || !appName || !fs.existsSync(path.join(tomcatHome, 'webapps'))) { return; }
 
     const targetDir = path.join(tomcatHome, 'webapps', appName);
@@ -214,7 +197,6 @@ async function createNewProject(): Promise<void> {
     }
 }
 
-
 async function fastDeploy(projectDir: string, targetDir: string, tomcatHome: string) {
 
     const webAppPath = path.join(projectDir, 'src', 'main', 'webapp');
@@ -231,8 +213,8 @@ async function fastDeploy(projectDir: string, targetDir: string, tomcatHome: str
         try {
             fs.mkdirSync(classesDir, { recursive: true });
             
-            const javaFiles = await findFiles(path.join(javaSourcePath, '**/*.java'));
-            
+            const javaPattern = path.join(javaSourcePath, '**', '*.java');
+            const javaFiles = await findFiles(javaPattern);
             if (javaFiles.length > 0) {
                 const tomcatLibs = path.join(tomcatHome, 'lib', '*');
                 const escapedClassesDir = `"${classesDir}"`;
@@ -247,7 +229,7 @@ async function fastDeploy(projectDir: string, targetDir: string, tomcatHome: str
                 fs.unlinkSync(tempFile);
             }
         } catch (err) {
-            warn(`Java compilation failed: ${err}. Continuing without compiled classes.`);
+            throw new Error(`Java compilation failed: ${err}. Continuing without compiled classes.`);
         }
     }
 
@@ -269,8 +251,9 @@ async function fastDeploy(projectDir: string, targetDir: string, tomcatHome: str
 }
 
 async function findFiles(pattern: string): Promise<string[]> {
-    const files = await vscode.workspace.findFiles(pattern);
-    return files.map(f => f.fsPath);
+    const normalizedPattern = pattern.replace(/\\/g, '/');
+    const files = await glob(normalizedPattern, { nodir: true });
+    return files;
 }
 
 async function mavenDeploy(projectDir: string, targetDir: string, appName: string) {
@@ -339,9 +322,9 @@ async function executeCommand(command: string, cwd: string): Promise<void> {
                         return reject(new Error(configMessage));
                     }
                 }
-                
-                error(`Command failed: ${command}\n${stderr || stdout || 'Unknown error'}`);
                 reject(new Error(stderr || stdout || 'Unknown error.'));
+
+                throw new Error(`Command failed: ${command}\n${stderr || stdout || 'Unknown error'}`);
             }
             resolve();
         });
