@@ -12,6 +12,7 @@
 			"args": [
 				"--extensionDevelopmentPath=${workspaceFolder}",
 				"--no-cache",
+				"--disable-extension"
 			],
 			"outFiles": [
 				"${workspaceFolder}/out/**/*.js"
