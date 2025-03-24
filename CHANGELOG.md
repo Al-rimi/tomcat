@@ -2,109 +2,120 @@
 
 ## [Unreleased]
 
-## [1.2.3] - 2025-03-14
-### Fixed
-- Gradle build logic errors and deployment failures
-- Browser reloading before Tomcat finishes initialization
-- Auto-deploy configuration change detection issues
-- Removed intrusive browser focus behavior on macOS
-- Improved deployment error messaging
-- Windows process killing commands for browser management
+## [1.2.4] - 2025-03-25  
+### Added  
+- Progress notifications for deployment operations  
+- Configurable logging system with multiple verbosity levels  
+- Windows PowerShell integration for process management (Windows)  
+- Automatic `JAVA_HOME` detection and PATH configuration  
 
+### Changed  
+- **Smart Cleanup**: Preserve default Tomcat webapps during cleaning  
+- **Deployment Sequencing**: Verify Tomcat readiness before browser refresh  
+- **Error Handling**: Enhanced path validation for Java/Tomcat installations  
 
-## [1.2.2] - 2025-03-13
-### Added
-- Half support for Firefox and Safari browsers.
+### Fixed  
+- Browser process management inconsistencies (Windows/macOS)  
+- Deployment failures caused by spaces in directory paths  
+- Intermittent reload failures during rapid file saves  
+- Gradle build detection in nested project structures  
 
-### Changed
-- Renamed `autoDeployType` to `defaultBuildType` for clarity
-- Improved browser process management across platforms
-- Refactored deployment configuration system
+## [1.2.3] - 2025-03-14  
+### Fixed  
+- Gradle build logic errors and deployment failures  
+- Premature browser reloads before Tomcat initialization  
+- Auto-deploy configuration change detection reliability  
+- Intrusive browser focus behavior on macOS  
+- Enhanced deployment error messaging clarity  
+- Windows process termination commands for browser management  
 
-### Fixed
-- Browser detection logic for non-Chromium browsers
-- Path validation for Java executable locations
-- Deployment trigger conflicts during save operations
-- Status bar tooltip consistency across platforms
+## [1.2.2] - 2025-03-13  
+### Added  
+- Initial support for Firefox and Safari browsers  
 
-## [1.2.1] - 2025-03-12
-### Changed
-- Better visual feedback for deployment modes
-- Renamed `autoDeploy` to `defaultDeployMood` for consistency
-- Improved handling of deployment triggers and save events
-- More descriptive error messages for invalid Tomcat and Java paths
+### Changed  
+- Renamed `autoDeployType` parameter to `defaultBuildType` for semantic clarity  
+- Optimized cross-platform browser process management  
+- Restructured deployment configuration subsystem  
 
-### Fixed
-- Removed Firefox support due to legacy protocol limitations
-- Issues with path validation for `catalina.bat` and `java.exe` on win
-- Resolved issues with toggling deployment modes in the status bar
-- Improved reliability of browser reload functionality
+### Fixed  
+- Browser detection logic for non-Chromium browsers  
+- Path validation checks for Java executable locations  
+- Deployment trigger conflicts during concurrent save operations  
+- Status bar tooltip consistency across operating systems  
 
-### Fixed
-- Removed Firefox support due to legacy protocol limitations.
-- Issues with path validation for `catalina.bat` and `java.exe` on win.
-- Resolved issues with toggling deployment modes in the status bar.
-- Improved reliability of browser reload functionality.
+## [1.2.1] - 2025-03-12  
+### Changed  
+- Enhanced visual feedback mechanisms for deployment modes  
+- Renamed `autoDeploy` parameter to `defaultDeployMode` for consistency  
+- Improved synchronization between deployment triggers and save events  
+- Expanded error message details for invalid Tomcat/Java paths  
 
-## [1.2.0] - 2025-03-11
-### Added
-- Tomcat reload functionality with basic authentication.
-- Automatic addition of admin user to `tomcat-users.xml` if missing.
-- Editor deploy button to trigger deployments.
-- Status bar deployment status indicators.
-- Configuration memory for deployment preferences.
-- Webview-based deployment type selector.
+### Fixed  
+- Removed Firefox support due to legacy WebDriver protocol limitations  
+- Path validation issues for `catalina.bat` and `java.exe` (Windows)  
+- Status bar deployment mode toggle reliability  
+- Browser reload functionality stability  
 
-### Changed
-- Revamped help panel with interactive UI components.
-- Enhanced status bar integration with deployment states.
-- Improved configuration change handling.
-- Updated browser session management logic.
+## [1.2.0] - 2025-03-11  
+### Added  
+- Tomcat reload functionality with basic authentication support  
+- Automatic admin user injection into `tomcat-users.xml` when missing  
+- Editor-integrated deployment trigger button  
+- Real-time status bar deployment indicators  
+- Persistent configuration storage for deployment preferences  
+- Webview-based deployment type selection interface  
 
-### Fixed
-- Deployment type persistence issues.
-- Status bar flickering during operations.
-- Configuration validation edge cases.
-- Help panel styling inconsistencies.
-- Multiple save requests resulting in crashes.
+### Changed  
+- Redesigned help panel with interactive UI components  
+- Upgraded status bar integration with stateful deployment tracking  
+- Improved configuration change propagation handling  
+- Modernized browser session management architecture  
 
-## [1.1.1] - 2025-03-10
-### Fixed
-- Auto-deploy on Ctrl+S trigger conditions.
-- Removed disruptive `process.exit()` calls.
-- Improved missing directory error handling.
-- Promise rejection in command failures.
+### Fixed  
+- Deployment type persistence across sessions  
+- Status bar flickering during active operations  
+- Edge cases in configuration validation logic  
+- Styling inconsistencies in help panel  
+- Crash scenarios from concurrent save requests  
 
-## [1.1.0] - 2025-03-10
-### Added
-- Gradle deployment support.
-- Configurable Tomcat server port.
-- Java Home configuration option.
-- Enhanced Java EE project detection.
-- Interactive HTML help panel.
-- Browser session management improvements.
+## [1.1.1] - 2025-03-10  
+### Fixed  
+- Auto-deploy trigger conditions for `Ctrl+S` keyboard shortcut  
+- Removed disruptive `process.exit()` calls in error handling  
+- Improved error recovery for missing directory scenarios  
+- Unhandled promise rejections during command execution  
 
-### Changed
-- Default auto-deploy behavior to "On Save".
-- Improved deployment reliability.
-- Restructured configuration system.
-- Enhanced status bar integration.
+## [1.1.0] - 2025-03-10  
+### Added  
+- Gradle-based deployment pipeline support  
+- Configurable Tomcat server port specification  
+- `JAVA_HOME` configuration override capability  
+- Enhanced Java EE project detection heuristics  
+- Interactive HTML help documentation panel  
+- Advanced browser session management features  
 
-### Fixed
-- Deployment failures with non-ASCII paths.
-- Maven build detection issues.
-- Browser reload race conditions.
-- Configuration change handling.
-- Project validation false positives.
+### Changed  
+- Default auto-deploy behavior set to "On Save" mode  
+- Restructured configuration management subsystem  
+- Optimized deployment process reliability  
+- Upgraded status bar integration architecture  
 
-## [1.0.1] - 2025-03-09
-### Fixed
-- Deployment failure when Java EE project not detected.
-- Project creation flow improvements.
+### Fixed  
+- Deployment failures with non-ASCII directory paths  
+- Maven build detection false negatives  
+- Browser reload race condition scenarios  
+- Configuration change propagation delays  
+- Project validation false positive cases  
 
-## [1.0.0] - Initial Release
-### Added
-- Basic Tomcat management commands.
-- Auto-deployment functionality.
-- Browser integration.
-- Configuration system.
+## [1.0.1] - 2025-03-09  
+### Fixed  
+- Deployment failures when Java EE project not detected  
+- Project creation workflow usability improvements  
+
+## [1.0.0] - 2025-03-08  
+### Added  
+- Core Tomcat server management commands  
+- Auto-deployment engine with save-trigger support  
+- Cross-browser integration framework  
+- Hierarchical configuration management system

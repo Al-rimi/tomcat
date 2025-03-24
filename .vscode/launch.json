@@ -11,8 +11,7 @@
 			"request": "launch",
 			"args": [
 				"--extensionDevelopmentPath=${workspaceFolder}",
-				"--no-cache",
-				"--disable-extension"
+				"--no-cache"
 			],
 			"outFiles": [
 				"${workspaceFolder}/out/**/*.js"

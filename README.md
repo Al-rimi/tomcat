@@ -14,7 +14,7 @@ Advanced Apache Tomcat management directly in your editor. Full server control, 
 
 ## Installation
 
-1. Open VS Code (`Ctrl+Shift+N`)
+1. Open VS Code
 2. Launch Extensions View (`Ctrl+Shift+X`)
 3. Search for `Al-rimi.tomcat`
 4. Click <kbd>Install</kbd>
@@ -26,6 +26,16 @@ code --install-extension Al-rimi.tomcat
 
 ## Usage
 > The extension is Fully AUTOMATED to work out of the box. Simply open a Java EE project and start coding...
+
+### Editor Button
+
+#### Click to Deploy the current project
+![Tomcat Hover](resources/tomcat-editor.png)
+
+### Status Bar
+
+#### Click to Change the default deploy mode
+![Tomcat Status Bar](resources/tomcat-status-bar.png)
 
 ### Command Palette (`Ctrl+Shift+P`)
 
@@ -41,15 +51,15 @@ code --install-extension Al-rimi.tomcat
 
 Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 
-| Setting                   | Type    | Default       | Values/Options                         | Description                                      |
-|---------------------------|---------|---------------|----------------------------------------|--------------------------------------------------|
-| `tomcat.defaultBrowser`   | `string`|`Google Chrome`| Chrome/Edge/Firefox/Safari/Brave/Opera | Browser for app launch & debug                   |
-| `tomcat.defaultDeployMood`| `string`| `On Save`     | Disabled/On Save/On Ctrl+S             | Automatic deployment trigger behavior            |
-| `tomcat.defaultBuildType` | `string`| `Fast`        | Fast/Maven/Gradle                      | Default build strategy for deployments           |
-| `tomcat.java.home`        | `string`|`JAVA_HOME`    | Valid JDK path                         | JDK installation path (e.g., `C:\Program Files\Java\jdk-21`)   |
-| `tomcat.home`             | `string`|`CATALINA_HOME`| Valid path                             | Tomcat installation directory (e.g., `C:\Java\apache-tomcat-11.0.4`)|
-| `tomcat.port`             | `number`|`8080`         | 1024-65535                             | Tomcat server listen port                        |
-| `tomcat.enableLogger`     |`boolean`| `false`       | true/false                             | Toggle logging in Output channel                 |
+| **Setting**                  | **Default**       | **Description**                                                                          |
+|------------------------------|-------------------|------------------------------------------------------------------------------------------|
+| `tomcat.defaultBuildType`    | `Fast`            | Default build strategy for deployments (`Fast`, `Maven`, `Gradle`)                               |
+| `tomcat.defaultDeployMode`   | `Disabled`        | Auto-deploy triggers (`Disabled`, `On Save`, `On Shortcut`)                                      |
+| `tomcat.defaultBrowser`      | `Google Chrome`   | Browser for app launch & debug (`Google Chrome`, `Microsoft Edge`, `Firefox`, `Safari`, `Brave`, `Opera`) |
+| `tomcat.loggingLevel`        | `WARN`            | Log verbosity level (`DEBUG`, `INFO`, `WARN`, `ERROR`, `SILENT`)                                       |
+| `tomcat.java.home`           | `JAVA_HOME`       | JDK installation path (e.g., `C:\Program Files\Java\jdk-21`)                             |
+| `tomcat.home`                | `CATALINA_HOME`   | Tomcat installation directory (e.g., `C:\Java\apache-tomcat-11.0.4`)                     |
+| `tomcat.port`                | `8080`            | Tomcat server listen port (valid range: `1024`-`65535`)                                      |
 
 ## Requirements
 
@@ -58,7 +68,7 @@ Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
   - Apache Tomcat 9+ (`CATALENA_HOME` or `tomcat.home`)
   
 - **Build Tools** (optional):
-  - Maven ≥3.6 *or* Gradle ≥7
+  - `Maven` 3.6+ *or* `Gradle` 6.8+ (if using `Maven` or `Gradle` build types)
 
 ## Known Issues
 
@@ -66,11 +76,12 @@ Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 
 [![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square)](https://github.com/Al-rimi/tomcat/issues)
 
-## What's New in 1.2.3
-- **Gradle Improvements**: Fixed critical build logic errors
-- **Reload Synchronization**: Better Tomcat-browser coordination
-- **Config Hot-Reload**: Instant detection of setting changes
-- **Mac UX Enhancements**: Removed disruptive focus stealing
+## What's New in 1.2.4
+- **Enhanced Cleanup**: Intelligent Tomcat directory cleaning preserves default apps
+- **Deployment Progress**: Visual notifications for build processes
+- **Browser Management**: Improved browsers handling with process control
+- **Path Validation**: Strict checks for Java/Tomcat installations
+- **Logging System**: Configurable logging levels (DEBUG/INFO/WARN/ERROR)
 
 [View Full Changelog](https://github.com/Al-rimi/tomcat/blob/main/CHANGELOG.md)
 
