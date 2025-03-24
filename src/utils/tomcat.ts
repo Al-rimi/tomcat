@@ -115,21 +115,29 @@ export async function tomcat(action: 'start' | 'stop' | 'reload'): Promise<void>
                     'Authorization': `Basic ${creds}`
                 }
             };
-
-            const req = require('http').request(options, (res: any) => {
-                if (res.statusCode === 200) {
-                    info('Tomcat reloaded');
-                } else {
-                    info(`Failed to reload Tomcat: ${res.statusCode}`);
-                    addTomcatUser();
-                }
-            });
-            req.on('error', (e: any) => {
+        
+            try {
+                await new Promise<void>((resolve, reject) => {
+                    const req = require('http').request(options, (res: any) => {
+                        let responseData = '';
+                        res.on('data', (chunk: Buffer) => responseData += chunk.toString());
+                        res.on('end', () => {
+                            if (res.statusCode === 200) {
+                                info('Tomcat reloaded');
+                                resolve();
+                            } else {
+                                reject(new Error(`Status ${res.statusCode}: ${responseData.trim()}`));
+                            }
+                        });
+                    });
+                    
+                    req.on('error', (e: Error) => reject(e));
+                    req.end();
+                });
+            } catch (e: any) {
                 info(`Failed to reload Tomcat: ${e.message}`);
                 addTomcatUser();
-            });
-
-            req.end();
+            }
             return;
         }
     } else {

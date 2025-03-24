@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { startTomcat } from './commands/start';
 import { stopTomcat } from './commands/stop';
-import { cleanTomcat } from './commands/clean';
 import { deployTomcat } from './commands/deploy';
 import { showHelpPanel } from './commands/help';
 import { registerAutoDeploy, isJavaEEProject } from './utils/deploy';
@@ -10,7 +9,7 @@ let statusBarItem: vscode.StatusBarItem;
 
 export function defaultStatusBar(): void {
     if (statusBarItem) {
-        let setting = vscode.workspace.getConfiguration().get<string>('tomcat.defaultDeployMood', 'On Save');
+        let setting = vscode.workspace.getConfiguration().get<string>('tomcat.defaultDeployMode', 'On Save');
         if (setting === 'On Shortcut') {
             setting = process.platform === 'darwin' ? 'Cmd+S' : 'Ctrl+S';
         }
@@ -30,7 +29,6 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.commands.registerCommand('tomcat.start', startTomcat),
         vscode.commands.registerCommand('tomcat.stop', stopTomcat),
-        vscode.commands.registerCommand('tomcat.clean', cleanTomcat),
         vscode.commands.registerCommand('tomcat.deploy', deployTomcat),
         vscode.commands.registerCommand('tomcat.help', showHelpPanel),
     );
@@ -73,7 +71,7 @@ function createStatusBar(): vscode.StatusBarItem {
 
 async function toggleTomcatDeploySetting() {
     const config = vscode.workspace.getConfiguration();
-    let setting = config.get<string>('tomcat.defaultDeployMood', 'On Save');
+    let setting = config.get<string>('tomcat.defaultDeployMode', 'On Save');
 
     switch (setting) {
         case 'Disabled':
@@ -88,6 +86,6 @@ async function toggleTomcatDeploySetting() {
             break;
     }
 
-    await config.update('tomcat.defaultDeployMood', setting, vscode.ConfigurationTarget.Global);
+    await config.update('tomcat.defaultDeployMode', setting, vscode.ConfigurationTarget.Global);
     defaultStatusBar();
 }

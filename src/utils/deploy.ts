@@ -1,12 +1,13 @@
 import * as vscode from 'vscode';
 import { exec } from 'child_process';
 import * as fs from 'fs';
-import path from 'path';
-import { tomcat, findTomcatHome } from './tomcat';
+import * as path from 'path';
+import { tomcat, findTomcatHome, findJavaHome } from './tomcat';
 import { runBrowser } from './browser';
 import { error, info, done } from './logger';
 import { defaultStatusBar, updateStatusBar } from '../extension';
 import { warn } from 'console';
+import { env } from 'vscode';
 
 let autoDeployDisposables: vscode.Disposable[] = [];
 
@@ -41,26 +42,24 @@ export function isJavaEEProject(): boolean {
 
 
 export async function cleanOldDeployments(): Promise<void> {
+    const appName = vscode.workspace.workspaceFolders?.[0]?.name;
     const tomcatHome = await findTomcatHome();
-    if (!tomcatHome) { return; }
+    if (!tomcatHome || !appName) { return; }
 
-    const appName = path.basename(process.cwd());
     const targetDir = path.join(tomcatHome, 'webapps', appName);
 
     if (fs.existsSync(`${targetDir}.war`)) {
         fs.unlinkSync(`${targetDir}.war`);
-        info('Old deployment file deleted');
     }
 
     if (fs.existsSync(targetDir)) {
         fs.rmdirSync(targetDir, { recursive: true });
-        info('Old deployment directory deleted');
     }
 }
 
 export async function deploy(type: 'Fast' | 'Maven' | 'Gradle'): Promise<void> {
     const projectDir = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-    if (!projectDir || !await isJavaEEProject()) {
+    if (!projectDir || !isJavaEEProject()) {
         await createNewProject();
         return;
     }
@@ -68,29 +67,45 @@ export async function deploy(type: 'Fast' | 'Maven' | 'Gradle'): Promise<void> {
     info(`Build type: ${type}`);
     const appName = path.basename(projectDir);
     const tomcatHome = await findTomcatHome();
-    if (!tomcatHome) { return; }
+    
+    if (!tomcatHome || !appName || !fs.existsSync(path.join(tomcatHome, 'webapps'))) { return; }
+
+    const targetDir = path.join(tomcatHome, 'webapps', appName);
 
     updateStatusBar(type);
     await vscode.workspace.saveAll();
 
     try {
-        await cleanOldDeployments();
+        fs.rmSync(targetDir, { recursive: true, force: true });
+        fs.rmSync(`${targetDir}.war`, { recursive: true, force: true });
         
-        if (type === 'Fast') {
-            await fastDeploy(projectDir, tomcatHome, appName);
-        } else if (type === 'Maven') {
-            await mavenDeploy(projectDir, tomcatHome);
-        } else if (type === 'Gradle') {
-            await gradleDeploy(projectDir, tomcatHome);
-        } else {
-            error('Invalid deployment type.');
-            return;
-        }
+        await vscode.window.withProgress(
+            {
+                location: vscode.ProgressLocation.Notification,
+                title: `${type} Build`,
+                cancellable: false,
+            },
+            async () => {
+                if (type === 'Fast') {
+                    await fastDeploy(projectDir, targetDir, tomcatHome);
+                } else if (type === 'Maven') {
+                    await mavenDeploy(projectDir, targetDir, appName);
+                } else if (type === 'Gradle') {
+                    await gradleDeploy(projectDir, targetDir, appName);
+                } else {
+                    error('Invalid deployment type.');
+                    return;
+                }
+            }
+        );
 
-        info('Deployment completed');
-        await tomcat('reload');
-        await new Promise(resolve => setTimeout(resolve, 20));
-        runBrowser(appName);
+        if (fs.existsSync(targetDir)) {
+            info(`${appName} Deployed successfully`);
+            await new Promise(resolve => setTimeout(resolve, 100));
+            await tomcat('reload');
+            await new Promise(resolve => setTimeout(resolve, 50));
+            runBrowser(appName);
+        }
     } catch (err) {
         error(`${type} build failed: ${(err instanceof Error) ? err.message : 'Unknown error'}`);
     } finally {
@@ -103,7 +118,7 @@ export async function registerAutoDeploy(context: vscode.ExtensionContext): Prom
     let autoDeployDisposables: vscode.Disposable[] = [];
 
     const configChangeDisposable = vscode.workspace.onDidChangeConfiguration(async (event) => {
-        if (event.affectsConfiguration('tomcat.defaultDeployMood') || event.affectsConfiguration('tomcat.defaultBuildType')) {
+        if (event.affectsConfiguration('tomcat.defaultDeployMode') || event.affectsConfiguration('tomcat.defaultBuildType')) {
             await updateAutoDeploy();
         }
     });
@@ -116,13 +131,13 @@ export async function registerAutoDeploy(context: vscode.ExtensionContext): Prom
 
         const config = vscode.workspace.getConfiguration('tomcat');
         const defaultBuildType = config.get<string>('defaultBuildType', 'Fast') as 'Fast' | 'Maven' | 'Gradle';
-        let defaultDeployMood = config.get<string>('defaultDeployMood', 'Disabled');
+        let defaultDeployMode = config.get<string>('defaultDeployMode', 'Disabled');
 
-        if (!await isJavaEEProject()) { 
-            defaultDeployMood = 'Disabled'; 
+        if (!isJavaEEProject()) { 
+            defaultDeployMode = 'Disabled'; 
         }
 
-        if (defaultDeployMood === 'On Save') {
+        if (defaultDeployMode === 'On Save') {
             const saveDisposable = vscode.workspace.onDidSaveTextDocument(async (document) => {
                 if (isDeploying) {return;}
                 isDeploying = true;
@@ -139,8 +154,8 @@ export async function registerAutoDeploy(context: vscode.ExtensionContext): Prom
             const editor = vscode.window.activeTextEditor;
             if (editor) { 
                 await editor.document.save();
-                const currentDeployMood = vscode.workspace.getConfiguration('tomcat').get<string>('defaultDeployMood', 'Disabled');
-                if (currentDeployMood === 'On Shortcut' || currentDeployMood === 'On Save') {
+                const currentDeployMode = vscode.workspace.getConfiguration('tomcat').get<string>('defaultDeployMode', 'Disabled');
+                if (currentDeployMode === 'On Shortcut' || currentDeployMode === 'On Save') {
                     await deploy(defaultBuildType);
                 }
             }
@@ -163,6 +178,19 @@ async function createNewProject(): Promise<void> {
 
     if (answer === 'Yes') {
         try {
+            const commands = await vscode.commands.getCommands();
+            if (!commands.includes('java.project.create')) {
+                const installMessage = 'Java Extension Pack required for project creation';
+                vscode.window.showErrorMessage(installMessage, 'Install Extension').then(async choice => {
+                    if (choice === 'Install Extension') {
+                        await env.openExternal(vscode.Uri.parse(
+                            'vscode:extension/vscjava.vscode-java-pack'
+                        ));
+                    }
+                });
+                return;
+            }
+
             await vscode.commands.executeCommand('java.project.create', {
                 type: 'maven',
                 archetype: 'maven-archetype-webapp'
@@ -170,6 +198,14 @@ async function createNewProject(): Promise<void> {
             info('New Maven web app project created');
         } catch (err) {
             error(`Failed to create new project: ${err}`);
+            vscode.window.showErrorMessage(
+                'Project creation failed. Ensure Java Extension Pack is installed and configured.',
+                'Open Extensions'
+            ).then(choice => {
+                if (choice === 'Open Extensions') {
+                    vscode.commands.executeCommand('workbench.extensions.action.showExtensions');
+                }
+            });
         }
         return;
     } else {
@@ -178,71 +214,136 @@ async function createNewProject(): Promise<void> {
     }
 }
 
-async function fastDeploy(projectDir: string, tomcatHome: string, appName: string) {
-    const targetDir = path.join(tomcatHome, 'webapps', appName);
+
+async function fastDeploy(projectDir: string, targetDir: string, tomcatHome: string) {
 
     const webAppPath = path.join(projectDir, 'src', 'main', 'webapp');
     if (!fs.existsSync(webAppPath)) {
         throw new Error(`WebApp directory not found: ${webAppPath}`);
     }
 
-    fs.mkdirSync(targetDir, { recursive: true });
     fs.cpSync(webAppPath, targetDir, { recursive: true });
+    
+    const javaSourcePath = path.join(projectDir, 'src', 'main', 'java');
+    const classesDir = path.join(targetDir, 'WEB-INF', 'classes');
+    
+    if (fs.existsSync(javaSourcePath)) {
+        try {
+            fs.mkdirSync(classesDir, { recursive: true });
+            
+            const javaFiles = await findFiles(path.join(javaSourcePath, '**/*.java'));
+            
+            if (javaFiles.length > 0) {
+                const tomcatLibs = path.join(tomcatHome, 'lib', '*');
+                const escapedClassesDir = `"${classesDir}"`;
+                const escapedTomcatLibs = `"${tomcatLibs}"`;
+                const tempFile = path.join(projectDir, 'sources.list');
 
-    const classesPath = path.join(projectDir, 'WEB-INF', 'classes');
-    if (fs.existsSync(classesPath)) {
-        fs.cpSync(classesPath, path.join(targetDir, 'WEB-INF', 'classes'), { recursive: true });
+                fs.writeFileSync(tempFile, javaFiles.join('\n'));
+                await executeCommand(
+                    `javac -d ${escapedClassesDir} -cp ${escapedTomcatLibs} @${tempFile}`,
+                    projectDir
+                );
+                fs.unlinkSync(tempFile);
+            }
+        } catch (err) {
+            warn(`Java compilation failed: ${err}. Continuing without compiled classes.`);
+        }
+    }
+
+    const existingClasses = path.join(projectDir, 'WEB-INF', 'classes');
+    if (fs.existsSync(existingClasses)) {
+        fs.cpSync(existingClasses, classesDir, { recursive: true });
+    }
+
+    const libDir = path.join(projectDir, 'lib');
+    if (fs.existsSync(libDir)) {
+        const targetLib = path.join(targetDir, 'WEB-INF', 'lib');
+        fs.mkdirSync(targetLib, { recursive: true });
+        fs.readdirSync(libDir).forEach(file => {
+            if (file.endsWith('.jar')) {
+                fs.copyFileSync(path.join(libDir, file), path.join(targetLib, file));
+            }
+        });
     }
 }
 
-async function mavenDeploy(projectDir: string, tomcatHome: string) {
+async function findFiles(pattern: string): Promise<string[]> {
+    const files = await vscode.workspace.findFiles(pattern);
+    return files.map(f => f.fsPath);
+}
+
+async function mavenDeploy(projectDir: string, targetDir: string, appName: string) {
     if (!fs.existsSync(path.join(projectDir, 'pom.xml'))) {
         throw new Error('pom.xml not found.');
     }
 
-    await executeCommand('mvn clean package', projectDir);
+    await executeCommand(`mvn clean package -DfinalName=${appName}`, projectDir);
 
-    const warFile = findWarFile(projectDir);
+    const sourceTargetDir = path.join(projectDir, 'target', appName);
+    const warFile = `${sourceTargetDir}.war`;
     if (!warFile) {
         throw new Error('No WAR file found after Maven build.');
     }
 
-    fs.copyFileSync(warFile, path.join(tomcatHome, 'webapps', path.basename(warFile)));
+    fs.mkdirSync(targetDir, { recursive: true });
+    if (fs.existsSync(sourceTargetDir)) {
+        fs.cpSync(sourceTargetDir, targetDir, { recursive: true });
+    }
+    fs.copyFileSync(warFile, `${targetDir}.war`);
 }
 
-async function gradleDeploy(projectDir: string, tomcatHome: string) {
+async function gradleDeploy(projectDir: string, targetDir: string, appName: string) {
     if (!fs.existsSync(path.join(projectDir, 'build.gradle'))) {
         throw new Error('build.gradle not found.');
     }
 
-    await executeCommand('./gradlew build', projectDir);
+    const gradleCmd = process.platform === 'win32' ? 'gradlew.bat' : './gradlew';
+    await executeCommand(`${gradleCmd} war -PfinalName=${appName}`, projectDir);
 
-    const warFile = findWarFile(projectDir);
+    const warFile = path.join(projectDir, 'build', 'libs', `${appName}.war`);
     if (!warFile) {
         throw new Error('No WAR file found after Gradle build.');
     }
 
-    fs.copyFileSync(warFile, path.join(tomcatHome, 'webapps', path.basename(warFile)));
+    fs.copyFileSync(warFile, `${targetDir}.war`);
 }
 
 async function executeCommand(command: string, cwd: string): Promise<void> {
     return new Promise((resolve, reject) => {
-        exec(command, { cwd }, (err, stdout, stderr) => {
+        exec(command, { cwd }, async (err, stdout, stderr) => {
             if (err) {
+                if (command.startsWith('javac') && (err.code === 127 || err.code === 9009 || stderr.toLowerCase().includes('not found'))) {
+                    const javaHome = await findJavaHome();
+                    
+                    if (javaHome) {
+                        const javaBinPath = path.join(javaHome, 'bin');
+                        const message = `Javac not found in PATH. Added ${javaBinPath} to system PATH. Please close and reload VS Code.`;
+                        
+                        const newPath = `${javaBinPath}${path.delimiter}${process.env.PATH}`;
+                        await vscode.workspace.getConfiguration().update(
+                            'terminal.integrated.env', 
+                            { ...process.env, PATH: newPath },
+                            vscode.ConfigurationTarget.Global
+                        );
+                        
+                        vscode.window.showErrorMessage(message, 'Reload Now').then(choice => {
+                            if (choice === 'Reload Now') {
+                                vscode.commands.executeCommand('workbench.action.reloadWindow');
+                            }
+                        });
+                        return reject(new Error('Javac not found - needs reload'));
+                    } else {
+                        const configMessage = 'Javac not found. Please configure java.home in settings.';
+                        vscode.window.showErrorMessage(configMessage);
+                        return reject(new Error(configMessage));
+                    }
+                }
+                
                 error(`Command failed: ${command}\n${stderr || stdout || 'Unknown error'}`);
                 reject(new Error(stderr || stdout || 'Unknown error.'));
-                return;
             }
             resolve();
         });
     });
-}
-
-function findWarFile(projectDir: string): string | null {
-    const targetDir = path.join(projectDir, 'target');
-    if (!fs.existsSync(targetDir)) { return null; }
-
-    return fs.readdirSync(targetDir).find(file => file.endsWith('.war')) 
-        ? path.join(targetDir, fs.readdirSync(targetDir).find(file => file.endsWith('.war'))!)
-        : null;
 }
