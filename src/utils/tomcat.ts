@@ -73,8 +73,8 @@ export async function findJavaHome(): Promise<string> {
 
             if (selectedFolder && selectedFolder.length > 0) {
                 const selectedPath = selectedFolder[0].fsPath;
-                const javaExecutablePath = path.join(selectedPath, 'bin', `java${process.platform === 'win32' ? '.exe' : ''}`);
-                if (!require('fs').existsSync(javaExecutablePath)) {
+                const javaExecutable = path.join(`"${selectedPath}`, 'bin', `java${process.platform === 'win32' ? '.exe"' : '"'}`);
+                if (!require('fs').existsSync(javaExecutable)) {
                     error('Selected folder is incorrect. Please select the base folder of Java.');
                     return '';
                 }
@@ -154,17 +154,16 @@ export async function tomcat(action: 'start' | 'stop' | 'reload'): Promise<void>
         }
     }
 
-    const javaExecutable = `${javaHome}/bin/java${process.platform === 'win32' ? '.exe' : ''}`;
+    const javaExecutable = path.join(`"${javaHome}`, 'bin', `java${process.platform === 'win32' ? '.exe"' : '"'}`);
     const classpath = [
-        path.join(tomcatHome, 'bin', 'bootstrap.jar'),
-        path.join(tomcatHome, 'bin', 'tomcat-juli.jar')
+        path.join(`"${tomcatHome}`, 'bin', 'bootstrap.jar"'),
+        path.join(`"${tomcatHome}`, 'bin', 'tomcat-juli.jar"')
     ].join(path.delimiter);    
     const mainClass = 'org.apache.catalina.startup.Bootstrap';
-    const catalinaOpts = `-Dcatalina.base=${tomcatHome} -Dcatalina.home=${tomcatHome} -Djava.io.tmpdir=${tomcatHome}/temp`;
-    const quoted = (p: string) => `"${p.replace(/"/g, '\\"')}"`;
+    const catalinaOpts = `-Dcatalina.base="${tomcatHome}" -Dcatalina.home="${tomcatHome}" -Djava.io.tmpdir="${path.join(tomcatHome, 'temp')}"`;
     const command = [
-        quoted(javaExecutable),
-        `-cp ${quoted(classpath)}`,
+        javaExecutable,
+        `-cp ${classpath}`,
         catalinaOpts,
         mainClass,
         action === 'reload' ? 'start' : action
@@ -207,7 +206,7 @@ async function addTomcatUser(): Promise<void> {
         const tomcatHome = await findTomcatHome();
         if (!tomcatHome) { return; }
 
-        const filePath = path.join(tomcatHome, 'conf', 'tomcat-users.xml');
+        const filePath = path.join(`"${tomcatHome}`, 'conf', 'tomcat-users.xml"');
 
         try {
             await fs.promises.access(filePath, fs.constants.W_OK);

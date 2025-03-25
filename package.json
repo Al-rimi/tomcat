@@ -2,7 +2,7 @@
   "name": "tomcat",
   "displayName": "Tomcat",
   "description": "Fully Automated Support for Apache Tomcat",
-  "version": "1.2.41",
+  "version": "1.2.42",
   "publisher": "Al-rimi",
   "author": {
     "email": "abdullah@syalux.com",

@@ -38,27 +38,27 @@ function getBrowserCommand(browser: string): string | null {
     const commands: { [key: string]: { [platform: string]: string[] } } = {
         'Google Chrome': {
             'win32': ['start', 'chrome.exe'],
-            'darwin': ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'],
+            'darwin': ['"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"'],
             'linux': ['google-chrome']
         },
         'Firefox': {
             'win32': ['start', 'firefox.exe'],
-            'darwin': ['/Applications/Firefox.app/Contents/MacOS/firefox'],
+            'darwin': ['"/Applications/Firefox.app/Contents/MacOS/firefox"'],
             'linux': ['firefox']
         },
         'Microsoft Edge': {
             'win32': ['start', 'msedge.exe'],
-            'darwin': ['/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge'],
+            'darwin': ['"/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge"'],
             'linux': ['microsoft-edge']
         },
         'Brave': {
             'win32': ['start', 'brave.exe'],
-            'darwin': ['/Applications/Brave Browser.app/Contents/MacOS/Brave Browser'],
+            'darwin': ['"/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"'],
             'linux': ['brave-browser']
         },
         'Opera': {
             'win32': ['start', 'opera.exe'],
-            'darwin': ['/Applications/Opera.app/Contents/MacOS/Opera'],
+            'darwin': ['"/Applications/Opera.app/Contents/MacOS/Opera"'],
             'linux': ['opera']
         },
         'Safari': {
