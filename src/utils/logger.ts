@@ -8,7 +8,8 @@ enum LogLevel {
     INFO = 1,
     WARN = 2,
     ERROR = 3,
-    SILENT = 4
+    SUCCESS = 4,
+    SILENT = 5
 }
 
 const outputChannel = vscode.window.createOutputChannel(OUTPUT_CHANNEL_NAME);

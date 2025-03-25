@@ -2,10 +2,11 @@
 
 ## [Unreleased]
 
-## [1.2.42] - 2025-03-25  
+## [1.2.43] - 2025-03-25  
 ### Fixed
 - Browser reload bug (Windows)
 - Path directory spaces handling
+- Tomcat startup failure 
 
 ## [1.2.4] - 2025-03-25  
 ### Added  

@@ -3,15 +3,6 @@ Advanced Apache Tomcat management directly in your editor. Full server control, 
 
 ![Tomcat Auto Deploy on Save](resources/tomcat-auto-ex.gif)
 
-## Features
-
-| Category               | Highlights                                                           |
-|------------------------|----------------------------------------------------------------------|
-| **Server Control**     | Single-click management • Real-time status                           |
-| **Deployment**         | Visual deploy selector • Fast/Maven/Gradle • Auto-save integration   |
-| **UI Enhancements**    | Status bar integration • Contextual hover • Interactive help         |
-| **Optimization**       | WAR caching • Smart browser reload • Configuration versioning        |
-
 ## Installation
 
 1. Open VS Code
@@ -76,7 +67,7 @@ Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 
 [![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square)](https://github.com/Al-rimi/tomcat/issues)
 
-## What's New in 1.2.42
+## What's New in 1.2.43
 - **Enhanced Cleanup**: Intelligent Tomcat directory cleaning preserves default apps
 - **Deployment Progress**: Visual notifications for build processes
 - **Browser Management**: Improved browsers handling with process control

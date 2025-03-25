@@ -1,6 +1,6 @@
 import { exec } from 'child_process';
 import * as net from 'net';
-import { error, warn , info } from './logger';
+import { error, info, success } from './logger';
 const vscode = require('vscode');
 const fs = require('fs');
 const path = require('path');
@@ -73,8 +73,8 @@ export async function findJavaHome(): Promise<string> {
 
             if (selectedFolder && selectedFolder.length > 0) {
                 const selectedPath = selectedFolder[0].fsPath;
-                const javaExecutable = path.join(`"${selectedPath}`, 'bin', `java${process.platform === 'win32' ? '.exe"' : '"'}`);
-                if (!require('fs').existsSync(javaExecutable)) {
+                const javaExecutablePath = path.join(selectedPath, 'bin', `java${process.platform === 'win32' ? '.exe' : ''}`);
+                if (!require('fs').existsSync(javaExecutablePath)) {
                     error('Selected folder is incorrect. Please select the base folder of Java.');
                     return '';
                 }
@@ -146,59 +146,42 @@ export async function tomcat(action: 'start' | 'stop' | 'reload'): Promise<void>
             info('Tomcat is not running');
             return;
         }
-        if (action === 'start') {
-            info('Starting Tomcat');
-        }
         if (action === 'reload') {
             info('Tomcat is not running. Starting Tomcat');
         }
     }
 
-    const javaExecutable = path.join(`"${javaHome}`, 'bin', `java${process.platform === 'win32' ? '.exe"' : '"'}`);
+    const javaExecutable = path.join(javaHome, 'bin', `java${process.platform === 'win32' ? '.exe' : ''}`);
     const classpath = [
-        path.join(`"${tomcatHome}`, 'bin', 'bootstrap.jar"'),
-        path.join(`"${tomcatHome}`, 'bin', 'tomcat-juli.jar"')
+        path.join(tomcatHome, 'bin', 'bootstrap.jar'),
+        path.join(tomcatHome, 'bin', 'tomcat-juli.jar')
     ].join(path.delimiter);    
     const mainClass = 'org.apache.catalina.startup.Bootstrap';
     const catalinaOpts = `-Dcatalina.base="${tomcatHome}" -Dcatalina.home="${tomcatHome}" -Djava.io.tmpdir="${path.join(tomcatHome, 'temp')}"`;
+    const quoted = (p: string) => `"${p.replace(/"/g, '\\"')}"`;
     const command = [
-        javaExecutable,
-        `-cp ${classpath}`,
+        quoted(javaExecutable),
+        `-cp ${quoted(classpath)}`,
         catalinaOpts,
         mainClass,
         action === 'reload' ? 'start' : action
     ].join(' ');
 
-    return new Promise((resolve, reject) => {
-        const child = exec(command, {
-            shell: process.platform === 'win32' ? process.env.ComSpec || 'cmd.exe' : '/bin/sh',
-            windowsHide: true,
-            encoding: 'utf-8'
-        }, (err, stdout, stderr) => {
-            process.removeListener('exit', exitHandler);
-            
-            if (err) {
-                error(`Failed to ${action} Tomcat: ${stderr || stdout || err.message}`);
-                return reject(new Error(err.message));
+    exec(command, {
+        shell: process.platform === 'win32' ? process.env.ComSpec || 'cmd.exe' : '/bin/sh',
+        windowsHide: true,
+        encoding: 'utf-8'
+    }, (err, stdout, stderr) => {
+        if (err) {
+            error(`Failed to ${action} Tomcat: ${stderr || stdout || err.message}`);
+            return;
+        }else if (stderr) {
+            if (vscode.workspace.getConfiguration().get('tomcat.loggingLevel', 'WARN') === 'DEBUG'){ 
+                info(`Tomcat log: ${stderr}`);
             }
-            
-            if (stderr) {
-                warn(`Tomcat ${action} stderr: ${stderr}`);
-            }
-            
-            info(`Tomcat ${action}ed successfully`);
-            resolve();
-        });
-    
-        const exitHandler = () => {
-            if (!child.killed) {
-                child.kill(process.platform === 'win32' ? 'SIGKILL' : 'SIGTERM');
-            }
-        };
-        
-        process.once('exit', exitHandler);
-        child.once('exit', () => process.removeListener('exit', exitHandler));
+        }
     });
+    success(`Tomcat ${action}ed successfully`);
 }
 
 async function addTomcatUser(): Promise<void> {
@@ -206,7 +189,7 @@ async function addTomcatUser(): Promise<void> {
         const tomcatHome = await findTomcatHome();
         if (!tomcatHome) { return; }
 
-        const filePath = path.join(`"${tomcatHome}`, 'conf', 'tomcat-users.xml"');
+        const filePath = path.join(tomcatHome, 'conf', 'tomcat-users.xml');
 
         try {
             await fs.promises.access(filePath, fs.constants.W_OK);

@@ -55,29 +55,36 @@ export async function deploy(type: 'Fast' | 'Maven' | 'Gradle'): Promise<void> {
 
     const targetDir = path.join(tomcatHome, 'webapps', appName);
 
-    updateStatusBar(type);
     await vscode.workspace.saveAll();
 
     try {
-        await vscode.window.withProgress(
-            {
-                location: vscode.ProgressLocation.Notification,
-                title: `${type} Build`,
-                cancellable: false,
-            },
-            async () => {
-                if (type === 'Fast') {
-                    await fastDeploy(projectDir, targetDir, tomcatHome);
-                } else if (type === 'Maven') {
-                    await mavenDeploy(projectDir, targetDir, appName);
-                } else if (type === 'Gradle') {
-                    await gradleDeploy(projectDir, targetDir, appName);
-                } else {
-                    error('Invalid deployment type: ', type);
-                    return;
-                }
-            }
-        );
+        updateStatusBar(`${type} Build`);
+        
+        const deployMode = vscode.workspace.getConfiguration('tomcat').get<string>('defaultDeployMode', 'Disabled');
+        const deployActions = {
+            'Fast': () => fastDeploy(projectDir, targetDir, tomcatHome),
+            'Maven': () => mavenDeploy(projectDir, targetDir, appName),
+            'Gradle': () => gradleDeploy(projectDir, targetDir, appName)
+        };
+
+        const action = deployActions[type];
+        if (!action) {
+            error(`Invalid deployment type: ${type}`);
+            return;
+        }
+
+        if (deployMode !== 'On Save') {
+            await vscode.window.withProgress(
+                {
+                    location: vscode.ProgressLocation.Notification,
+                    title: `${type} Build`,
+                    cancellable: false
+                },
+                action
+            );
+        } else {
+            await action();
+        }
 
         if (fs.existsSync(targetDir)) {
             info(`${appName} Deployed successfully`);
@@ -323,7 +330,7 @@ async function executeCommand(command: string, cwd: string): Promise<void> {
                         return reject(new Error('Javac not found - needs reload'));
                     } else {
                         const configMessage = 'Javac not found. Please configure java.home in settings.';
-                        vscode.window.showErrorMessage(configMessage);
+                        error(configMessage);
                         return reject(new Error(configMessage));
                     }
                 }
