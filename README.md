@@ -30,7 +30,7 @@ code --install-extension Al-rimi.tomcat
 ### Editor Button
 
 #### Click to Deploy the current project
-![Tomcat Hover](resources/tomcat-editor.png)
+![Tomcat Editor Button](resources/tomcat-editor.png)
 
 ### Status Bar
 
@@ -76,7 +76,7 @@ Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 
 [![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square)](https://github.com/Al-rimi/tomcat/issues)
 
-## What's New in 1.2.4
+## What's New in 1.2.41
 - **Enhanced Cleanup**: Intelligent Tomcat directory cleaning preserves default apps
 - **Deployment Progress**: Visual notifications for build processes
 - **Browser Management**: Improved browsers handling with process control

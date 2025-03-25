@@ -206,7 +206,7 @@ export function showHelpPanel(context: vscode.ExtensionContext): void {
         <div class="container">
             <header>
                 <h1>Apache Tomcat</h1>
-                <div class="version">Version ${vscode.extensions.getExtension('Al-rimi.tomcat')?.packageJSON.version || '1.2.4'}</div>
+                <div class="version">Version ${vscode.extensions.getExtension('Al-rimi.tomcat')?.packageJSON.version}</div>
             </header>
 
             <div class="search-container">

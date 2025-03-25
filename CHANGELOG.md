@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [1.2.41] - 2025-03-25  
+### Fixed  
+- Browser reload bug (Windows)
+
 ## [1.2.4] - 2025-03-25  
 ### Added  
 - Progress notifications for deployment operations  

@@ -59,9 +59,6 @@ export async function deploy(type: 'Fast' | 'Maven' | 'Gradle'): Promise<void> {
     await vscode.workspace.saveAll();
 
     try {
-        fs.rmSync(targetDir, { recursive: true, force: true });
-        fs.rmSync(`${targetDir}.war`, { recursive: true, force: true });
-        
         await vscode.window.withProgress(
             {
                 location: vscode.ProgressLocation.Notification,
@@ -84,9 +81,8 @@ export async function deploy(type: 'Fast' | 'Maven' | 'Gradle'): Promise<void> {
 
         if (fs.existsSync(targetDir)) {
             info(`${appName} Deployed successfully`);
-            await new Promise(resolve => setTimeout(resolve, 100));
             await tomcat('reload');
-            await new Promise(resolve => setTimeout(resolve, 50));
+            await new Promise(resolve => setTimeout(resolve, 40));
             runBrowser(appName);
         }
     } catch (err) {
@@ -204,6 +200,9 @@ async function fastDeploy(projectDir: string, targetDir: string, tomcatHome: str
         throw new Error(`WebApp directory not found: ${webAppPath}`);
     }
 
+    fs.rmSync(targetDir, { recursive: true, force: true });
+    fs.rmSync(`${targetDir}.war`, { recursive: true, force: true });
+
     fs.cpSync(webAppPath, targetDir, { recursive: true });
     
     const javaSourcePath = path.join(projectDir, 'src', 'main', 'java');
@@ -269,11 +268,14 @@ async function mavenDeploy(projectDir: string, targetDir: string, appName: strin
         throw new Error('No WAR file found after Maven build.');
     }
 
+    fs.rmSync(targetDir, { recursive: true, force: true });
+    fs.rmSync(`${targetDir}.war`, { recursive: true, force: true });
+
+    fs.copyFileSync(warFile, `${targetDir}.war`);
     fs.mkdirSync(targetDir, { recursive: true });
     if (fs.existsSync(sourceTargetDir)) {
         fs.cpSync(sourceTargetDir, targetDir, { recursive: true });
     }
-    fs.copyFileSync(warFile, `${targetDir}.war`);
 }
 
 async function gradleDeploy(projectDir: string, targetDir: string, appName: string) {
@@ -288,6 +290,9 @@ async function gradleDeploy(projectDir: string, targetDir: string, appName: stri
     if (!warFile) {
         throw new Error('No WAR file found after Gradle build.');
     }
+
+    fs.rmSync(targetDir, { recursive: true, force: true });
+    fs.rmSync(`${targetDir}.war`, { recursive: true, force: true });
 
     fs.copyFileSync(warFile, `${targetDir}.war`);
 }
