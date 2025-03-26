@@ -271,21 +271,32 @@ async function mavenDeploy(projectDir: string, targetDir: string, appName: strin
         throw new Error('pom.xml not found.');
     }
 
-    await executeCommand(`mvn clean package -DfinalName=${appName}`, projectDir);
+    await executeCommand(`mvn clean package`, projectDir);
 
-    const sourceTargetDir = path.join(projectDir, 'target', appName);
-    const warFile = `${sourceTargetDir}.war`;
-    if (!warFile) {
+    const targetPath = path.join(projectDir, 'target');
+    const warFiles = fs.readdirSync(targetPath).filter(file => file.toLowerCase().endsWith('.war'));
+    if (warFiles.length === 0) {
         throw new Error('No WAR file found after Maven build.');
     }
 
-    fs.rmSync(targetDir, { recursive: true, force: true });
-    fs.rmSync(`${targetDir}.war`, { recursive: true, force: true });
+    const warFileName = warFiles[0];
+    const warFilePath = path.join(targetPath, warFileName);
 
-    fs.copyFileSync(warFile, `${targetDir}.war`);
-    fs.mkdirSync(targetDir, { recursive: true });
-    if (fs.existsSync(sourceTargetDir)) {
-        fs.cpSync(sourceTargetDir, targetDir, { recursive: true });
+    const warBaseName = path.basename(warFileName, '.war');
+    const warFolderPath = path.join(targetPath, warBaseName);
+
+    if (fs.existsSync(targetDir)) {
+        fs.rmSync(targetDir, { recursive: true, force: true });
+    }
+    if (fs.existsSync(`${targetDir}.war`)) {
+        fs.rmSync(`${targetDir}.war`, { force: true });
+    }
+
+    fs.copyFileSync(warFilePath, `${targetDir}.war`);
+
+    if (fs.existsSync(warFolderPath)) {
+        fs.mkdirSync(targetDir, { recursive: true });
+        fs.cpSync(warFolderPath, targetDir, { recursive: true });
     }
 }
 
