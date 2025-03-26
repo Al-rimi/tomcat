@@ -258,8 +258,12 @@ async function fastDeploy(projectDir: string, targetDir: string, tomcatHome: str
 
 async function findFiles(pattern: string): Promise<string[]> {
     const normalizedPattern = pattern.replace(/\\/g, '/');
-    const files = await glob(normalizedPattern, { nodir: true });
-    return files;
+    return await glob(normalizedPattern, {
+        nodir: true,
+        windowsPathsNoEscape: true,
+        absolute: true,    
+        ignore: ['**/node_modules/**'] 
+    });
 }
 
 async function mavenDeploy(projectDir: string, targetDir: string, appName: string) {
