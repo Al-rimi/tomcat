@@ -1,9 +1,10 @@
 import { exec } from 'child_process';
 import * as net from 'net';
+import fs from 'fs';
+import path from 'path';
 import { error, info, success } from './logger';
 const vscode = require('vscode');
-const fs = require('fs');
-const path = require('path');
+
 
 export function isTomcatRunning(): Promise<boolean> {
     return new Promise((resolve) => {
@@ -110,7 +111,7 @@ export async function tomcat(action: 'start' | 'stop' | 'reload'): Promise<void>
             const options = {
                 hostname: 'localhost',
                 port: vscode.workspace.getConfiguration().get('tomcat.port', 8080),
-                path: `/manager/text/reload?path=/${appName}`,
+                path: `/manager/text/reload?path=/${appName.replace(/ /g, '%20')}`,
                 method: 'GET',
                 headers: {
                     'Authorization': `Basic ${creds}`
