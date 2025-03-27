@@ -137,7 +137,7 @@
         "tomcat.port": {
           "type": "number",
           "default": 8080,
-          "description": "The port number for the Tomcat server."
+          "description": "The port number for the Tomcat server, allowed range is 1024-49151."
         },
         "tomcat.home": {
           "type": "string",

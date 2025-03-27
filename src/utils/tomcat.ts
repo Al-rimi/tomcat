@@ -92,7 +92,7 @@ export async function findJavaHome(): Promise<string> {
     }
 }
 
-export async function tomcat(action: 'start' | 'stop' | 'reload'): Promise<void> {
+export async function tomcat(action: 'start' | 'stop' | 'reload' | 'restart'): Promise<void> {
     let tomcatHome = await findTomcatHome();
     if (!tomcatHome) { return; }
 
@@ -101,7 +101,7 @@ export async function tomcat(action: 'start' | 'stop' | 'reload'): Promise<void>
 
     if (await isTomcatRunning()) {
         if (action === 'start') {
-            info('Tomcat is already running');
+            success('Tomcat is running');
             return;
         }
         if (action === 'reload') {
@@ -142,9 +142,12 @@ export async function tomcat(action: 'start' | 'stop' | 'reload'): Promise<void>
             }
             return;
         }
+        if (action === 'restart') {
+            return;
+        }
     } else {
         if (action === 'stop') {
-            info('Tomcat is not running');
+            success('Tomcat is not running');
             return;
         }
         if (action === 'reload') {
@@ -165,7 +168,7 @@ export async function tomcat(action: 'start' | 'stop' | 'reload'): Promise<void>
         `-cp ${quoted(classpath)}`,
         catalinaOpts,
         mainClass,
-        action === 'reload' ? 'start' : action
+        action === 'reload' ? 'start' : action === 'restart' ? 'stop' : action
     ].join(' ');
 
     exec(command, {
@@ -182,7 +185,9 @@ export async function tomcat(action: 'start' | 'stop' | 'reload'): Promise<void>
             }
         }
     });
-    success(`Tomcat ${action}ed successfully`);
+    if (action === 'start' || action === 'stop') {
+        success(`Tomcat ${action}ed successfully`); 
+    }
 }
 
 async function addTomcatUser(): Promise<void> {
@@ -227,5 +232,52 @@ async function addTomcatUser(): Promise<void> {
         error('Unexpected error adding Tomcat user', err as Error);
     } finally {
         tomcat('stop');
+    }
+}
+
+export async function updateTomcatPort(newPort: number): Promise<void> {
+    try {
+        const tomcatHome = await findTomcatHome();
+        if (!tomcatHome) {
+            return;
+        }
+
+        const serverXmlPath = path.join(tomcatHome, 'conf', 'server.xml');
+        let content: string;
+
+        try {
+            content = await fs.promises.readFile(serverXmlPath, 'utf8');
+        } catch (err) {
+            error(`Failed to read server.xml: ${(err as Error).message}`);
+            return;
+        }
+
+        const lines = content.split('\n');
+        let updated = false;
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            if (line.includes('protocol="HTTP/1.1"') && line.includes('port="')) {
+                const newLine = line.replace(/port="\d+"/, `port="${newPort}"`);
+                if (newLine !== line) {
+                    lines[i] = newLine;
+                    updated = true;
+                }
+            }
+        }
+
+        if (!updated) {
+            error('Could not find HTTP Connector port in server.xml.');
+            return;
+        }
+
+        try {
+            await fs.promises.writeFile(serverXmlPath, lines.join('\n'), 'utf8');
+            info(`Updated Tomcat port to ${newPort} in server.xml.`);
+        } catch (err) {
+            error(`Failed to write server.xml: ${(err as Error).message}`);
+        }
+    } catch (err) {
+        error('Unexpected error updating Tomcat port', err as Error);
     }
 }

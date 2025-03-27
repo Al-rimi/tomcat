@@ -5,6 +5,8 @@ import { cleanTomcat } from './commands/clean';
 import { deployTomcat } from './commands/deploy';
 import { showHelpPanel } from './commands/help';
 import { registerAutoDeploy, isJavaEEProject } from './utils/deploy';
+import { PortManager } from './utils/PortManager';
+import { info, error } from './utils/logger';
 
 let statusBarItem: vscode.StatusBarItem;
 
@@ -27,17 +29,40 @@ export function updateStatusBar(value: String): void {
 }
 
 export function activate(context: vscode.ExtensionContext) {
+    const config = vscode.workspace.getConfiguration();
+    context.globalState.update('tomcatPort', config.get('tomcat.port', 8080));
+
     context.subscriptions.push(
         vscode.commands.registerCommand('tomcat.start', startTomcat),
         vscode.commands.registerCommand('tomcat.stop', stopTomcat),
         vscode.commands.registerCommand('tomcat.clean', cleanTomcat),
         vscode.commands.registerCommand('tomcat.deploy', deployTomcat),
         vscode.commands.registerCommand('tomcat.help', () => showHelpPanel(context)),
+        vscode.commands.registerCommand('tomcat.toggleDeploySetting', toggleTomcatDeploySetting),
+        vscode.workspace.onDidChangeConfiguration(async e => {
+            if (e.affectsConfiguration('tomcat.port')) {
+                const newPort = vscode.workspace.getConfiguration().get('tomcat.port', 8080);
+                const oldPort = context.globalState.get('tomcatPort', 8080);
+
+                if (oldPort === newPort) {
+                    return;
+                }
+    
+                try {
+                    await PortManager.updateTomcatPort(newPort);    
+                    context.globalState.update('tomcatPort', newPort);
+                } catch (err) {
+                    error(`Port update failed: ${err as Error} Reverted to ${oldPort}`);
+                    await config.update('tomcat.port', oldPort, true);
+                }
+            }
+        })
     );
 
     context.subscriptions.push(
-        vscode.commands.registerCommand('tomcat.toggleDeploySetting', toggleTomcatDeploySetting)
     );
+
+    
 
     if (isJavaEEProject()) {
         statusBarItem = createStatusBar();
