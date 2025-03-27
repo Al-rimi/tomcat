@@ -201,37 +201,42 @@ async function createNewProject(): Promise<void> {
 }
 
 async function fastDeploy(projectDir: string, targetDir: string, tomcatHome: string) {
-
     const webAppPath = path.join(projectDir, 'src', 'main', 'webapp');
     if (!fs.existsSync(webAppPath)) {
         throw new Error(`WebApp directory not found: ${webAppPath}`);
     }
+    const javaHome = await findJavaHome();
+    if (!javaHome) { return; }
+
+    const javacPath = path.join(javaHome, 'bin', 'javac');
 
     fs.rmSync(targetDir, { recursive: true, force: true });
-    fs.rmSync(`${targetDir}.war`, { recursive: true, force: true });
+    fs.rmSync(`${targetDir}.war`, { force: true });
+
 
     fs.cpSync(webAppPath, targetDir, { recursive: true });
-    
+
     const javaSourcePath = path.join(projectDir, 'src', 'main', 'java');
     const classesDir = path.join(targetDir, 'WEB-INF', 'classes');
-    
+
     if (fs.existsSync(javaSourcePath)) {
         try {
             fs.mkdirSync(classesDir, { recursive: true });
-            
+
             const javaPattern = path.join(javaSourcePath, '**', '*.java');
             const javaFiles = await findFiles(javaPattern);
+            
             if (javaFiles.length > 0) {
                 const tomcatLibs = path.join(tomcatHome, 'lib', '*');
-                const escapedClassesDir = `"${classesDir}"`;
-                const escapedTomcatLibs = `"${tomcatLibs}"`;
                 const tempFile = path.join(projectDir, 'sources.list');
 
-                fs.writeFileSync(tempFile, javaFiles.join('\n'));
-                await executeCommand(
-                    `javac -d ${escapedClassesDir} -cp ${escapedTomcatLibs} @${tempFile}`,
-                    projectDir
-                );
+                fs.writeFileSync(tempFile, javaFiles.map(file => `"${file}"`).join('\n').split(path.sep).join('//'));
+
+                const javacCommand = process.platform === 'win32' 
+                    ? `"${javacPath}" -d "${classesDir}" -cp "${tomcatLibs}" @"${tempFile}"`
+                    : `'${javacPath}' -d '${classesDir}' -cp '${tomcatLibs}' @'${tempFile}'`;
+
+                await executeCommand(javacCommand, projectDir);
                 fs.unlinkSync(tempFile);
             }
         } catch (err) {
@@ -248,6 +253,7 @@ async function fastDeploy(projectDir: string, targetDir: string, tomcatHome: str
     if (fs.existsSync(libDir)) {
         const targetLib = path.join(targetDir, 'WEB-INF', 'lib');
         fs.mkdirSync(targetLib, { recursive: true });
+
         fs.readdirSync(libDir).forEach(file => {
             if (file.endsWith('.jar')) {
                 fs.copyFileSync(path.join(libDir, file), path.join(targetLib, file));
@@ -257,12 +263,10 @@ async function fastDeploy(projectDir: string, targetDir: string, tomcatHome: str
 }
 
 async function findFiles(pattern: string): Promise<string[]> {
-    const normalizedPattern = pattern.replace(/\\/g, '/');
-    return await glob(normalizedPattern, {
+    return await glob(pattern, {
         nodir: true,
-        windowsPathsNoEscape: true,
-        absolute: true,    
-        ignore: ['**/node_modules/**'] 
+        windowsPathsNoEscape: process.platform === 'win32',
+        absolute: true,
     });
 }
 
@@ -320,38 +324,11 @@ async function gradleDeploy(projectDir: string, targetDir: string, appName: stri
 }
 
 async function executeCommand(command: string, cwd: string): Promise<void> {
-    return new Promise((resolve, reject) => {
+    info(`Executing: ${command}`);
+    return new Promise(async (resolve) => {
         exec(command, { cwd }, async (err, stdout, stderr) => {
             if (err) {
-                if (command.startsWith('javac') && (err.code === 127 || err.code === 9009 || stderr.toLowerCase().includes('not found'))) {
-                    const javaHome = await findJavaHome();
-                    
-                    if (javaHome) {
-                        const javaBinPath = path.join(javaHome, 'bin');
-                        const message = `Javac not found in PATH. Added ${javaBinPath} to system PATH. Please close and reload VS Code.`;
-                        
-                        const newPath = `${javaBinPath}${path.delimiter}${process.env.PATH}`;
-                        await vscode.workspace.getConfiguration().update(
-                            'terminal.integrated.env', 
-                            { ...process.env, PATH: newPath },
-                            vscode.ConfigurationTarget.Global
-                        );
-                        
-                        vscode.window.showErrorMessage(message, 'Reload Now').then(choice => {
-                            if (choice === 'Reload Now') {
-                                vscode.commands.executeCommand('workbench.action.reloadWindow');
-                            }
-                        });
-                        return reject(new Error('Javac not found - needs reload'));
-                    } else {
-                        const configMessage = 'Javac not found. Please configure java.home in settings.';
-                        error(configMessage);
-                        return reject(new Error(configMessage));
-                    }
-                }
-                reject(new Error(stderr || stdout || 'Unknown error.'));
-
-                throw new Error(`Command failed: ${command}\n${stderr || stdout || 'Unknown error'}`);
+                throw new Error(err.message || stderr || stdout || 'Unknown error.');
             }
             resolve();
         });
