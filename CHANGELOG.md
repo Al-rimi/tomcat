@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-## [1.2.5] - 2025-03-28
+## [1.3.0] - 2025-03-28
 ### Fixed
 - Browser path spaces sscaping logic
 - Browser reload bug (Windows)

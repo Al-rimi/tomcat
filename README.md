@@ -67,7 +67,7 @@ Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 
 [![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square)](https://github.com/Al-rimi/tomcat/issues)
 
-## What's New in 1.2.5
+## What's New in 1.3.0
 - **Windows Path Handling**: Fixed directory space escaping in browser paths and Java compiler operations
 - **Tomcat Startup**: Resolved critical server initialization failures
 - **Browser Reliability**: Addressed Windows-specific reload bugs and process management
