@@ -67,12 +67,11 @@ Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 
 [![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square)](https://github.com/Al-rimi/tomcat/issues)
 
-## What's New in 1.2.43
-- **Enhanced Cleanup**: Intelligent Tomcat directory cleaning preserves default apps
-- **Deployment Progress**: Visual notifications for build processes
-- **Browser Management**: Improved browsers handling with process control
-- **Path Validation**: Strict checks for Java/Tomcat installations
-- **Logging System**: Configurable logging levels (DEBUG/INFO/WARN/ERROR)
+## What's New in 1.2.5
+- **Windows Path Handling**: Fixed directory space escaping in browser paths and Java compiler operations
+- **Tomcat Startup**: Resolved critical server initialization failures
+- **Browser Reliability**: Addressed Windows-specific reload bugs and process management
+- **Simplified Configuration**: Removed legacy javac environment setup in favor of standard `JAVA_HOME`
 
 [View Full Changelog](https://github.com/Al-rimi/tomcat/blob/main/CHANGELOG.md)
 
