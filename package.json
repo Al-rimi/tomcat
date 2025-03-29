@@ -2,7 +2,7 @@
   "name": "tomcat",
   "displayName": "Tomcat",
   "description": "Fully Automated Support for Apache Tomcat",
-  "version": "1.3.0",
+  "version": "2.0.0",
   "publisher": "Al-rimi",
   "author": {
     "email": "abdullah@syalux.com",
@@ -46,15 +46,6 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
-    "keybindings": [
-      {
-        "command": "tomcat.deployOnShortcut",
-        "win": "ctrl+s",
-        "mac": "cmd+s",
-        "linux": "ctrl+s",
-        "when": "editorTextFocus"
-      }
-    ],
     "commands": [
       {
         "command": "tomcat.deploy",
@@ -88,13 +79,24 @@
           "command": "tomcat.deploy",
           "when": "tomcat.showdeployButton",
           "group": "navigation",
-          "tooltip": "Open Tomcat Dashboard"
+          "tooltip": "Tomcat Deploy"
         }
       ]
     },
     "configuration": {
       "title": "Tomcat",
       "properties": {
+        "tomcat.webApps": {
+          "type": "array",
+          "default": [
+            "ROOT",
+            "docs",
+            "examples",
+            "manager",
+            "host-manager"
+          ],
+          "description": "List of web applications to keep when cleaning Apache Tomcat."
+        },
         "tomcat.defaultDeployMode": {
           "type": "string",
           "enum": [
@@ -129,10 +131,16 @@
           "description": "Select your preferred browser to launch the app. Note that Firefox and Safari do not support the Chrome Debug Protocol, and automation is not supported in these browsers."
         },
         "tomcat.loggingLevel": {
-            "type": "string",
-            "enum": ["DEBUG", "INFO", "WARN", "ERROR", "SILENT"],
-            "default": "WARN",
-            "description": "Set the logging verbosity level"
+          "type": "string",
+          "enum": [
+            "DEBUG",
+            "INFO",
+            "WARN",
+            "ERROR",
+            "SILENT"
+          ],
+          "default": "WARN",
+          "description": "Set the logging verbosity level"
         },
         "tomcat.port": {
           "type": "number",
@@ -153,26 +161,33 @@
     }
   },
   "scripts": {
+    "package": "npm run compile && webpack --mode production",
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "npm run compile && node ./node_modules/@vscode/test-electron/out/runTest --extensionDevelopmentPath=. --extensionTestsPath=out/test/suite"
   },
   "devDependencies": {
     "@types/cross-spawn": "^6.0.6",
+    "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
+    "@types/sinon": "^17.0.4",
+    "@types/sinon-chai": "^4.0.0",
     "@types/tail": "^2.2.3",
     "@types/vscode": "^1.56.0",
+    "@types/ws": "^8.18.0",
     "@typescript-eslint/eslint-plugin": "^8.25.0",
     "@typescript-eslint/parser": "^8.25.0",
     "@vscode/test-electron": "^2.4.1",
     "eslint": "^9.21.0",
-    "typescript": "^5.7.3"
+    "ts-loader": "^9.5.2",
+    "typescript": "^5.7.3",
+    "webpack": "^5.98.0",
+    "webpack-cli": "^6.0.1"
   },
   "dependencies": {
-    "@types/ws": "^7.4.0",
     "glob": "^11.0.1",
     "ws": "^7.4.6"
   }

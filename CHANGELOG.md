@@ -2,6 +2,29 @@
 
 ## [Unreleased]
 
+## [2.0.0] - 2025-03-30
+### Added
+- Full OOP architecture with Singleton pattern implementation
+- Comprehensive port management system
+- Advanced configuration validation subsystem
+- Developer documentation system
+- Automated project creation wizard
+
+### Changed
+- Complete codebase refactor to TypeScript classes
+- Enhanced configuration management system
+- Improved cross-platform path handling
+- Restructured deployment pipeline architecture
+- Optimized browser session management
+
+### Fixed
+- Memory leaks in long-running processes
+- Configuration synchronization issues
+- Windows process management edge cases
+- Deployment race conditions
+- Logging system thread safety
+- Spaces escaping logic for file, Folder and url paths
+
 ## [1.3.0] - 2025-03-28
 ### Fixed
 - Browser path spaces sscaping logic

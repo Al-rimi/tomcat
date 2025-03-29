@@ -1,0 +1,39 @@
+name: CI Pipeline
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:AV
+    - cron: '0 0 * * *' # Every day at midnight UTC
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node: [18.x, 20.x]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm ci
+      - run: npm test
+      - uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - run: npm ci
+      - run: vsce package
+      - uses: actions/upload-artifact@v3
+        with:
+          name: tomcat-vsix
+          path: *.vsix
