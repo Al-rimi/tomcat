@@ -4,8 +4,6 @@ on:
     branches: [main]
   push:
     branches: [main]
-  schedule:AV
-    - cron: '0 0 * * *' # Every day at midnight UTC
 
 jobs:
   test:
@@ -36,4 +34,4 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: tomcat-vsix
-          path: *.vsix
+          path: "*.vsix"
