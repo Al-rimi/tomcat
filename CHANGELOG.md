@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [2.0.1] - 2025-03-30
+### Fixed
+- Tomcat reload on case start failure
+
 ## [2.0.0] - 2025-03-30
 ### Added
 - Full OOP architecture with Singleton pattern implementation
