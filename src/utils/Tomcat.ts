@@ -5,9 +5,9 @@ import fsp from 'fs/promises';
 import path from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { Logger } from './Loggers';
+import { Logger } from './Logger';
 import { Buffer } from 'buffer';
-import { Browser } from './Browsers';
+import { Browser } from './Browser';
 
 const execAsync = promisify(exec);
 const logger = Logger.getInstance();

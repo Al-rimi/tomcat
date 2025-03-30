@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 import { showHelpPanel } from './help';
 import { Builder } from './utils/Builder';
-import { Tomcat } from './utils/Tomcats';
-import { Logger } from './utils/Loggers';
-import { Browser } from './utils/Browsers';
+import { Tomcat } from './utils/Tomcat';
+import { Logger } from './utils/Logger';
+import { Browser } from './utils/Browser';
 
 export function activate(context: vscode.ExtensionContext) {
     const builder = Builder.getInstance();

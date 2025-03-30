@@ -4,9 +4,9 @@ import * as fs from 'fs';
 import { exec } from 'child_process';
 import { env } from 'vscode';
 import { glob } from 'glob';
-import { Browser } from './Browsers';
-import { Tomcat } from './Tomcats';
-import { Logger } from './Loggers';
+import { Browser } from './Browser';
+import { Tomcat } from './Tomcat';
+import { Logger } from './Logger';
 
 const tomcat = Tomcat.getInstance();
 const logger = Logger.getInstance();

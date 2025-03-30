@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { Browser } from '../../utils/Browsers';
+import { Browser } from '../../utils/Browser';
 import sinon = require('sinon');
 
 suite('Browser Tests', () => {

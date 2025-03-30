@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as http from 'http';
 import WebSocket from 'ws';
 import { exec } from 'child_process';
-import { Logger } from './Loggers';
+import { Logger } from './Logger';
 
 const logger = Logger.getInstance();
 
