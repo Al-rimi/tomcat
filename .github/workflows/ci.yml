@@ -20,12 +20,6 @@ jobs:
       - name: Run Builder Tests
         run: npm test -- --grep 'Builder Tests'
 
-      - name: Coverage Report
-        uses: coverallsapp/github-action@v2
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: ./coverage/lcov.info
-
   cross-platform:
     needs: test
     runs-on: ${{ matrix.os }}
