@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { Tomcat } from '../../utils/Tomcat';
-import sinon = require('sinon');
+import * as sinon from 'sinon';
 
 suite('Tomcat Tests', () => {
   let tomcat: Tomcat;

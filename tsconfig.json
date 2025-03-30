@@ -1,17 +1,31 @@
 {
 	"compilerOptions": {
-		"module": "Node16",
-		"target": "ES2022",
+		"module": "commonjs",
+		"target": "ES2019",
+		"lib": ["ES2019", "DOM"],
 		"outDir": "out",
-		"lib": [
-			"ES2022"
-		],
+		"baseUrl": ".",
+		"paths": {
+		"@/*": ["src/*"]
+		},
 		"sourceMap": true,
+		"inlineSources": true,
 		"rootDir": "src",
-		"strict": true,   /* enable all strict type-checking options */
-		/* Additional Checks */
-		// "noImplicitReturns": true, /* Report error when not all code paths in function return a value. */
-		// "noFallthroughCasesInSwitch": true, /* Report errors for fallthrough cases in switch statement. */
-		// "noUnusedParameters": true,  /* Report errors on unused parameters. */
-	}
+		"strict": true,
+		"moduleResolution": "node",
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"noImplicitReturns": true,
+		"noFallthroughCasesInSwitch": true,
+		"noUnusedParameters": true,
+		"types": ["node"]
+	},
+	"exclude": [
+		"node_modules",
+		"test",
+		"**/*.test.ts",
+		".nycrc",
+		"webpack.config.js"
+	]
 }

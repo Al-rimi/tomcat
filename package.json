@@ -33,7 +33,7 @@
     "theme": "dark"
   },
   "engines": {
-    "vscode": "^1.98.0"
+    "vscode": "^1.56.0"
   },
   "categories": [
     "SCM Providers",
@@ -161,13 +161,14 @@
     }
   },
   "scripts": {
-    "package": "npm run compile && webpack --mode production",
-    "vscode:prepublish": "npm run compile",
+    "vscode:prepublish": "npm run package",
+    "package": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src",
-    "test": "npm run compile && node ./node_modules/@vscode/test-electron/out/runTest --extensionDevelopmentPath=. --extensionTestsPath=out/test/suite"
+    "lint": "eslint src --ext .ts",
+    "test": "node ./node_modules/@vscode/test-electron/out/runTest --extensionDevelopmentPath=. --extensionTestsPath=out/test/suite",
+    "coverage": "nyc --reporter=lcov npm test"
   },
   "devDependencies": {
     "@types/cross-spawn": "^6.0.6",
@@ -183,9 +184,7 @@
     "@vscode/test-electron": "^2.4.1",
     "eslint": "^9.21.0",
     "ts-loader": "^9.5.2",
-    "typescript": "^5.7.3",
-    "webpack": "^5.98.0",
-    "webpack-cli": "^6.0.1"
+    "typescript": "^5.7.3"
   },
   "dependencies": {
     "glob": "^11.0.1",

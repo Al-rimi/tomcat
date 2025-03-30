@@ -204,7 +204,7 @@ export class Builder {
         fs.rmSync(targetDir, { recursive: true, force: true });
         fs.rmSync(`${targetDir}.war`, { force: true });
 
-        fs.cpSync(webAppPath, targetDir, { recursive: true });
+        this.copyDirectorySync(webAppPath, targetDir);
         const javaSourcePath = path.join(projectDir, 'src', 'main', 'java');
         const classesDir = path.join(targetDir, 'WEB-INF', 'classes');
 
@@ -233,7 +233,7 @@ export class Builder {
 
         const existingClasses = path.join(projectDir, 'WEB-INF', 'classes');
         if (fs.existsSync(existingClasses)) {
-            fs.cpSync(existingClasses, classesDir, { recursive: true });
+            this.copyDirectorySync(existingClasses, classesDir);
         }
 
         const libDir = path.join(projectDir, 'lib');
@@ -278,7 +278,7 @@ export class Builder {
 
         if (fs.existsSync(warFolderPath)) {
             fs.mkdirSync(targetDir, { recursive: true });
-            fs.cpSync(warFolderPath, targetDir, { recursive: true });
+            this.copyDirectorySync(warFolderPath, targetDir);
         }
     }
 
@@ -317,5 +317,22 @@ export class Builder {
                 resolve();
             });
         });
+    }
+
+    private copyDirectorySync(src: string, dest: string) {
+        if (!fs.existsSync(dest)) {
+            fs.mkdirSync(dest, { recursive: true });
+        }
+    
+        const entries = fs.readdirSync(src, { withFileTypes: true });
+    
+        for (const entry of entries) {
+            const srcPath = path.join(src, entry.name);
+            const destPath = path.join(dest, entry.name);
+        
+            entry.isDirectory() ?
+                this.copyDirectorySync(srcPath, destPath) :
+                fs.copyFileSync(srcPath, destPath);
+        }
     }
 }

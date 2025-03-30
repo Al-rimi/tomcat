@@ -18,11 +18,17 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
+          
       - run: npm ci
-      - run: npm test
-      - uses: coverallsapp/github-action@v2
+      - run: npm run coverage  # Changed from npm test
+      
+      - name: Coveralls
+        uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: ./coverage/lcov.info  # Add lcov path
+          flag-name: ${{ matrix.os }}-node-${{ matrix.node }}
+          parallel: true
 
   build:
     needs: test
@@ -38,3 +44,15 @@ jobs:
         with:
           name: tomcat-vsix
           path: "*.vsix"
+
+  finish-coverage:
+    needs: 
+      - test
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Finalize Coverage
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel-finished: true

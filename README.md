@@ -2,7 +2,7 @@
 
 Advanced Apache Tomcat management directly in your editor. Full server control, smart deployment, and browser integration.
 
-![Tomcat Auto Deploy on Save](https://github.com/Al-rimi/tomcat/tree/main/resources/tomcat-auto-ex.gif)
+![Tomcat Auto Deploy on Save](./resources/tomcat-auto-ex.gif)
 
 ## Features
 - One-click Tomcat management
@@ -29,12 +29,12 @@ code --install-extension Al-rimi.tomcat
 ### Editor Button
 
 #### Click to Deploy the current project
-![Tomcat Editor Button](https://github.com/Al-rimi/tomcat/tree/main/resources/tomcat-editor.png)
+![Tomcat Editor Button](./resources/tomcat-editor.png)
 
 ### Status Bar
 
 #### Click to Change the default deploy mode
-![Tomcat Status Bar](https://github.com/Al-rimi/tomcat/tree/main/resources/tomcat-status-bar.png)
+![Tomcat Status Bar](./resources/tomcat-status-bar.png)
 
 ### Command Palette (`Ctrl+Shift+P`)
 

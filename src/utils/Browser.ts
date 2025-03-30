@@ -111,7 +111,7 @@ export class Browser {
             );
 
             if (target?.webSocketDebuggerUrl) {
-                await this.handleWebSocketReload(target, appUrl);
+                await this.handleWebSocketReload(target);
                 logger.info(`${browser} reloaded`);
             } else {
                 logger.info(`Opening new ${browser} window`);
@@ -140,7 +140,7 @@ export class Browser {
         return `${browserCommands.join(' ')} ${debugArgs} ${url}`;
     }
 
-    private async handleWebSocketReload(target: any, appUrl: string): Promise<void> {
+    private async handleWebSocketReload(target: any): Promise<void> {
         const ws = new WebSocket(target.webSocketDebuggerUrl);
         
         await new Promise<void>((resolve, reject) => {
