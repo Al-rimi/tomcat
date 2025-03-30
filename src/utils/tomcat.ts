@@ -282,12 +282,13 @@ export class Tomcat {
                     Tomcat.getInstance().updateConfig();
                     Browser.getInstance().updateConfig();
 
+                    await vscode.workspace.getConfiguration().update('tomcat.port', newPort, true);
                     logger.success(`Tomcat port updated from ${oldPort} to ${newPort}`);
 
                     this.executeTomcatCommand('start', tomcatHome, javaHome);
                 }
             } catch (err) {
-                await vscode.workspace.getConfiguration().update('tomcat.port', 3333, true);
+                await vscode.workspace.getConfiguration().update('tomcat.port', oldPort, true);
                 logger.error(`Tomcat port ${newPort} update failed reverting to ${oldPort}`, err as Error);
             }
         }

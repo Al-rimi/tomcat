@@ -89,6 +89,7 @@ export class Builder {
         try {
             logger.updateStatusBar(`${type} Build`);
             const deployMode = this.config.get<string>('defaultDeployMode', 'Disabled');
+            logger.info(`Deploy mode: ${deployMode}`);
             
             const action = {
                 'Fast': () => this.fastDeploy(projectDir, targetDir, tomcatHome),
@@ -110,6 +111,8 @@ export class Builder {
             } else {
                 await action();
             }
+
+            logger.defaultStatusBar();
 
             if (fs.existsSync(targetDir)) {
                 logger.info(`${appName} Deployed successfully`);
