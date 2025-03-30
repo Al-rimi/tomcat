@@ -88,14 +88,14 @@ export class Tomcat {
         }
 
         if (!await this.isTomcatRunning()) {
-            await this.executeTomcatCommand('start', tomcatHome, javaHome);
+            this.executeTomcatCommand('start', tomcatHome, javaHome);
             logger.info('Tomcat started');
             return;
         }
 
         try {
             const appName = path.basename(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '');
-            if (!appName) {throw new Error('No workspace folder found');}
+            if (!appName) {return;}
 
             const response = await fetch(`http://localhost:${this.port}/manager/text/reload?path=/${encodeURIComponent(appName)}`, {
                 headers: {
