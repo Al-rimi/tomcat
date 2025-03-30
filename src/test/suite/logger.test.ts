@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { Logger } from '../../utils/Logger';
+import { Logger } from '../../utils/Loggers';
 
 suite('Logger Tests', () => {
   let logger: Logger;

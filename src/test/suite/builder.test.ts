@@ -4,9 +4,9 @@ import * as sinon from 'sinon';
 import * as path from 'path';
 import * as fs from 'fs';
 import { Builder } from '../../utils/Builder';
-import { Browser } from '../../utils/Browser';
-import { Logger } from '../../utils/Logger';
-import { Tomcat } from '../../utils/Tomcat';
+import { Browser } from '../../utils/Browsers';
+import { Logger } from '../../utils/Loggers';
+import { Tomcat } from '../../utils/Tomcats';
 
 describe('Builder Tests', () => {
   let builder: Builder;
