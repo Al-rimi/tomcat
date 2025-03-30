@@ -16,6 +16,7 @@
 - Improved cross-platform path handling
 - Restructured deployment pipeline architecture
 - Optimized browser session management
+- Reduce dependencies on external libraries
 
 ### Fixed
 - Memory leaks in long-running processes
