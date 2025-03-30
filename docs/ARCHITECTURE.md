@@ -37,12 +37,14 @@ classDiagram
         +updateStatusBar(text: string): void
     }
     
+    class Vscode
+    
     Tomcat --> Logger : Logging
     Builder --> Tomcat : Deployment Coordination
     Builder --> Browser : Reload Trigger
     Browser --> Logger : Error Reporting
-    Tomcat --> "vscode" : Configuration Management
-    Builder --> "vscode" : Workspace Interaction
+    Tomcat --> Vscode : Configuration Management
+    Builder --> Vscode : Workspace Interaction
 ```
 
 ## Component Responsibilities
