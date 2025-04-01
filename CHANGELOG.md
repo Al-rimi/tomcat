@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [2.0.3] - 2025-04-01
+### Fixed
+- Package generation error
+
 ## [2.0.2] - 2025-04-01
 ### Fixed
 - Browser stealing focus on MacOS/Linux
