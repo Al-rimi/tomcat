@@ -1,5 +1,11 @@
 out
 dist
 node_modules
+.vscode/
 .vscode-test/
 *.vsix
+.gitignore
+.vscode-test.mjs
+.nycrc
+tsconfig.json
+package-lock.json

@@ -2,9 +2,9 @@
 
 ## [Unreleased]
 
-## [2.0.3] - 2025-04-01
+## [2.0.4] - 2025-04-01
 ### Fixed
-- Package generation error
+- Package generation error missing dependencies
 
 ## [2.0.2] - 2025-04-01
 ### Fixed

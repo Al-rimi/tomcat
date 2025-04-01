@@ -2,7 +2,7 @@
   "name": "tomcat",
   "displayName": "Tomcat",
   "description": "Fully Automated Support for Apache Tomcat",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "publisher": "Al-rimi",
   "author": {
     "email": "abdullah@syalux.com",
@@ -32,9 +32,6 @@
     "color": "#4A90E2",
     "theme": "dark"
   },
-  "engines": {
-    "vscode": "^1.56.0"
-  },
   "categories": [
     "SCM Providers",
     "Programming Languages",
@@ -43,6 +40,19 @@
   "activationEvents": [
     "onStartupFinished",
     "workspaceContains:**/*"
+  ],
+  "engines": {
+    "vscode": "^1.56.0"
+  },
+  "files": [
+    "out/**/*",
+    "resources/**/*",
+    "node_modules/glob/**/*",
+    "node_modules/ws/**/*",
+    "package.json",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -161,7 +171,7 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run package",
+    "vscode:prepublish": "npm install && npm run compile",
     "package": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
@@ -171,28 +181,15 @@
     "coverage": "nyc --reporter=lcov npm test"
   },
   "devDependencies": {
-    "@types/cross-spawn": "^6.0.6",
     "@types/mocha": "^10.0.10",
     "@types/node": "^20.17.28",
     "@types/sinon": "^17.0.4",
-    "@types/sinon-chai": "^4.0.0",
-    "@types/tail": "^2.2.3",
     "@types/vscode": "^1.56.0",
     "@types/ws": "^8.18.0",
-    "@typescript-eslint/eslint-plugin": "^8.25.0",
-    "@typescript-eslint/parser": "^8.25.0",
-    "@vscode/test-electron": "^2.4.1",
-    "eslint": "^9.21.0",
-    "ts-loader": "^9.5.2",
     "typescript": "^5.7.3"
   },
   "dependencies": {
-    "@types/axios": "^0.9.36",
-    "@types/tar": "^6.1.13",
-    "axios": "^1.8.4",
     "glob": "^11.0.1",
-    "tar": "^7.4.3",
-    "ws": "^7.4.6",
-    "zip-lib": "^1.0.5"
+    "ws": "^7.4.6"
   }
 }
