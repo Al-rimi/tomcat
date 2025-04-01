@@ -156,16 +156,17 @@ export class Browser {
                 }), (err) => {
                     if (err) {reject(err);}
                 });
-                
-                ws.send(JSON.stringify({ 
-                    id: 2, 
-                    method: 'Target.activateTarget', 
-                    params: { targetId: target.id }
-                }), (err) => {
-                    ws.close();
-                    if (err) {reject(err);}
-                    resolve();
-                });
+                if (process.platform === 'win32') {
+                    ws.send(JSON.stringify({ 
+                        id: 2, 
+                        method: 'Target.activateTarget', 
+                        params: { targetId: target.id }
+                    }), (err) => {
+                        if (err) {reject(err);}
+                    });
+                }
+                ws.close();
+                resolve();
             });
 
             ws.on('error', reject);

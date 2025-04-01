@@ -59,8 +59,7 @@ Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 | `tomcat.java.home`           | `JAVA_HOME`       | JDK installation path (e.g., `C:\Program Files\Java\jdk-21`)                             |
 | `tomcat.home`                | `CATALINA_HOME`   | Tomcat installation directory (e.g., `C:\Java\apache-tomcat-11.0.4`)                     |
 | `tomcat.port`                | `8080`            | Tomcat server listen port (valid range: `1024`-`65535`)                                  |
-| `tomcat.webApps`  New        | `["ROOT"...]`     | Customizable list of protected web applications during cleanup operations                |
-
+| `tomcat.webApps`             | `["ROOT", "docs", "examples", "manager", "host-manager"]`     | list of protected web apps during cleanup operations                |
 
 ## Requirements
 
@@ -84,7 +83,7 @@ For technical implementation details and contribution guidelines, see:
 
 [![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square)](https://github.com/Al-rimi/tomcat/issues)
 
-## What's New in 2.0.1
+## What's New in 2.0.2
 - **Enterprise Architecture**: Complete OOP redesign with SOLID principles
 - **Dynamic settings**: Auto detect and validate user settings
 - **Browser Management**: Advanced WebSocket integration for Chromium browsers

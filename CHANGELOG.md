@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.0.2] - 2025-04-01
+### Fixed
+- Browser stealing focus on MacOS/Linux
+- Package dependency issues on MacOS/Linux
+
 ## [2.0.1] - 2025-03-30
 ### Fixed
 - Tomcat reload on case start failure

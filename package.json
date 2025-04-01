@@ -2,7 +2,7 @@
   "name": "tomcat",
   "displayName": "Tomcat",
   "description": "Fully Automated Support for Apache Tomcat",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "publisher": "Al-rimi",
   "author": {
     "email": "abdullah@syalux.com",
@@ -173,7 +173,7 @@
   "devDependencies": {
     "@types/cross-spawn": "^6.0.6",
     "@types/mocha": "^10.0.10",
-    "@types/node": "20.x",
+    "@types/node": "^20.17.28",
     "@types/sinon": "^17.0.4",
     "@types/sinon-chai": "^4.0.0",
     "@types/tail": "^2.2.3",
@@ -187,7 +187,12 @@
     "typescript": "^5.7.3"
   },
   "dependencies": {
+    "@types/axios": "^0.9.36",
+    "@types/tar": "^6.1.13",
+    "axios": "^1.8.4",
     "glob": "^11.0.1",
-    "ws": "^7.4.6"
+    "tar": "^7.4.3",
+    "ws": "^7.4.6",
+    "zip-lib": "^1.0.5"
   }
 }
