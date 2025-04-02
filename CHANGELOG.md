@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-## [2.0.4] - 2025-04-01
+## [2.0.5] - 2025-04-01
 ### Fixed
 - Package generation error missing dependencies
 

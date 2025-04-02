@@ -14,8 +14,7 @@ export class Logger {
     private config: vscode.WorkspaceConfiguration;
     private outputChannel: vscode.OutputChannel;
     private statusBarItem?: vscode.StatusBarItem;
-    private context?: vscode.ExtensionContext;
-
+    
     private constructor() {
         this.config = vscode.workspace.getConfiguration('tomcat');
         this.outputChannel = vscode.window.createOutputChannel('Tomcat');
@@ -87,7 +86,6 @@ export class Logger {
     }
 
     public initStatusBar(context: vscode.ExtensionContext): void {
-        this.context = context;
         this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
         this.statusBarItem.command = 'extension.tomcat.toggleDeploySetting';
         this.statusBarItem.show();

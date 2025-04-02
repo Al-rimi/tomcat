@@ -1,31 +1,31 @@
 {
 	"compilerOptions": {
-		"module": "commonjs",
-		"target": "ES2019",
-		"lib": ["ES2019", "DOM"],
-		"outDir": "out",
-		"baseUrl": ".",
-		"paths": {
-		"@/*": ["src/*"]
-		},
-		"sourceMap": true,
-		"inlineSources": true,
-		"rootDir": "src",
-		"strict": true,
-		"moduleResolution": "node",
-		"esModuleInterop": true,
-		"skipLibCheck": true,
-		"forceConsistentCasingInFileNames": true,
-		"noImplicitReturns": true,
-		"noFallthroughCasesInSwitch": true,
-		"noUnusedParameters": true,
-		"types": ["node"]
+	  "module": "commonjs",
+	  "target": "ES2020",
+	  "lib": ["ES2020"],
+	  "outDir": "out",
+	  "sourceMap": true,
+	  "inlineSources": true,
+	  "rootDir": ".",
+	  "strict": true,
+	  "noUnusedLocals": true,
+	  "noImplicitAny": true,
+	  "moduleResolution": "node",
+	  "esModuleInterop": true,
+	  "skipLibCheck": true,
+	  "forceConsistentCasingInFileNames": true,
+	  "noImplicitReturns": true,
+	  "noFallthroughCasesInSwitch": true,
+	  "noUnusedParameters": true,
+	  "types": ["node", "vscode"]
 	},
+	"include": [
+	  "src/**/*.ts",
+	  "*.ts"
+	],
 	"exclude": [
-		"node_modules",
-		"test",
-		"**/*.test.ts",
-		".nycrc",
-		"webpack.config.js"
+	  "node_modules",
+	  "test",
+	  "**/*.test.ts"
 	]
-}
+  }

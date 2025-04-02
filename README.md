@@ -83,7 +83,7 @@ For technical implementation details and contribution guidelines, see:
 
 [![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square)](https://github.com/Al-rimi/tomcat/issues)
 
-## What's New in 2.0.4
+## What's New in 2.0.5
 - **Enterprise Architecture**: Complete OOP redesign with SOLID principles
 - **Dynamic settings**: Auto detect and validate user settings
 - **Browser Management**: Advanced WebSocket integration for Chromium browsers
