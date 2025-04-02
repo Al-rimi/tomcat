@@ -6,36 +6,40 @@ import { Logger } from './utils/Logger';
 import { Browser } from './utils/Browser';
 
 export function activate(context: vscode.ExtensionContext) {
-    const builder = Builder.getInstance();
-    const tomcat = Tomcat.getInstance();
-    
-    context.subscriptions.push(
-        vscode.commands.registerCommand('tomcat.start', () => tomcat.start()),
-        vscode.commands.registerCommand('tomcat.stop', () => tomcat.stop()),
-        vscode.commands.registerCommand('tomcat.clean', () => tomcat.clean()),
-        vscode.commands.registerCommand('tomcat.deploy', () => builder.deploy('Choice')),
-        vscode.commands.registerCommand('tomcat.help', () => showHelpPanel(context)),
-        vscode.workspace.onDidChangeConfiguration(async (event) => {
-            if (event.affectsConfiguration('tomcat')) {
-                updateSettings(event);
-            }
-        })
-    );
-
-    if (Builder.isJavaEEProject()) {
-        Logger.getInstance().initStatusBar(context);
-        vscode.commands.executeCommand('setContext', 'tomcat.showdeployButton', true);
+    try {
+        const builder = Builder.getInstance();
+        const tomcat = Tomcat.getInstance();
+        
         context.subscriptions.push(
-            vscode.workspace.onWillSaveTextDocument((e) => {
-                const workspaceFolders = vscode.workspace.workspaceFolders;
-                if (workspaceFolders) {
-                    const selectedProjectPath = workspaceFolders[0].uri.fsPath;
-                    if (e.document.uri.fsPath.startsWith(selectedProjectPath)) {
-                        builder.autoDeploy(e.reason);
-                    }
+            vscode.commands.registerCommand('tomcat.start', () => tomcat.start()),
+            vscode.commands.registerCommand('tomcat.stop', () => tomcat.stop()),
+            vscode.commands.registerCommand('tomcat.clean', () => tomcat.clean()),
+            vscode.commands.registerCommand('tomcat.deploy', () => builder.deploy('Choice')),
+            vscode.commands.registerCommand('tomcat.help', () => showHelpPanel(context)),
+            vscode.workspace.onDidChangeConfiguration(async (event) => {
+                if (event.affectsConfiguration('tomcat')) {
+                    updateSettings(event);
                 }
             })
         );
+
+        if (Builder.isJavaEEProject()) {
+            Logger.getInstance().initStatusBar(context);
+            vscode.commands.executeCommand('setContext', 'tomcat.showdeployButton', true);
+            context.subscriptions.push(
+                vscode.workspace.onWillSaveTextDocument((e) => {
+                    const workspaceFolders = vscode.workspace.workspaceFolders;
+                    if (workspaceFolders) {
+                        const selectedProjectPath = workspaceFolders[0].uri.fsPath;
+                        if (e.document.uri.fsPath.startsWith(selectedProjectPath)) {
+                            builder.autoDeploy(e.reason);
+                        }
+                    }
+                })
+            );
+        }
+    } catch (error) {
+            console.error(error);
     }
 }
 

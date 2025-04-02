@@ -2,7 +2,7 @@
   "name": "tomcat",
   "displayName": "Tomcat",
   "description": "Fully Automated Support for Apache Tomcat",
-  "version": "2.0.5",
+  "version": "2.1.0",
   "publisher": "Al-rimi",
   "author": {
     "email": "abdullah@syalux.com",
@@ -48,7 +48,6 @@
   "files": [
     "out/**/*",
     "resources/**/*",
-    "src/**/*",
     "package.json",
     "README.md",
     "CHANGELOG.md",
@@ -176,7 +175,7 @@
   "scripts": {
     "vscode:prepublish": "npm install && npm run compile",
     "package": "npm run compile",
-    "compile": "tsc -p ./",
+    "compile": "webpack --mode production",    
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext .ts",
@@ -188,8 +187,12 @@
     "@types/node": "^20.17.28",
     "@types/sinon": "^17.0.4",
     "@types/vscode": "^1.56.0",
+    "@types/webpack-env": "^1.18.8",
     "@types/ws": "^8.18.0",
-    "typescript": "^5.7.3"
+    "ts-loader": "^9.5.2",
+    "typescript": "^5.7.3",
+    "webpack": "^5.98.0",
+    "webpack-cli": "^6.0.1"
   },
   "dependencies": {
     "glob": "^11.0.1",
