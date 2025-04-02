@@ -193,6 +193,7 @@
     "@types/ws": "^8.18.0",
     "@typescript-eslint/eslint-plugin": "^8.29.0",
     "@typescript-eslint/parser": "^8.29.0",
+    "@vscode/test-electron": "^2.4.1",
     "@vscode/vsce": "^2.15.0",
     "chai": "^4.5.0",
     "eslint": "^9.23.0",
