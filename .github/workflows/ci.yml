@@ -11,14 +11,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: 20.x
+          cache: npm
           
+      - name: Install Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+      
       - run: npm ci
       
-      - name: Run Builder Tests
-        run: npm test -- --grep 'Builder Tests'
+      - name: Run tests
+        run: npm test -- --grep 'Builder Tests' --color --parallel=false
+        env:
+          MOCHA_REPORTER: spec
+          HEADLESS: true
 
   cross-platform:
     needs: test
@@ -28,23 +40,51 @@ jobs:
         os: [windows-latest, macos-latest, ubuntu-latest]
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: 20.x
+          cache: npm
+          
+      - name: Install OS dependencies
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            sudo apt-get update
+            sudo apt-get install -y chromium-browser
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            brew install --cask google-chrome
+          fi
+      
       - run: npm ci
-      - run: npm test -- --grep 'Builder Tests'
+      
+      - name: Run tests
+        run: npm test -- --grep 'Builder Tests' --color --parallel=false
+        env:
+          MOCHA_REPORTER: spec
+          HEADLESS: true
 
   build:
     needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: 20.x
+          cache: npm
+          
       - run: npm ci
-      - run: npx vsce package
+      
+      - name: Build extension
+        run: npm run compile
+        
+      - name: Package extension
+        run: npx vsce package --yarn
+        
       - uses: actions/upload-artifact@v4
         with:
-          name: tomcat-vsix
+          name: tomcat-extension
           path: "*.vsix"

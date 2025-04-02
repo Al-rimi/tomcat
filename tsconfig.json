@@ -17,7 +17,7 @@
 	  "noImplicitReturns": true,
 	  "noFallthroughCasesInSwitch": true,
 	  "noUnusedParameters": true,
-	  "types": ["node", "vscode"]
+	  "types": ["node", "vscode", "mocha", "chai"]
 	},
 	"include": [
 	  "src/**/*.ts",

@@ -1,0 +1,10 @@
+{
+    "extension": ["ts"],
+    "timeout": 10000,
+    "bail": false,
+    "parallel": false,
+    "check-leaks": true,
+    "full-trace": true,
+    "reporter": "spec",
+    "recursive": true
+  }

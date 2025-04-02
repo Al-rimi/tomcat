@@ -175,7 +175,7 @@
   "scripts": {
     "vscode:prepublish": "npm install && npm run compile",
     "package": "npm run compile",
-    "compile": "webpack --mode production",    
+    "compile": "webpack --mode production",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext .ts",
@@ -183,12 +183,18 @@
     "coverage": "nyc --reporter=lcov npm test"
   },
   "devDependencies": {
+    "@istanbuljs/nyc-config-typescript": "^1.0.2",
+    "@types/chai": "^5.2.1",
     "@types/mocha": "^10.0.10",
     "@types/node": "^20.17.28",
     "@types/sinon": "^17.0.4",
     "@types/vscode": "^1.56.0",
     "@types/webpack-env": "^1.18.8",
     "@types/ws": "^8.18.0",
+    "@vscode/vsce": "^2.15.0",
+    "chai": "^4.5.0",
+    "mocha": "^10.4.0",
+    "sinon": "^17.0.1",
     "ts-loader": "^9.5.2",
     "typescript": "^5.7.3",
     "webpack": "^5.98.0",
