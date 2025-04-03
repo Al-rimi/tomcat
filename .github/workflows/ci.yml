@@ -24,7 +24,8 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
       
-      - run: npm ci
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
       
       - name: Run tests
         run: npm test -- --grep 'Builder Tests' --color --parallel=false
@@ -49,14 +50,16 @@ jobs:
           
       - name: Install OS dependencies
         run: |
-          if [ "$RUNNER_OS" == "Linux" ]; then
+          if [[ "${{ runner.os }}" == "Linux" ]]; then
             sudo apt-get update
             sudo apt-get install -y chromium-browser
-          elif [ "$RUNNER_OS" == "macOS" ]; then
+          elif [[ "${{ runner.os }}" == "macOS" ]]; then
             brew install --cask google-chrome
           fi
+        shell: bash
       
-      - run: npm ci
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
       
       - name: Run tests
         run: npm test -- --grep 'Builder Tests' --color --parallel=false
@@ -76,13 +79,14 @@ jobs:
           node-version: 20.x
           cache: npm
           
-      - run: npm ci
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
       
       - name: Build extension
         run: npm run compile
         
       - name: Package extension
-        run: npx vsce package --yarn
+        run: npx vsce package --npm
         
       - uses: actions/upload-artifact@v4
         with:
