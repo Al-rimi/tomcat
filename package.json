@@ -51,7 +51,7 @@
     "package.json",
     "README.md",
     "CHANGELOG.md",
-    "LICENSE"
+    "LICENSE**"
   ],
   "main": "./out/extension.js",
   "contributes": {
