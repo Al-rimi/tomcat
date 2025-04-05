@@ -30,9 +30,7 @@ export class Tomcat {
     }
 
     public deactivate(): void {
-        this.stop().catch(err => 
-            logger.error('Error during deactivation:', err)
-        );
+        this.stop();
     }
 
     public updateConfig(): void {
@@ -54,7 +52,6 @@ export class Tomcat {
             logger.success('Tomcat started successfully');
         } catch (err) {
             logger.error('Failed to start Tomcat', err as Error);
-            throw err;
         }
     }
 
@@ -73,7 +70,6 @@ export class Tomcat {
             logger.success('Tomcat stopped successfully');
         }catch (err) {
             logger.error('Failed to stop Tomcat', err as Error);
-            throw err;
         }
     }
 
@@ -81,10 +77,7 @@ export class Tomcat {
         const tomcatHome = await this.findTomcatHome();
         const javaHome = await this.findJavaHome();
         
-        if (!tomcatHome || !javaHome) {
-            logger.error('Missing required configurations');
-            return;
-        }
+        if (!tomcatHome || !javaHome) { return; }
 
         if (!await this.isTomcatRunning()) {
             this.executeTomcatCommand('start', tomcatHome, javaHome);
@@ -107,7 +100,7 @@ export class Tomcat {
             }
             logger.info('Tomcat reloaded successfully');
         } catch (err) {
-            logger.error('Reload failed, attempting to add admin user', err as Error);
+            logger.warn('Reload failed, attempting to add admin user');
             await this.addTomcatUser(tomcatHome);
         }
     }
@@ -157,7 +150,7 @@ export class Tomcat {
                             logger.info(`Removed file: ${entryPath}`);
                         }
                     } catch (err) {
-                        logger.error(`Error removing ${entryPath}:`, err as Error);
+                        throw err;
                     }
                 }
             }
@@ -171,7 +164,7 @@ export class Tomcat {
                         fs.mkdirSync(dir);
                         logger.info(`Cleaned and recreated: ${dir}`);
                     } catch (err) {
-                        logger.error(`Error cleaning ${dir}:`, err as Error);
+                        throw err;
                     }
                 }
             });
@@ -392,7 +385,6 @@ export class Tomcat {
             await this.restart();
         } catch (err) {
             logger.error('Failed to modify tomcat-users.xml', err as Error);
-            throw err;
         }
     }
 

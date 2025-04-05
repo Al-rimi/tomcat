@@ -142,8 +142,6 @@ export class Builder {
             } else if (defaultDeployMode === 'On Shortcut' && reason === vscode.TextDocumentSaveReason.Manual) {
                 await this.deploy(defaultBuildType);
             }
-        } catch (error) {
-            Logger.getInstance().error(`Auto-deploy failed: ${error}`);
         } finally {
             this.isDeploying = false;
         }
@@ -205,7 +203,7 @@ export class Builder {
         fs.rmSync(`${targetDir}.war`, { force: true });
 
         this.copyDirectorySync(webAppPath, targetDir);
-        const javaSourcePath = path.join(projectDir, 'src', 'main', 'java');
+        const javaSourcePath = path.join(projectDir, 'src');
         const classesDir = path.join(targetDir, 'WEB-INF', 'classes');
 
         if (fs.existsSync(javaSourcePath)) {
@@ -216,18 +214,20 @@ export class Builder {
                 
                 if (javaFiles.length > 0) {
                     const tomcatLibs = path.join(tomcatHome, 'lib', '*');
-                    const tempFile = path.join(projectDir, 'sources.list');
-                    fs.writeFileSync(tempFile, javaFiles.map(file => `"${file}"`).join('\n').split(path.sep).join('//'));
-
-                    const javacCommand = process.platform === 'win32' 
-                        ? `"${javacPath}" -d "${classesDir}" -cp "${tomcatLibs}" @"${tempFile}"`
-                        : `'${javacPath}' -d '${classesDir}' -cp '${tomcatLibs}' @'${tempFile}'`;
-
+                
+                    const formattedFiles = javaFiles.map(file => {
+                        const safePath = file.split(path.sep).join('//');
+                        return process.platform === 'win32' ? `"${safePath}"` : `'${safePath}'`;
+                    });
+                
+                    const javacCommand = process.platform === 'win32'
+                        ? `"${javacPath}" -d "${classesDir}" -cp "${tomcatLibs}" ${formattedFiles.join(' ')}`
+                        : `'${javacPath}' -d '${classesDir}' -cp '${tomcatLibs}' ${formattedFiles.join(' ')}`;
+                
                     await this.executeCommand(javacCommand, projectDir);
-                    fs.unlinkSync(tempFile);
-                }
+                }                
             } catch (err) {
-                throw new Error(`Java compilation failed: ${err}. Continuing without compiled classes.`);
+                throw new Error(err as string);
             }
         }
 
