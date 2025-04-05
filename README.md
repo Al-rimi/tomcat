@@ -1,15 +1,32 @@
 # Tomcat for VSCode [![Build Status](https://img.shields.io/github/actions/workflow/status/Al-rimi/tomcat/ci.yml?branch=main)](https://github.com/Al-rimi/tomcat/actions)
 
-Advanced Apache Tomcat management directly in your editor. Full server control, smart deployment, and browser integration.
+Advanced Apache Tomcat management. Full server control, smart deployment, and browser integration.
 
 ![Tomcat Auto Deploy on Save](./resources/tomcat-auto-ex.gif)
 
 ## Features
-- One-click Tomcat management
-- Auto-deploy on save
-- Cross-browser integration
-- Built-in diagnostics
-- Fast build strategies
+
+- **One-click Tomcat Management**  
+Easily start, stop, and restart your Tomcat server with a single click.
+
+- **On-Save Deployment**  
+Automatically deploy your project every time you save a file — no manual steps needed.
+
+- **Customizable Build Strategies**  
+Tailor your build process with flexible options to match your workflow.
+
+- **Ultra-Fast Build Strategy**  
+Deploy while building — up to **8× faster** than traditional Maven builds.
+
+- **Custom Port Configuration**  
+Configure and switch Tomcat ports effortlessly to suit your environment.
+
+- **Cross-Browser Automation**  
+Automate your browser testing across multiple browsers seamlessly.
+
+- **Built-in Diagnostics**  
+Identify and resolve issues quickly with integrated diagnostics and logs.
+
 
 ## Installation
 
@@ -83,7 +100,7 @@ For technical implementation details and contribution guidelines, see:
 
 [![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square)](https://github.com/Al-rimi/tomcat/issues)
 
-## What's New in 2.1.0
+## What's New in 2.1.1
 - **Enterprise Architecture**: Complete OOP redesign with SOLID principles
 - **Dynamic settings**: Auto detect and validate user settings
 - **Browser Management**: Advanced WebSocket integration for Chromium browsers

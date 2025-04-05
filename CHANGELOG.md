@@ -2,7 +2,13 @@
 
 ## [Unreleased]
 
-## [2.1.0] - 2025-04-01
+## [2.1.1] - 2025-04-05
+### Fixed
+- Tomcat clean logic uses Java home instead of Catalina home
+- Port update logic in Tomcat class and improve error handling
+- update tomcat-icon-ligh.svg to tomcat-icon-light.svg
+
+## [2.1.0] - 2025-04-03
 ### Fixed
 - Package generation error missing dependencies
 - Correct wepack config file path
