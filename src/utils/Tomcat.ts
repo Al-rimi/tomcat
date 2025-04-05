@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import * as net from 'net';
 import fs from 'fs';
 import fsp from 'fs/promises';
 import path from 'path';
@@ -123,7 +122,7 @@ export class Tomcat {
     }
     
     public async clean(): Promise<void>{
-        const tomcatHome = await this.findJavaHome();
+        const tomcatHome = await this.findTomcatHome();
         if (!tomcatHome) {return;}
 
         const config = vscode.workspace.getConfiguration('tomcat');
@@ -271,22 +270,20 @@ export class Tomcat {
                 if (!javaHome || !tomcatHome) {return;}
 
                 await this.validatePort(newPort);
-    
-                try {
+                if (await this.isTomcatRunning()) {
                     await this.executeTomcatCommand('stop', tomcatHome, javaHome);
-                } finally {
                     await this.modifyServerXmlPort(tomcatHome, newPort);
-
-                    this.port = newPort;
-                    this.updateConfig();
-                    Tomcat.getInstance().updateConfig();
-                    Browser.getInstance().updateConfig();
-
-                    await vscode.workspace.getConfiguration().update('tomcat.port', newPort, true);
-                    logger.success(`Tomcat port updated from ${oldPort} to ${newPort}`);
-
-                    this.executeTomcatCommand('start', tomcatHome, javaHome);
                 }
+
+                this.port = newPort;
+                this.updateConfig();
+                Tomcat.getInstance().updateConfig();
+                Browser.getInstance().updateConfig();
+
+                await vscode.workspace.getConfiguration().update('tomcat.port', newPort, true);
+                logger.success(`Tomcat port updated from ${oldPort} to ${newPort}`);
+
+                this.executeTomcatCommand('start', tomcatHome, javaHome);
             } catch (err) {
                 await vscode.workspace.getConfiguration().update('tomcat.port', oldPort, true);
                 logger.error(`Tomcat port ${newPort} update failed reverting to ${oldPort}`, err as Error);
@@ -304,17 +301,21 @@ export class Tomcat {
             `Maximum allowed port is ${this.PORT_RANGE.max}`
         );}
 
-        const isFree = await new Promise(resolve => {
-            const server = net.createServer();
-            server.once('error', () => resolve(false));
-            server.once('listening', () => {
-                server.close();
-                resolve(true);
-            });
-            server.listen(port);
-        });
+        try {
+            let command: string;
+    
+            if (process.platform === 'win32') {
+                command = `netstat -an | findstr ":${port}"`;
+            } else {
+                command = `netstat -an | grep ":${port}"`;
+            }
+    
+            const { stdout } = await execAsync(command);
+            if (stdout.includes(`:${port}`)) {throw new Error(`Port ${port} is already in use`);}
+        } catch (error) {
+            return;
+        }
 
-        if (!isFree) {throw new Error(`Port ${port} is already in use`);}
     }
 
     private async modifyServerXmlPort(tomcatHome: string, newPort: number): Promise<void> {
@@ -322,12 +323,14 @@ export class Tomcat {
         const content = await fsp.readFile(serverXmlPath, 'utf8');
         
         const updatedContent = content.replace(
-            /(port=")\d+(".*protocol="HTTP\/1\.1")/,
-            `$1${newPort}$2`
-        );
-
-        if (content === updatedContent) {
-            throw new Error('HTTP/1.1 connector not found in server.xml');
+            /<Connector([^>]*?)protocol="HTTP\/1\.1"([^>]*?)port="(\d+)"([^>]*?)\/>/,
+            (beforeProtocol, between, after) => {
+              return `<Connector${beforeProtocol}protocol="HTTP/1.1"${between}port="${newPort}"${after}/>`;
+            }
+          );
+          
+        if (!updatedContent.includes(`port="${newPort}"`)) {
+            logger.error(`Failed to update port in server.xml`);
         }
 
         await fsp.writeFile(serverXmlPath, updatedContent);
