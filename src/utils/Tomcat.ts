@@ -270,6 +270,8 @@ export class Tomcat {
                 if (!javaHome || !tomcatHome) {return;}
 
                 await this.validatePort(newPort);
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
                 if (await this.isTomcatRunning()) {
                     await this.executeTomcatCommand('stop', tomcatHome, javaHome);
                     await this.modifyServerXmlPort(tomcatHome, newPort);
@@ -286,7 +288,7 @@ export class Tomcat {
                 this.executeTomcatCommand('start', tomcatHome, javaHome);
             } catch (err) {
                 await vscode.workspace.getConfiguration().update('tomcat.port', oldPort, true);
-                logger.error(`Tomcat port ${newPort} update failed reverting to ${oldPort}`, err as Error);
+                logger.error(err ? err as string  : 'Failed to update Tomcat port');
             }
         }
 
@@ -315,7 +317,6 @@ export class Tomcat {
         } catch (error) {
             return;
         }
-
     }
 
     private async modifyServerXmlPort(tomcatHome: string, newPort: number): Promise<void> {
