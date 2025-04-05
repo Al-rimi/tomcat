@@ -65,19 +65,22 @@ export class Builder {
             await this.createNewProject();
             return;
         }
+        let isChoice;
 
         if (type === 'Choice') {
+            isChoice = true;
             const subAction = vscode.window.showQuickPick(['Fast', 'Maven', 'Gradle'], {
                 placeHolder: 'Select build type'
             });
-            subAction.then((choice) => {
-                if (!choice) {return;}
-                this.deploy(choice as 'Fast' | 'Maven' | 'Gradle');
+            await subAction.then((choice) => {
+                type = (choice as 'Fast' | 'Maven' | 'Gradle');
             });
-            return;
+            if (type === 'Choice') {
+                logger.info('Tomcat deploy canceled.');
+                return;
+            }
         }
 
-        logger.info(`${type} Build`);
         const appName = path.basename(projectDir);
         const tomcatHome = await tomcat.findTomcatHome();
 
@@ -86,23 +89,21 @@ export class Builder {
         const targetDir = path.join(tomcatHome, 'webapps', appName);
         await vscode.workspace.saveAll();
 
-        try {
-            logger.updateStatusBar(`${type} Build`);
-            const deployMode = this.config.get<string>('defaultDeployMode', 'Disabled');
-            logger.info(`Deploy mode: ${deployMode}`);
-            
+        try {            
             const action = {
                 'Fast': () => this.fastDeploy(projectDir, targetDir, tomcatHome),
                 'Maven': () => this.mavenDeploy(projectDir, targetDir),
-                'Gradle': () => this.gradleDeploy(projectDir, targetDir, appName)
+                'Gradle': () => this.gradleDeploy(projectDir, targetDir, appName),
             }[type];
 
             if (!action) {
-                logger.error(`Invalid deployment type: ${type}`);
-                return;
+                throw(`Invalid deployment type: ${type}`);
             }
 
-            if (deployMode !== 'On Save') {
+            const startTime = performance.now();
+            logger.updateStatusBar(`${type} Build`);
+
+            if (isChoice) {
                 await vscode.window.withProgress({
                     location: vscode.ProgressLocation.Notification,
                     title: `${type} Build`,
@@ -114,14 +115,21 @@ export class Builder {
 
             logger.defaultStatusBar();
 
+            const endTime = performance.now();
+            const duration = Math.round(endTime - startTime);
+
             if (fs.existsSync(targetDir)) {
-                logger.info(`${appName} Deployed successfully`);
+                if (isChoice) {
+                    logger.success(`${type} Build completed in ${duration}ms`);
+                } else {
+                    logger.info(`${type} Build completed in ${duration}ms`);
+                }
                 await tomcat.reload();
-                await new Promise(resolve => setTimeout(resolve, 40));
+                await new Promise(resolve => setTimeout(resolve, 60));
                 Browser.getInstance().run(appName);
             }
         } catch (err) {
-            logger.error(`${type} build failed`, err as Error);
+            logger.error(`${type} Build failed:\n${err}`);
             logger.defaultStatusBar();
         } finally {
             logger.defaultStatusBar();
@@ -192,7 +200,7 @@ export class Builder {
     private async fastDeploy(projectDir: string, targetDir: string, tomcatHome: string) {
         const webAppPath = path.join(projectDir, 'src', 'main', 'webapp');
         if (!fs.existsSync(webAppPath)) {
-            throw new Error(`WebApp directory not found: ${webAppPath}`);
+            throw(`WebApp directory not found: ${webAppPath}`);
         }
 
         const javaHome = await tomcat.findJavaHome();
@@ -227,7 +235,7 @@ export class Builder {
                     await this.executeCommand(javacCommand, projectDir);
                 }                
             } catch (err) {
-                throw new Error(err as string);
+                throw(err);
             }
         }
 
@@ -250,15 +258,35 @@ export class Builder {
 
     private async mavenDeploy(projectDir: string, targetDir: string) {
         if (!fs.existsSync(path.join(projectDir, 'pom.xml'))) {
-            throw new Error('pom.xml not found.');
+            throw('pom.xml not found.');
         }
 
-        await this.executeCommand(`mvn clean package`, projectDir);
+        try {
+            await this.executeCommand(`mvn clean package`, projectDir);
+        } catch (err) {
+            const errorOutput = err?.toString() || '';
+        
+            const lines = errorOutput
+                .split('\n')
+                .filter(line =>
+                    line.includes('[ERROR]') &&
+                    !line.includes('re-run Maven') &&
+                    !line.includes('[Help') &&
+                    !line.includes('Re-run Maven') &&
+                    !line.includes('For more information') &&
+                    !line.includes('http')
+                )
+                .map(line => line.replace('[ERROR]', '\t\t'));
+        
+            const uniqueLines = [...new Set(lines)];
+                
+            throw(uniqueLines.join('\n'));
+        }
 
         const targetPath = path.join(projectDir, 'target');
         const warFiles = fs.readdirSync(targetPath).filter(file => file.toLowerCase().endsWith('.war'));
         if (warFiles.length === 0) {
-            throw new Error('No WAR file found after Maven build.');
+            throw('No WAR file found after Maven build.');
         }
 
         const warFileName = warFiles[0];
@@ -284,7 +312,7 @@ export class Builder {
 
     private async gradleDeploy(projectDir: string, targetDir: string, appName: string) {
         if (!fs.existsSync(path.join(projectDir, 'build.gradle'))) {
-            throw new Error('build.gradle not found.');
+            throw('build.gradle not found.');
         }
 
         const gradleCmd = process.platform === 'win32' ? 'gradlew.bat' : './gradlew';
@@ -292,7 +320,7 @@ export class Builder {
 
         const warFile = path.join(projectDir, 'build', 'libs', `${appName}.war`);
         if (!warFile) {
-            throw new Error('No WAR file found after Gradle build.');
+            throw('No WAR file found after Gradle build.');
         }
 
         fs.rmSync(targetDir, { recursive: true, force: true });
@@ -312,7 +340,7 @@ export class Builder {
         return new Promise((resolve, reject) => {
             exec(command, { cwd }, (err, stdout, stderr) => {
                 if (err) {
-                    reject(new Error(err.message || stderr || stdout || 'Unknown error.'));
+                    reject(stdout || stderr || err.message || 'Unknown error.');
                 }
                 resolve();
             });
