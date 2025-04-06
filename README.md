@@ -2,7 +2,7 @@
 
 Advanced Apache Tomcat management. Full server control, smart deployment, browser integration and debugging support.
 
-![Tomcat Auto Deploy on Save](./resources/tomcat-auto-ex.gif)
+![Tomcat showcase video](./resources/tomcat-video-showcase.gif)
 
 ## Features
 
