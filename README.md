@@ -2,7 +2,7 @@
 
 Advanced Apache Tomcat management. Full server control, smart deployment, browser integration and debugging support.
 
-![Tomcat showcase video](./resources/tomcat-video-showcase.gif)
+![Tomcat showcase video](https://github.com/Al-rimi/tomcat/blob/main/resources/tomcat-video-showcase.gif)
 
 ## Features
 
@@ -39,12 +39,12 @@ code --install-extension Al-rimi.tomcat
 ### Editor Button
 
 #### Click to Deploy the current project
-![Tomcat Editor Button](./resources/tomcat-editor.png)
+![Tomcat Editor Button](https://github.com/Al-rimi/tomcat/blob/main/resources/tomcat-editor.png)
 
 ### Status Bar
 
 #### Click to Change the default deploy mode
-![Tomcat Status Bar](./resources/tomcat-status-bar.png)
+![Tomcat Status Bar](https://github.com/Al-rimi/tomcat/blob/main/resources/tomcat-status-bar.png)
 
 ### Command Palette (`Ctrl+Shift+P`)
 
