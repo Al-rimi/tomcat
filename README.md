@@ -93,7 +93,7 @@ For technical implementation details and contribution guidelines, see:
 
 [![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square)](https://github.com/Al-rimi/tomcat/issues)
 
-## What's New in 2.2.0
+## What's New in 2.2.1
 
 - **Architecture Documentation**: Comprehensive JSDoc and design pattern documentation
 - **Memory Optimization**: Fast build strategy now uses memory lists instead of temp files

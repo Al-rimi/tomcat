@@ -532,6 +532,7 @@ export class Tomcat {
      * 
      * @param tomcatHome Tomcat installation directory
      * @param newPort Port number to configure
+     * @throws Error if file operations fail
      */
     private async modifyServerXmlPort(tomcatHome: string, newPort: number): Promise<void> {
         const serverXmlPath = path.join(tomcatHome, 'conf', 'server.xml');

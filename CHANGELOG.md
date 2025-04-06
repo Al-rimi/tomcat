@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [2.2.1] - 2025-04-06
+
+### Changed
+- Refactor port modification logic: ensure server.xml port is updated after stopping Tomcat
+- Simplify port pattern detection
+
+### Fixed
+- Fix port update server.xml logic to handle invalid port values (throws instead of logging)
+
 ## [2.2.0] - 2025-04-06
 ### Added
 - Comprehensive JSDoc comments across all major classes
