@@ -446,8 +446,6 @@ export class Tomcat {
      * @log Error with detailed validation messages
      */
     public async updatePort(): Promise<void> {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
         const config = vscode.workspace.getConfiguration();
         const newPort = config.get<number>('tomcat.port', 8080);
         const oldPort = this.port;
@@ -459,7 +457,7 @@ export class Tomcat {
                 if (!javaHome || !tomcatHome) {return;}
 
                 await this.validatePort(newPort);
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise(resolve => setTimeout(resolve, 200));
 
                 if (await this.isTomcatRunning()) {
                     await this.executeTomcatCommand('stop', tomcatHome, javaHome);
