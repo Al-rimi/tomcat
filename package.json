@@ -48,7 +48,9 @@
   "files": [
     "out/**/*",
     "syntaxes/**/*",
-    "resources/**/*",
+    "resources/tomcat-logo.png",
+    "resources/tomcat-icon-dark.svg",
+    "resources/tomcat-icon-light.svg",
     "language-configuration.json",
     "package.json",
     "README.md",
