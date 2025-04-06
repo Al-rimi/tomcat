@@ -55,6 +55,21 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "languages": [
+      {
+        "id": "tomcat-log",
+        "aliases": ["Tomcat Log"],
+        "extensions": [".tlog"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "tomcat-log",
+        "scopeName": "source.tomcat-log",
+        "path": "./syntaxes/tomcat-log.tmLanguage.json"
+      }
+    ],
     "commands": [
       {
         "command": "tomcat.deploy",

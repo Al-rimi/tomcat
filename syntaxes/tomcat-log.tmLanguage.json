@@ -1,0 +1,216 @@
+{
+    "name": "Tomcat Log",
+    "scopeName": "source.tomcat-log",
+    "patterns": [
+        {
+            "name": "meta.timestamp.tomcat",
+            "match": "(\\[\\d{1,2}/\\d{1,2}/\\d{4}, \\d{1,2}:\\d{2}:\\d{2} [AP]M\\])",
+            "captures": {
+                "1": {
+                    "name": "meta.timestamp.tomcat"
+                }
+            }
+        },
+        {
+            "name": "support.type.log-level.info.tomcat",
+            "match": "(\\[INFO\\])",
+            "captures": {
+                "1": {
+                    "name": "support.type.log-level.info.tomcat"
+                }
+            }
+        },
+        {
+            "name": "support.type.log-level.debug.tomcat",
+            "match": "(\\[DEBUG\\])",
+            "captures": {
+                "1": {
+                    "name": "support.type.log-level.debug.tomcat"
+                }
+            }
+        },
+        {
+            "name": "support.type.log-level.error.tomcat",
+            "match": "(\\[ERROR\\])",
+            "captures": {
+                "1": {
+                    "name": "support.type.log-level.error.tomcat"
+                }
+            }
+        },
+        {
+            "name": "support.type.log-level.success.tomcat",
+            "match": "(\\[SUCCESS\\])",
+            "captures": {
+                "1": {
+                    "name": "support.type.log-level.success.tomcat"
+                }
+            }
+        },
+        {
+            "name": "support.type.log-level.warn.tomcat",
+            "match": "(\\[WARN\\])",
+            "captures": {
+                "1": {
+                    "name": "support.type.log-level.warn.tomcat"
+                }
+            }
+        },
+        {
+            "name": "entity.name.filename.java",
+            "match": "(?:[\\/\\\\])([^\\/\\\\]+\\.(?:java|class|jsp|xml|properties))(?=[:\\s])",
+            "captures": {
+                "1": {
+                    "name": "entity.name.filename.java"
+                }
+            }
+        },
+        {
+            "name": "invalid.illegal.java",
+            "match": "(error:\\s*(?:'[^']+' expected|cannot find symbol|illegal start of type|class, interface, enum, or record expected|unnamed classes are a preview feature))",
+            "captures": {
+                "1": {
+                    "name": "invalid.illegal.java"
+                }
+            }
+        },
+        {
+            "name": "markup.error",
+            "match": "(\\^+|~+)",
+            "captures": {
+                "1": {
+                    "name": "markup.error"
+                }
+            }
+        },
+        {
+            "name": "constant.numeric.build-duration.tomcat",
+            "match": "(\\b\\d+ms\\b)",
+            "captures": {
+                "1": {
+                    "name": "constant.numeric.build-duration.tomcat"
+                }
+            }
+        },
+        {
+            "name": "variable.language.line-number.tomcat",
+            "match": "(?::)(\\d+)(?=:?)",
+            "captures": {
+                "1": {
+                    "name": "constant.numeric.integer.tomcat"
+                }
+            }
+        },
+        {
+            "name": "storage.modifier.java",
+            "match": "\\b(public|private|protected|static|final|abstract|class|interface|extends|implements|transient|volatile|synchronized|native|strictfp)\\b"
+        },
+        {
+            "name": "storage.type.java",
+            "match": "\\b(HttpServlet|String|HttpSession|HttpServletRequest|HttpServletResponse|void|boolean|int|long|short|byte|char|float|double|Object|List|Map|Set)\\b"
+        },
+        {
+            "name": "entity.name.class.java",
+            "match": "\\b([A-Z][A-Za-z0-9_]*)\\b(?=\\s*(<|\\{|extends|implements))",
+            "captures": {
+                "1": {
+                    "name": "entity.name.class.java"
+                }
+            }
+        },
+        {
+            "name": "entity.name.function.java",
+            "match": "(\\b\\w+\\b)(?=\\s*\\()",
+            "captures": {
+                "1": {
+                    "name": "entity.name.function.java"
+                }
+            }
+        },
+        {
+            "name": "variable.parameter.java",
+            "match": "\\b(request|response|session|out|config|application)\\b"
+        },
+        {
+            "name": "keyword.control.java",
+            "match": "\\b(if|else|return|throw|try|catch|finally|for|while|do|switch|case|default|break|continue|new)\\b"
+        },
+        {
+            "name": "punctuation.section.block.java",
+            "match": "[{}]"
+        },
+        {
+            "name": "string.quoted.double.java",
+            "match": "\"(?:\\\\\"|.)*?\""
+        },
+        {
+            "name": "keyword.operator.java",
+            "match": "([=+\\-!><]=?|\\|\\||&&|instanceof|::|\\?|\\.\\.\\.)"
+        },
+        {
+            "name": "constant.numeric.java",
+            "match": "\\b\\d+\\b"
+        },
+        {
+            "name": "storage.type.annotation.java",
+            "match": "@\\w+"
+        },
+        {
+            "name": "meta.annotation.parameters.java",
+            "match": "(?<=@\\w+)(\\([^)]+\\))",
+            "captures": {
+                "1": {
+                    "name": "meta.annotation.parameters.java"
+                }
+            }
+        },
+        {
+            "name": "variable.other.object.java",
+            "match": "(?<=\\.)(getAttribute|setAttribute|getRequestDispatcher|forward|sendRedirect|getParameter|getWriter|println|print|close|flush)\\b"
+        },
+        {
+            "name": "punctuation.terminator.java",
+            "match": ";"
+        },
+        {
+            "name": "punctuation.separator.comma.java",
+            "match": ","
+        },
+        {
+            "name": "punctuation.bracket.square.java",
+            "match": "[\\[\\]]"
+        },
+        {
+            "name": "punctuation.bracket.round.java",
+            "match": "[()]"
+        },
+        {
+            "name": "punctuation.bracket.angle.java",
+            "match": "[<>]"
+        },
+        {
+            "name": "meta.package.java",
+            "match": "^\\s*(package)\\s+([a-zA-Z_][a-zA-Z0-9_]*(?:\\.[a-zA-Z_][a-zA-Z0-9_]*)*)\\s*;",
+            "captures": {
+                "1": { "name": "storage.modifier.java" },
+                "2": { "name": "entity.name.package.java" }
+            }
+        },
+        {
+            "name": "meta.import.java",
+            "match": "^\\s*(import)\\s+(static\\s+)?([a-zA-Z_][a-zA-Z0-9_]*(?:\\.[a-zA-Z_][a-zA-Z0-9_]*)*(?:\\.\\*)?)\\s*;",
+            "captures": {
+                "1": { "name": "keyword.control.import.java" },
+                "2": { "name": "storage.modifier.java" },
+                "3": { "name": "entity.name.package.java" }
+            }
+        },
+        {
+            "name": "meta.maven.error",
+            "match": "(Failed to execute goal .*?Compilation failure)",
+            "captures": {
+                "1": { "name": "invalid.illegal.java" }
+            }
+        }
+    ]
+}

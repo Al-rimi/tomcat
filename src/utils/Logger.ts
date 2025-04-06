@@ -17,7 +17,7 @@ export class Logger {
     
     private constructor() {
         this.config = vscode.workspace.getConfiguration('tomcat');
-        this.outputChannel = vscode.window.createOutputChannel('Tomcat');
+        this.outputChannel = vscode.window.createOutputChannel('Tomcat', 'tomcat-log'); 
     }
 
     public static getInstance(): Logger {
