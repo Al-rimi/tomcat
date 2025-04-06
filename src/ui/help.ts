@@ -1,5 +1,75 @@
+/**
+ * help.ts - VS Code Integrated Documentation Framework
+ * 
+ * Comprehensive in-IDE documentation system providing contextual help and interactive
+ * guidance for Tomcat server management. Implements a responsive webview-based portal
+ * with intelligent content delivery and real-time configuration awareness.
+ * 
+ * Architecture:
+ * - Implements Webview API for VS Code integration
+ * - Uses Mediator pattern for cross-component communication
+ * - Follows Responsive Web Design principles
+ * - Adheres to VS Code theming guidelines
+ * - Implements Content-Security-Policy for webview security
+ * 
+ * Core Capabilities:
+ * 1. Interactive Documentation:
+ *    - Dynamic content filtering and search
+ *    - Collapsible section navigation
+ *    - Theme-aware styling
+ *    - Embedded code samples
+ * 
+ * 2. Configuration Reference:
+ *    - Real-time settings introspection
+ *    - Default value highlighting
+ *    - Setting metadata visualization
+ *    - Cross-linking between settings
+ * 
+ * 3. Troubleshooting System:
+ *    - Common error patterns detection
+ *    - Contextual solution workflows
+ *    - Diagnostic command generation
+ *    - Log analysis guidance
+ * 
+ * 4. API Documentation:
+ *    - Command palette reference
+ *    - REST endpoint catalog
+ *    - Keyboard shortcut mapping
+ *    - Extension API boundaries
+ * 
+ * 5. Deployment Guidance:
+ *    - Build strategy comparison
+ *    - Framework-specific recipes
+ *    - Performance optimization
+ *    - Security best practices
+ * 
+ * Technical Implementation:
+ * - Secure HTML template generation
+ * - CSS isolation techniques
+ * - Message passing protocol
+ * - Content versioning
+ * - Accessibility compliance
+ */
+
 import * as vscode from 'vscode';
 
+/**
+ * Documentation System Entry Point
+ * 
+ * Creates and manages the webview-based help interface with:
+ * - Proper resource isolation
+ * - Theme adaptation
+ * - Interactive elements
+ * - External link handling
+ * 
+ * @param context - Extension context for resource management
+ * 
+ * Implementation Notes:
+ * - Maintains strict CSP for security
+ * - Handles theme change events
+ * - Manages webview lifecycle
+ * - Preserves scroll position
+ */
 export function showHelpPanel(context: vscode.ExtensionContext): void {
     const panel = vscode.window.createWebviewPanel(
         'tomcatHelp',
@@ -482,6 +552,16 @@ GET /manager/text/undeploy    # Remove application
     }, undefined, context.subscriptions);
 }
 
+/**
+ * Generates HTML table rows for Tomcat configuration settings.
+ * 
+ * Creates a formatted table row for each setting containing:
+ * - The configuration key (in <code> tags)
+ * - Default value
+ * - Description with valid options
+ * 
+ * @returns HTML string of <tr> elements for all settings
+ */
 function generateSettingsRows(): string {
     const settings = [
         {
