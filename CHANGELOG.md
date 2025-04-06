@@ -2,6 +2,30 @@
 
 ## [Unreleased]
 
+## [2.2.0] - 2025-04-06
+### Added
+- Comprehensive JSDoc comments across all major classes
+- Architectural pattern documentation for core components
+- Memory optimization in fast build strategy (replaced temp files with memory lists)
+- Organized error messages for Java compilation and debugging
+- Syntax coloring rules for Tomcat output channel
+- Build duration tracking in deployment process
+- Choice handling for build type selection
+
+### Changed
+- Refactored activate function with removed try-catch blocks
+- Improved error logging practices in Tomcat and Logger classes
+- Delay handling before stopping Tomcat during port updates
+- Improved configuration management processes
+- Enhanced reliability in deployment operations
+- Updated error handling practices throughout codebase
+
+### Fixed
+- Memory leaks in builder operations
+- Port validation edge cases
+- Browser reload synchronization issues
+- Status bar update consistency
+
 ## [2.1.1] - 2025-04-05
 ### Fixed
 - Tomcat clean logic uses Java home instead of Catalina home

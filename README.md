@@ -1,32 +1,25 @@
 # Tomcat for VSCode [![Build Status](https://img.shields.io/github/actions/workflow/status/Al-rimi/tomcat/ci.yml?branch=main)](https://github.com/Al-rimi/tomcat/actions)
 
-Advanced Apache Tomcat management. Full server control, smart deployment, and browser integration.
+Advanced Apache Tomcat management. Full server control, smart deployment, browser integration and debugging support.
 
 ![Tomcat Auto Deploy on Save](./resources/tomcat-auto-ex.gif)
 
 ## Features
 
-- **One-click Tomcat Management**  
-Easily start, stop, and restart your Tomcat server with a single click.
+- **Customizable Deployment Strategies**  
+  Three build strategies with memory-optimized fast deployment (4× faster than Maven)
 
 - **On-Save Deployment**  
 Automatically deploy your project every time you save a file — no manual steps needed.
 
-- **Customizable Build Strategies**  
-Tailor your build process with flexible options to match your workflow.
-
-- **Ultra-Fast Build Strategy**  
-Deploy while building — up to **8× faster** than traditional Maven builds.
+- **Built-in Debugging**  
+Java-specific syntax coloring in output channel with organized error messages
 
 - **Custom Port Configuration**  
 Configure and switch Tomcat ports effortlessly to suit your environment.
 
 - **Cross-Browser Automation**  
-Automate your browser testing across multiple browsers seamlessly.
-
-- **Built-in Diagnostics**  
-Identify and resolve issues quickly with integrated diagnostics and logs.
-
+Automate browser testing across multiple browsers seamlessly.
 
 ## Installation
 
@@ -72,7 +65,7 @@ Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 | `tomcat.defaultBuildType`    | `Fast`            | Default build strategy for deployments (`Fast`, `Maven`, `Gradle`)                       |
 | `tomcat.defaultDeployMode`   | `Disabled`        | Auto-deploy triggers (`Disabled`, `On Save`, `On Shortcut`)                              |
 | `tomcat.defaultBrowser`      | `Google Chrome`   | Browser for app launch & debug (`Google Chrome`, `Microsoft Edge`, `Firefox`, `Safari`, `Brave`, `Opera`) |
-| `tomcat.loggingLevel`        | `WARN`            | Log verbosity level (`DEBUG`, `INFO`, `WARN`, `ERROR`, `SILENT`)                         |
+| `tomcat.loggingLevel`        | `WARN`            | Log verbosity level (`DEBUG < INFO < WARN < ERROR < SILENT`)                         |
 | `tomcat.java.home`           | `JAVA_HOME`       | JDK installation path (e.g., `C:\Program Files\Java\jdk-21`)                             |
 | `tomcat.home`                | `CATALINA_HOME`   | Tomcat installation directory (e.g., `C:\Java\apache-tomcat-11.0.4`)                     |
 | `tomcat.port`                | `8080`            | Tomcat server listen port (valid range: `1024`-`65535`)                                  |
@@ -100,13 +93,13 @@ For technical implementation details and contribution guidelines, see:
 
 [![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square)](https://github.com/Al-rimi/tomcat/issues)
 
-## What's New in 2.1.1
-- **Enterprise Architecture**: Complete OOP redesign with SOLID principles
-- **Dynamic settings**: Auto detect and validate user settings
-- **Browser Management**: Advanced WebSocket integration for Chromium browsers
-- **Customizable Cleanup**: Web application protection during clean operations
-- **Diagnostic Tools**: Integrated network analyzer and port scanner
-- **Port Management**: Dynamic port allocation and release
+## What's New in 2.2.0
+
+- **Architecture Documentation**: Comprehensive JSDoc and design pattern documentation
+- **Memory Optimization**: Fast build strategy now uses memory lists instead of temp files
+- **Improved Debugging**: Enhanced Java error message organization and syntax highlighting
+- **Reliability Improvements**: Better error handling in Tomcat operations
+- **Build Insights**: Added build duration tracking in deployment process
 
 [View Full Changelog](https://github.com/Al-rimi/tomcat/blob/main/CHANGELOG.md)
 
