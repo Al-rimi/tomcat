@@ -463,8 +463,9 @@ export class Tomcat {
 
                 if (await this.isTomcatRunning()) {
                     await this.executeTomcatCommand('stop', tomcatHome, javaHome);
-                    await this.modifyServerXmlPort(tomcatHome, newPort);
                 }
+
+                await this.modifyServerXmlPort(tomcatHome, newPort);
 
                 this.port = newPort;
                 this.updateConfig();
@@ -537,14 +538,12 @@ export class Tomcat {
         const content = await fsp.readFile(serverXmlPath, 'utf8');
         
         const updatedContent = content.replace(
-            /<Connector([^>]*?)protocol="HTTP\/1\.1"([^>]*?)port="(\d+)"([^>]*?)\/>/,
-            (beforeProtocol, between, after) => {
-              return `<Connector${beforeProtocol}protocol="HTTP/1.1"${between}port="${newPort}"${after}/>`;
-            }
-          );
+            /(port=")\d+(".*protocol="HTTP\/1\.1")/,
+            `$1${newPort}$2`
+        );
           
         if (!updatedContent.includes(`port="${newPort}"`)) {
-            logger.error(`Failed to update port in server.xml`);
+            throw(`Failed to update port in server.xml`);
         }
 
         await fsp.writeFile(serverXmlPath, updatedContent);
