@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.2.2] - 2025-04-07
+### Changed
+- Reduce delay in updatePort method from 2000ms to 200ms for improved responsiveness
+- Remove heavy images from vscode package to reduce package size (use link instead)
+
 ## [2.2.1] - 2025-04-06
 
 ### Changed
