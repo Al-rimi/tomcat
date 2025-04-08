@@ -587,8 +587,7 @@ export class Tomcat {
 
         const command = this.buildCommand(action, tomcatHome, javaHome);
         try {
-            const { stderr } = await execAsync(command);
-            logger.debug(`Tomcat log: ${stderr}`);
+            await execAsync(command);
         } catch (err) {
             throw err;
         }
