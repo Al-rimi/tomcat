@@ -59,7 +59,7 @@ export class Logger {
      * - Resource allocation tracking
      */
     private constructor() {
-        this.defaultDeployMode = vscode.workspace.getConfiguration().get<string>('defaultDeployMode', 'Disabled');    
+        this.defaultDeployMode = vscode.workspace.getConfiguration().get<string>('tomcat.defaultDeployMode', 'Disabled');    
         this.outputChannel = vscode.window.createOutputChannel('Tomcat', 'tomcat-log'); 
     }
 
@@ -89,7 +89,7 @@ export class Logger {
      * - Updates dependent properties
      */
     public updateConfig(): void {
-        this.defaultDeployMode = vscode.workspace.getConfiguration().get<string>('defaultDeployMode', 'Disabled');
+        this.defaultDeployMode = vscode.workspace.getConfiguration().get<string>('tomcat.defaultDeployMode', 'Disabled');
     }
 
     /**
@@ -213,7 +213,7 @@ export class Logger {
             case 'On Save': this.defaultDeployMode = 'Disabled'; break;
         }
 
-        await vscode.workspace.getConfiguration().update('defaultDeployMode', this.defaultDeployMode, true);
+        await vscode.workspace.getConfiguration().update('tomcat.defaultDeployMode', this.defaultDeployMode, true);
         this.defaultStatusBar();
     }
 

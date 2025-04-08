@@ -92,7 +92,7 @@ For technical implementation details and contribution guidelines, see:
 
 [![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square)](https://github.com/Al-rimi/tomcat/issues)
 
-## What's New in 2.3.0
+## What's New in 2.3.1
 
 ### Fixed
 - Fixed `isTomcatRunning` detection bug — now searches for `0.0.0.0:8080` instead of just `:8080`

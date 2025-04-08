@@ -233,7 +233,7 @@ export class Builder {
             if (fs.existsSync(targetDir)) {
                 logger.success(`${type} Build completed in ${duration}ms`, isChoice);
                 await tomcat.reload();
-                await new Promise(resolve => setTimeout(resolve, 60));
+                await new Promise(resolve => setTimeout(resolve, 100));
                 Browser.getInstance().run(appName);
             }
         } catch (err) {

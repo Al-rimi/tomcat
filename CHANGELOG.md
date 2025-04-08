@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.3.1] - 2025-04-09
+### Fixed
+- Unable to write to User Settings because defaultDeployMode is not a registered configuration.
+- Fix the miss browse to reload the page before full deployment (add more delay 40ms) 
+
 ## [2.3.0] - 2025-04-09
 ### Fixed
 - Corrected the `isTomcatRunning` detection logic to search for `0.0.0.0:8080` instead of just `:8080`
