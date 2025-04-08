@@ -57,29 +57,29 @@
             }
         },
         {
-            "name": "entity.name.filename.java",
+            "name": "entity.name.filename.java.tomcat",
             "match": "(?:[\\/\\\\])([^\\/\\\\]+\\.(?:java|class|jsp|xml|properties))(?=[:\\s])",
             "captures": {
                 "1": {
-                    "name": "entity.name.filename.java"
+                    "name": "entity.name.filename.java.tomcat"
                 }
             }
         },
         {
-            "name": "invalid.illegal.java",
+            "name": "invalid.illegal.java.tomcat",
             "match": "(error:\\s*(?:'[^']+' expected|cannot find symbol|illegal start of type|class, interface, enum, or record expected|unnamed classes are a preview feature))",
             "captures": {
                 "1": {
-                    "name": "invalid.illegal.java"
+                    "name": "invalid.illegal.java.tomcat"
                 }
             }
         },
         {
-            "name": "markup.error",
+            "name": "markup.error.tomcat",
             "match": "(\\^+|~+)",
             "captures": {
                 "1": {
-                    "name": "markup.error"
+                    "name": "markup.error.tomcat"
                 }
             }
         },
@@ -102,114 +102,114 @@
             }
         },
         {
-            "name": "storage.modifier.java",
+            "name": "storage.modifier.java.tomcat",
             "match": "\\b(public|private|protected|static|final|abstract|class|interface|extends|implements|transient|volatile|synchronized|native|strictfp)\\b"
         },
         {
-            "name": "storage.type.java",
+            "name": "storage.type.java.tomcat",
             "match": "\\b(HttpServlet|String|HttpSession|HttpServletRequest|HttpServletResponse|void|boolean|int|long|short|byte|char|float|double|Object|List|Map|Set)\\b"
         },
         {
-            "name": "entity.name.class.java",
+            "name": "entity.name.class.java.tomcat",
             "match": "\\b([A-Z][A-Za-z0-9_]*)\\b(?=\\s*(<|\\{|extends|implements))",
             "captures": {
                 "1": {
-                    "name": "entity.name.class.java"
+                    "name": "entity.name.class.java.tomcat"
                 }
             }
         },
         {
-            "name": "entity.name.function.java",
+            "name": "entity.name.function.java.tomcat",
             "match": "(\\b\\w+\\b)(?=\\s*\\()",
             "captures": {
                 "1": {
-                    "name": "entity.name.function.java"
+                    "name": "entity.name.function.java.tomcat"
                 }
             }
         },
         {
-            "name": "variable.parameter.java",
+            "name": "variable.parameter.java.tomcat",
             "match": "\\b(request|response|session|out|config|application)\\b"
         },
         {
-            "name": "keyword.control.java",
+            "name": "keyword.control.java.tomcat",
             "match": "\\b(if|else|return|throw|try|catch|finally|for|while|do|switch|case|default|break|continue|new)\\b"
         },
         {
-            "name": "punctuation.section.block.java",
+            "name": "punctuation.section.block.java.tomcat",
             "match": "[{}]"
         },
         {
-            "name": "string.quoted.double.java",
+            "name": "string.quoted.double.java.tomcat",
             "match": "\"(?:\\\\\"|.)*?\""
         },
         {
-            "name": "keyword.operator.java",
+            "name": "keyword.operator.java.tomcat",
             "match": "([=+\\-!><]=?|\\|\\||&&|instanceof|::|\\?|\\.\\.\\.)"
         },
         {
-            "name": "constant.numeric.java",
+            "name": "constant.numeric.java.tomcat",
             "match": "\\b\\d+\\b"
         },
         {
-            "name": "storage.type.annotation.java",
+            "name": "storage.type.annotation.java.tomcat",
             "match": "@\\w+"
         },
         {
-            "name": "meta.annotation.parameters.java",
+            "name": "meta.annotation.parameters.java.tomcat",
             "match": "(?<=@\\w+)(\\([^)]+\\))",
             "captures": {
                 "1": {
-                    "name": "meta.annotation.parameters.java"
+                    "name": "meta.annotation.parameters.java.tomcat"
                 }
             }
         },
         {
-            "name": "variable.other.object.java",
+            "name": "variable.other.object.java.tomcat",
             "match": "(?<=\\.)(getAttribute|setAttribute|getRequestDispatcher|forward|sendRedirect|getParameter|getWriter|println|print|close|flush)\\b"
         },
         {
-            "name": "punctuation.terminator.java",
+            "name": "punctuation.terminator.java.tomcat",
             "match": ";"
         },
         {
-            "name": "punctuation.separator.comma.java",
+            "name": "punctuation.separator.comma.java.tomcat",
             "match": ","
         },
         {
-            "name": "punctuation.bracket.square.java",
+            "name": "punctuation.bracket.square.java.tomcat",
             "match": "[\\[\\]]"
         },
         {
-            "name": "punctuation.bracket.round.java",
+            "name": "punctuation.bracket.round.java.tomcat",
             "match": "[()]"
         },
         {
-            "name": "punctuation.bracket.angle.java",
+            "name": "punctuation.bracket.angle.java.tomcat",
             "match": "[<>]"
         },
         {
-            "name": "meta.package.java",
+            "name": "meta.package.java.tomcat",
             "match": "^\\s*(package)\\s+([a-zA-Z_][a-zA-Z0-9_]*(?:\\.[a-zA-Z_][a-zA-Z0-9_]*)*)\\s*;",
             "captures": {
-                "1": { "name": "storage.modifier.java" },
-                "2": { "name": "entity.name.package.java" }
+                "1": { "name": "storage.modifier.java.tomcat" },
+                "2": { "name": "entity.name.package.java.tomcat" }
             }
         },
         {
-            "name": "meta.import.java",
+            "name": "meta.import.java.tomcat",
             "match": "^\\s*(import)\\s+(static\\s+)?([a-zA-Z_][a-zA-Z0-9_]*(?:\\.[a-zA-Z_][a-zA-Z0-9_]*)*(?:\\.\\*)?)\\s*;",
             "captures": {
-                "1": { "name": "keyword.control.import.java" },
-                "2": { "name": "storage.modifier.java" },
-                "3": { "name": "entity.name.package.java" }
+                "1": { "name": "keyword.control.import.java.tomcat" },
+                "2": { "name": "storage.modifier.java.tomcat" },
+                "3": { "name": "entity.name.package.java.tomcat" }
             }
         },
         {
             "name": "meta.maven.error",
             "match": "(Failed to execute goal .*?Compilation failure)",
             "captures": {
-                "1": { "name": "invalid.illegal.java" }
+                "1": { "name": "invalid.illegal.java.tomcat" }
             }
         }
     ]

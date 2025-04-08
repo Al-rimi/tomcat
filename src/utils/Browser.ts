@@ -358,7 +358,7 @@ export class Browser {
                 await this.execCommand(command);
             }
         } catch (err) {
-            logger.error(`Failed to execute command: ${command}`, false, err as Error);
+            logger.error(`Failed to kill ${browser} process:`, true, err as string);
         }
     }
 

@@ -237,7 +237,7 @@ export class Builder {
                 Browser.getInstance().run(appName);
             }
         } catch (err) {
-            logger.error(`${type} Build failed:\n`, isChoice, err as Error);
+            logger.error(`${type} Build failed:`, isChoice, err as string);
             logger.defaultStatusBar();
         } finally {
             logger.defaultStatusBar();

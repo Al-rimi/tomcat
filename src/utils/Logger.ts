@@ -191,8 +191,8 @@ export class Logger {
      * @param error Optional Error object for stack trace
      * @param showToast Whether to show user notification
      */
-    public error(message: string, showToast: boolean = false, error?: Error | undefined): void {
-        const fullMessage = error ? `${message}\n${error.message}\n${error.stack}` : message;
+    public error(message: string, showToast: boolean = false, error: string): void {
+        const fullMessage = error ? `${message}\n${error}` : message;
         this.log('ERROR', fullMessage, showToast ? vscode.window.showErrorMessage : undefined);
     }
 

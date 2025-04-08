@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2.3.2] - 2025-04-09
+### Fixed
+- logger undefined error when compiling java in fast mode
+- ovrwrite orjginal java syntax highlighting
+
 ## [2.3.1] - 2025-04-09
 ### Fixed
 - Unable to write to User Settings because defaultDeployMode is not a registered configuration.

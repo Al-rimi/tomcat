@@ -128,7 +128,7 @@ export function addSyntaxColoringRules() {
 
         // File system elements - path visualization
         { 
-            "scope": "entity.name.filename.java", 
+            "scope": "entity.name.filename.java.tomcat", 
             "settings": { 
                 "foreground": "#9CDCFE",  // Light blue
                 "fontStyle": "underline"  // File path indicator
@@ -151,91 +151,91 @@ export function addSyntaxColoringRules() {
 
         // Java syntax hierarchy - semantic coloring
         { 
-            "scope": "entity.name.class.java", 
+            "scope": "entity.name.class.java.tomcat", 
             "settings": { 
                 "foreground": "#4EC9B0",  // Teal for classes
                 "fontStyle": "" 
             } 
         },
         { 
-            "scope": "entity.name.function.java", 
+            "scope": "entity.name.function.java.tomcat", 
             "settings": { 
                 "foreground": "#DCDCAA",  // Light yellow for methods
                 "fontStyle": "" 
             } 
         },
         { 
-            "scope": "variable.parameter.java", 
+            "scope": "variable.parameter.java.tomcat", 
             "settings": { 
                 "foreground": "#9CDCFE",  // Light blue for params
                 "fontStyle": "" 
             } 
         },
         { 
-            "scope": "variable.other.object.java", 
+            "scope": "variable.other.object.java.tomcat", 
             "settings": { 
                 "foreground": "#DCDCAA",  // Consistent object refs
                 "fontStyle": "" 
             } 
         },
         { 
-            "scope": "storage.modifier.java", 
+            "scope": "storage.modifier.java.tomcat", 
             "settings": { 
                 "foreground": "#569CD6",  // Blue for modifiers
                 "fontStyle": "" 
             } 
         },
         { 
-            "scope": "storage.type.java", 
+            "scope": "storage.type.java.tomcat", 
             "settings": { 
                 "foreground": "#4EC9B0",  // Teal for types
                 "fontStyle": "" 
             } 
         },
         { 
-            "scope": "keyword.control.java", 
+            "scope": "keyword.control.java.tomcat", 
             "settings": { 
                 "foreground": "#C586C0",  // Purple for keywords
                 "fontStyle": "" 
             } 
         },
         { 
-            "scope": "invalid.illegal.java", 
+            "scope": "invalid.illegal.java.tomcat", 
             "settings": { 
                 "foreground": "#FF6B6B",  // Error red
                 "fontStyle": "bold" 
             } 
         },
         { 
-            "scope": "markup.error", 
+            "scope": "markup.error.tomcat", 
             "settings": { 
                 "foreground": "#FF6B6B",  // Consistent error styling
                 "fontStyle": "bold" 
             } 
         },
         { 
-            "scope": "string.quoted.double.java", 
+            "scope": "string.quoted.double.java.tomcat", 
             "settings": { 
                 "foreground": "#CE9178",  // Warm brown for strings
                 "fontStyle": "" 
             } 
         },
         { 
-            "scope": "keyword.operator.java", 
+            "scope": "keyword.operator.java.tomcat", 
             "settings": { 
                 "foreground": "#D4D4D4",  // Light gray for operators
                 "fontStyle": "" 
             } 
         },
         { 
-            "scope": "storage.type.annotation.java", 
+            "scope": "storage.type.annotation.java.tomcat", 
             "settings": { 
                 "foreground": "#569CD6",  // Blue for annotations
                 "fontStyle": "" 
             } 
         },
         { 
-            "scope": "meta.annotation.parameters.java", 
+            "scope": "meta.annotation.parameters.java.tomcat", 
             "settings": { 
                 "foreground": "#9CDCFE",  // Light blue for params
                 "fontStyle": "" 
@@ -244,31 +244,31 @@ export function addSyntaxColoringRules() {
 
         // Punctuation - subtle differentiation
         { 
-            "scope": "punctuation.terminator.java", 
+            "scope": "punctuation.terminator.java.tomcat", 
             "settings": { 
                 "foreground": "#D4D4D4"  // Standard punctuation
             } 
         },
         { 
-            "scope": "punctuation.separator.comma.java", 
+            "scope": "punctuation.separator.comma.java.tomcat", 
             "settings": { 
                 "foreground": "#D4D4D4"  // Consistent punctuation
             } 
         },
         { 
-            "scope": "punctuation.bracket.square.java", 
+            "scope": "punctuation.bracket.square.java.tomcat", 
             "settings": { 
                 "foreground": "#D4D4D4"  // Array/Index brackets
             } 
         },
         { 
-            "scope": "punctuation.bracket.round.java", 
+            "scope": "punctuation.bracket.round.java.tomcat", 
             "settings": { 
                 "foreground": "#D4D4D4"  // Method/Grouping parens
             } 
         },
         { 
-            "scope": "punctuation.bracket.angle.java", 
+            "scope": "punctuation.bracket.angle.java.tomcat", 
             "settings": { 
                 "foreground": "#D4D4D4"  // Generics brackets
             } 
@@ -276,14 +276,14 @@ export function addSyntaxColoringRules() {
 
         // Package/Import hierarchy
         { 
-            "scope": "entity.name.package.java", 
+            "scope": "entity.name.package.java.tomcat", 
             "settings": { 
                 "foreground": "#858585",  // Gray for packages
                 "fontStyle": "" 
             } 
         },
         { 
-            "scope": "keyword.control.import.java", 
+            "scope": "keyword.control.import.java.tomcat", 
             "settings": { 
                 "foreground": "#569CD6",  // Blue for imports
                 "fontStyle": "" 

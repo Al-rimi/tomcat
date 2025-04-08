@@ -159,7 +159,7 @@ export class Tomcat {
             this.executeTomcatCommand('start', tomcatHome, javaHome);
             logger.success('Tomcat started successfully', showMessages);
         } catch (err) {
-            logger.error('Failed to start Tomcat', showMessages, err as Error);
+            logger.error('Failed to start Tomcat:', showMessages, err as string);
         }
     }
 
@@ -189,7 +189,7 @@ export class Tomcat {
             await this.executeTomcatCommand('stop', tomcatHome, javaHome);
             logger.success('Tomcat stopped successfully', showMessages);
         }catch (err) {
-            logger.error('Failed to stop Tomcat', showMessages, err as Error);
+            logger.error('Failed to stop Tomcat:', showMessages, err as string);
         }
     }
 
@@ -255,7 +255,7 @@ export class Tomcat {
         const webappsDir = path.join(tomcatHome, 'webapps');
         
         if (!fs.existsSync(webappsDir)) {
-            logger.error(`Webapps directory not found: ${webappsDir}`, false);
+            logger.warn(`Webapps directory not found: ${webappsDir}`, false);
             return;
         }
     
@@ -296,7 +296,7 @@ export class Tomcat {
     
             logger.success('Tomcat cleaned successfully');
         } catch (err) {
-            logger.error(`Error during cleanup:`, false, err as Error);
+            logger.error(`Error during cleanup:`, false, err as string);
         }
     }
 
@@ -365,7 +365,7 @@ export class Tomcat {
                 this.tomcatHome = tomcatHome;
                 return tomcatHome;
             } else {
-                logger.error(`Invalid Tomcat home: ${tomcatHome} not found`, true);
+                logger.warn(`Invalid Tomcat home: ${tomcatHome} not found`, true);
                 return null;
             }
         } else {
@@ -409,7 +409,7 @@ export class Tomcat {
                 this.javaHome = javaHome;
                 return javaHome;
             } else {
-                logger.error(`Invalid Java home: ${selectedFolder[0].fsPath} not found`, true);
+                logger.warn(`Invalid Java home: ${selectedFolder[0].fsPath} not found`, true);
                 return null;
             }
         } else {
@@ -492,7 +492,7 @@ export class Tomcat {
                 this.executeTomcatCommand('start', tomcatHome, javaHome);
             } catch (err) {
                 await vscode.workspace.getConfiguration().update('tomcat.port', oldPort, true);
-                logger.error('Failed to update Tomcat port', true, err as Error);
+                logger.error('Failed to update Tomcat port:', true, err as string);
             }
         }
 
