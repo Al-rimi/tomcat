@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [2.2.4] - 2025-04-08
+### Fixed
+- Fix isTomcatRunning detection bug search for 0.0.0.0:8080 instead of :8080
+- Fix findTomcatHome and findJavaHome type opject to string
+
+### Changed
+- Refactor logger methods to include showToast parameter and update Tomcat commands to support message display 
+- All messages optimized to be less annoying
+- Hide tomcat.home and java.home from user in settings.json (auto detect)
+
+### Removed
+- Remove restart method from Tomcat class in favor of start and stop methods
+
 ## [2.2.3] - 2025-04-07
 ### Changed
 - Compress heavy images from vscode package to reduce package size (link don't work)

@@ -65,8 +65,11 @@ const logger = Logger.getInstance();
 
 export class Tomcat {
     private static instance: Tomcat;
-    private config: vscode.WorkspaceConfiguration;
+    private tomcatHome: string;
+    private javaHome: string;
+    private webApps: string[];
     private port: number;
+
     private readonly PORT_RANGE = { min: 1024, max: 65535 };
 
     /**
@@ -79,8 +82,10 @@ export class Tomcat {
      * - Prepares environment variable fallbacks
      */
     private constructor() {
-        this.config = vscode.workspace.getConfiguration('tomcat');
-        this.port = this.config.get<number>('port', 8080);
+        this.tomcatHome = vscode.workspace.getConfiguration().get<string>('tomcat.home', '');
+        this.javaHome = vscode.workspace.getConfiguration().get<string>('tomcat.java.home', '');
+        this.webApps = vscode.workspace.getConfiguration().get<string[]>('tomcat.webApps', ['ROOT', 'docs', 'examples', 'manager', 'host-manager']);
+        this.port = vscode.workspace.getConfiguration().get<number>('tomcat.port', 8080);
     }
 
     /**
@@ -122,7 +127,10 @@ export class Tomcat {
      * - Updates dependent properties
      */
     public updateConfig(): void {
-        this.config = vscode.workspace.getConfiguration('tomcat');
+        this.tomcatHome = vscode.workspace.getConfiguration().get<string>('tomcat.home', '');
+        this.javaHome = vscode.workspace.getConfiguration().get<string>('java.home', '');
+        this.webApps = vscode.workspace.getConfiguration().get<string[]>('tomcat.webApps', ['ROOT', 'docs', 'examples', 'manager', 'host-manager']);
+        this.port = vscode.workspace.getConfiguration().get<number>('tomcat.port', 8080);
     }
 
     /**
@@ -244,15 +252,6 @@ export class Tomcat {
         const tomcatHome = await this.findTomcatHome();
         if (!tomcatHome) {return;}
 
-        const config = vscode.workspace.getConfiguration('tomcat');
-        const defaultWebApps = config.get<string[]>('webApps') || [
-        'ROOT',
-        'docs',
-        'examples',
-        'manager',
-        'host-manager'
-        ];
-
         const webappsDir = path.join(tomcatHome, 'webapps');
         
         if (!fs.existsSync(webappsDir)) {
@@ -266,7 +265,7 @@ export class Tomcat {
             for (const entry of entries) {
                 const entryPath = path.join(webappsDir, entry.name);
                 
-                if (!defaultWebApps.includes(entry.name)) {
+                if (!this.webApps.includes(entry.name)) {
                     try {
                         if (entry.isDirectory()) {
                             fs.rmSync(entryPath, { recursive: true, force: true });
@@ -341,30 +340,37 @@ export class Tomcat {
      * @returns Valid Tomcat home path or null
      */
     public async findTomcatHome(): Promise<string | null> {
-        let tomcatHome = process.env.CATALINA_HOME || this.config.get<string>('home', '');
+        if (this.tomcatHome) {return this.tomcatHome;}
 
-        if (!tomcatHome) {
-            const selectedFolder = await vscode.window.showOpenDialog({
-                canSelectFolders: true,
-                canSelectFiles: false,
-                canSelectMany: false,
-                openLabel: 'Select Tomcat Home Folder'
-            });
+        let tomcatHome = process.env.CATALINA_HOME ?? process.env.TOMCAT_HOME ?? vscode.workspace.getConfiguration().get<string>('tomcat.home') ?? '';
 
-            if (selectedFolder?.[0]?.fsPath) {
-                const catalinaExt = process.platform === 'win32' ? '.bat' : '.sh';
-                const catalinaPath = path.join(selectedFolder[0].fsPath, 'bin', `catalina${catalinaExt}`);
-                
-                if (await this.pathExists(catalinaPath)) {
-                    tomcatHome = selectedFolder[0].fsPath;
-                    await this.config.update('home', tomcatHome, true);
-                } else {
-                    logger.error(`Invalid Tomcat home: ${catalinaPath} not found`, true);
-                    return null;
-                }
-            }
+        if (tomcatHome && await this.validateTomcatHome(tomcatHome)) {
+            vscode.workspace.getConfiguration().update('tomcat.home', tomcatHome, true);
+            this.tomcatHome = tomcatHome;
+            return tomcatHome;
         }
-        return tomcatHome || null;
+
+        const selectedFolder = await vscode.window.showOpenDialog({
+            canSelectFolders: true,
+            canSelectFiles: false,
+            canSelectMany: false,
+            openLabel: 'Select Tomcat Home Folder'
+        });
+
+        if (selectedFolder?.[0]?.fsPath) {
+            tomcatHome = selectedFolder[0].fsPath;
+            
+            if (tomcatHome && await this.validateTomcatHome(tomcatHome)) {
+                await vscode.workspace.getConfiguration().update('tomcat.home', tomcatHome, true);
+                this.tomcatHome = tomcatHome;
+                return tomcatHome;
+            } else {
+                logger.error(`Invalid Tomcat home: ${tomcatHome} not found`, true);
+                return null;
+            }
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -379,33 +385,69 @@ export class Tomcat {
      * @returns Valid Java home path or null
      */
     public async findJavaHome(): Promise<string | null> {
-        let javaHome = process.env.JAVA_HOME || this.config.get<string>('java.home', '');
+        if (this.javaHome) {return this.javaHome;}
 
-        if (!javaHome) {
-            const selectedFolder = await vscode.window.showOpenDialog({
-                canSelectFolders: true,
-                canSelectFiles: false,
-                canSelectMany: false,
-                openLabel: 'Select Java Home Folder'
-            });
-
-            if (selectedFolder?.[0]?.fsPath) {
-                const javaExecutable = path.join(
-                    selectedFolder[0].fsPath, 
-                    'bin', 
-                    `java${process.platform === 'win32' ? '.exe' : ''}`
-                );
-
-                if (await this.pathExists(javaExecutable)) {
-                    javaHome = selectedFolder[0].fsPath;
-                    await this.config.update('java.home', javaHome, true);
-                } else {
-                    logger.error(`Invalid Java home: ${javaExecutable} not found`, true);
-                    return null;
-                }
-            }
+        let javaHome = vscode.workspace.getConfiguration().get<string>('tomcat.java.home') ?? process.env.JAVA_HOME ?? process.env.JDK_HOME ?? process.env.JAVA_JDK_HOME ?? '';
+        if (javaHome && await this.validateJavaHome(javaHome)) {
+            vscode.workspace.getConfiguration().update('java.home', javaHome, true);
+            this.javaHome = javaHome;
+            return javaHome;
         }
-        return javaHome || null;
+
+        const selectedFolder = await vscode.window.showOpenDialog({
+            canSelectFolders: true,
+            canSelectFiles: false,
+            canSelectMany: false,
+            openLabel: 'Select Java Home Folder'
+        });
+
+        if (selectedFolder?.[0]?.fsPath) {
+            javaHome = selectedFolder[0].fsPath;
+
+            if (await this.validateJavaHome(javaHome)) {
+                await vscode.workspace.getConfiguration().update('tomcat.java.home', javaHome, true);
+                this.javaHome = javaHome;
+                return javaHome;
+            } else {
+                logger.error(`Invalid Java home: ${selectedFolder[0].fsPath} not found`, true);
+                return null;
+            }
+        } else {
+            return null;
+        }
+        
+    }
+
+    /**
+     * Validates a Tomcat directory by checking for the startup script.
+     *
+     * @param tomcatHome Path to Tomcat root directory
+     * @returns true if valid, false otherwise
+     */
+    private async validateTomcatHome(tomcatHome: string): Promise<boolean> {
+        const catalinaPath = path.join(tomcatHome, 'bin', `catalina${process.platform === 'win32' ? '.bat' : '.sh'}`);
+        try {
+            await fsp.access(catalinaPath);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    /**
+     * Validates a Java installation directory by checking for the java executable.
+     *
+     * @param javaHome Path to Java home
+     * @returns true if valid, false otherwise
+     */
+    private async validateJavaHome(javaHome: string): Promise<boolean> {
+        const javaExecutable = path.join(javaHome, 'bin', `java${process.platform === 'win32' ? '.exe' : ''}`);
+        try {
+            await fsp.access(javaExecutable);
+            return true;
+        } catch {
+            return false;
+        }
     }
 
     /**
@@ -546,9 +588,7 @@ export class Tomcat {
         const command = this.buildCommand(action, tomcatHome, javaHome);
         try {
             const { stderr } = await execAsync(command);
-            if (stderr && this.config.get<string>('loggingLevel', 'WARN') === 'DEBUG') {
-                logger.info(`Tomcat log: ${stderr}`);
-            }
+            logger.debug(`Tomcat log: ${stderr}`);
         } catch (err) {
             throw err;
         }
@@ -620,26 +660,6 @@ export class Tomcat {
             this.start();
         } catch (err) {
             return;
-        }
-    }
-
-    /**
-     * Filesystem existence check
-     * 
-     * Robust path verification with:
-     * - Async I/O operations
-     * - Error handling
-     * - Cross-platform compatibility
-     * 
-     * @param filePath Path to verify
-     * @returns Boolean indicating existence
-     */
-    private async pathExists(filePath: string): Promise<boolean> {
-        try {
-            await fsp.access(filePath);
-            return true;
-        } catch {
-            return false;
         }
     }
 }

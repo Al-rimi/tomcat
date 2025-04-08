@@ -180,6 +180,16 @@ export class Logger {
     }
 
     /**
+     * Debug-level logging
+     * 
+     * @param message Debug information
+     * @param showToast Whether to show user notification
+     */
+    public debug(message: string, showToast: boolean = false): void {
+        this.log('DEBUG', message, showToast ? vscode.window.showInformationMessage : undefined);
+    }
+
+    /**
      * Warning-level logging
      * 
      * @param message Warning message

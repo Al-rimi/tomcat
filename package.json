@@ -2,7 +2,7 @@
   "name": "tomcat",
   "displayName": "Tomcat",
   "description": "Fully Automated Support for Apache Tomcat",
-  "version": "2.2.3",
+  "version": "2.2.4",
   "publisher": "Al-rimi",
   "author": {
     "email": "abdullah@syalux.com",
@@ -179,12 +179,14 @@
         "tomcat.home": {
           "type": "string",
           "default": "",
-          "description": "The path to the Tomcat installation (e.g., C:\\Java\\apache-tomcat-xx)."
+          "scope": "machine",
+          "description": "The path to the Apache Tomcat installation. If not set, the extension will try to find the Tomcat installation automatically."
         },
         "tomcat.java.home": {
           "type": "string",
           "default": "",
-          "description": "The path to the Java installation. (e.g., C:\\Java\\jdk-xx)."
+          "scope": "machine",
+          "description": "The path to the JDK installation. If not set, the extension will try to find the JDK automatically."
         }
       }
     }
