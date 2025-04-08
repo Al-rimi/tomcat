@@ -137,21 +137,21 @@ export class Tomcat {
      * 
      * @log Error if critical startup failure occurs
      */
-    public async start(): Promise<void> {
+    public async start(showMessages: boolean = false): Promise<void> {
         const tomcatHome = await this.findTomcatHome();
         const javaHome = await this.findJavaHome();
         if (!tomcatHome || !javaHome) {return;}
 
         if (await this.isTomcatRunning()) {
-            logger.success('Tomcat is already running');
+            logger.success('Tomcat is already running', showMessages);
             return;
         }
 
         try {
             this.executeTomcatCommand('start', tomcatHome, javaHome);
-            logger.success('Tomcat started successfully');
+            logger.success('Tomcat started successfully', showMessages);
         } catch (err) {
-            logger.error('Failed to start Tomcat', err as Error);
+            logger.error('Failed to start Tomcat', showMessages, err as Error);
         }
     }
 
@@ -167,21 +167,21 @@ export class Tomcat {
      * 
      * @log Error if shutdown sequence fails
      */
-    public async stop(): Promise<void> {        
+    public async stop(showMessages: boolean = false): Promise<void> {        
         const tomcatHome = await this.findTomcatHome();
         const javaHome = await this.findJavaHome();
         if (!tomcatHome || !javaHome) {return;}
 
         if (!await this.isTomcatRunning()) {
-            logger.success('Tomcat is not running');
+            logger.success('Tomcat is not running', showMessages);
             return;
         }
 
         try {
             await this.executeTomcatCommand('stop', tomcatHome, javaHome);
-            logger.success('Tomcat stopped successfully');
+            logger.success('Tomcat stopped successfully', showMessages);
         }catch (err) {
-            logger.error('Failed to stop Tomcat', err as Error);
+            logger.error('Failed to stop Tomcat', showMessages, err as Error);
         }
     }
 
@@ -204,8 +204,7 @@ export class Tomcat {
         if (!tomcatHome || !javaHome) { return; }
 
         if (!await this.isTomcatRunning()) {
-            this.executeTomcatCommand('start', tomcatHome, javaHome);
-            logger.info('Tomcat started');
+            this.start();
             return;
         }
 
@@ -218,11 +217,12 @@ export class Tomcat {
                     'Authorization': `Basic ${Buffer.from('admin:admin').toString('base64')}`
                 }
             });
+         
 
             if (!response.ok) {
                 throw new Error(`Reload failed: ${await response.text()}`);
             }
-            logger.info('Tomcat reloaded successfully');
+            logger.info('Tomcat reloaded.');
         } catch (err) {
             logger.warn('Reload failed, attempting to add admin user');
             await this.addTomcatUser(tomcatHome);
@@ -256,7 +256,7 @@ export class Tomcat {
         const webappsDir = path.join(tomcatHome, 'webapps');
         
         if (!fs.existsSync(webappsDir)) {
-            logger.error(`Webapps directory not found: ${webappsDir}`);
+            logger.error(`Webapps directory not found: ${webappsDir}`, false);
             return;
         }
     
@@ -297,7 +297,7 @@ export class Tomcat {
     
             logger.success('Tomcat cleaned successfully');
         } catch (err) {
-            logger.error(`Error during cleanup:`, err as Error);
+            logger.error(`Error during cleanup:`, false, err as Error);
         }
     }
 
@@ -359,7 +359,7 @@ export class Tomcat {
                     tomcatHome = selectedFolder[0].fsPath;
                     await this.config.update('home', tomcatHome, true);
                 } else {
-                    logger.error(`Invalid Tomcat home: ${catalinaPath} not found`);
+                    logger.error(`Invalid Tomcat home: ${catalinaPath} not found`, true);
                     return null;
                 }
             }
@@ -400,7 +400,7 @@ export class Tomcat {
                     javaHome = selectedFolder[0].fsPath;
                     await this.config.update('java.home', javaHome, true);
                 } else {
-                    logger.error(`Invalid Java home: ${javaExecutable} not found`);
+                    logger.error(`Invalid Java home: ${javaExecutable} not found`, true);
                     return null;
                 }
             }
@@ -445,12 +445,12 @@ export class Tomcat {
                 Browser.getInstance().updateConfig();
 
                 await vscode.workspace.getConfiguration().update('tomcat.port', newPort, true);
-                logger.success(`Tomcat port updated from ${oldPort} to ${newPort}`);
+                logger.success(`Tomcat port updated from ${oldPort} to ${newPort}`, true);
 
                 this.executeTomcatCommand('start', tomcatHome, javaHome);
             } catch (err) {
                 await vscode.workspace.getConfiguration().update('tomcat.port', oldPort, true);
-                logger.error(err ? err as string  : 'Failed to update Tomcat port');
+                logger.error('Failed to update Tomcat port', true, err as Error);
             }
         }
 

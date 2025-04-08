@@ -228,17 +228,13 @@ export class Builder {
             const duration = Math.round(endTime - startTime);
 
             if (fs.existsSync(targetDir)) {
-                if (isChoice) {
-                    logger.success(`${type} Build completed in ${duration}ms`);
-                } else {
-                    logger.info(`${type} Build completed in ${duration}ms`);
-                }
+                logger.success(`${type} Build completed in ${duration}ms`, isChoice);
                 await tomcat.reload();
                 await new Promise(resolve => setTimeout(resolve, 60));
                 Browser.getInstance().run(appName);
             }
         } catch (err) {
-            logger.error(`${type} Build failed:\n${err}`);
+            logger.error(`${type} Build failed:\n`, isChoice, err as Error);
             logger.defaultStatusBar();
         } finally {
             logger.defaultStatusBar();
@@ -312,7 +308,7 @@ export class Builder {
                     type: 'maven',
                     archetype: 'maven-archetype-webapp'
                 });
-                logger.info('New Maven web app project created');
+                logger.info('New Maven web app project created.');
             } catch (err) {
                 vscode.window.showErrorMessage(
                     'Project creation failed. Ensure Java Extension Pack is installed and configured.',
@@ -324,7 +320,7 @@ export class Builder {
                 });
             }
         } else {
-            logger.success('Tomcat deploy canceled.');
+            logger.success('Tomcat deploy canceled.', true);
         }
     }
 

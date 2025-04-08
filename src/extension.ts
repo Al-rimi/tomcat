@@ -79,8 +79,8 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Register command palette entries
     context.subscriptions.push(
-        vscode.commands.registerCommand('tomcat.start', () => tomcat.start()),
-        vscode.commands.registerCommand('tomcat.stop', () => tomcat.stop()),
+        vscode.commands.registerCommand('tomcat.start', () => tomcat.start(true)),
+        vscode.commands.registerCommand('tomcat.stop', () => tomcat.stop(true)),
         vscode.commands.registerCommand('tomcat.clean', () => tomcat.clean()),
         vscode.commands.registerCommand('tomcat.deploy', () => builder.deploy('Choice')),
         vscode.commands.registerCommand('tomcat.help', () => showHelpPanel(context)),

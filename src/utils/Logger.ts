@@ -165,7 +165,7 @@ export class Logger {
      * @param message Informational message
      * @param showToast Whether to show user notification
      */
-    public info(message: string, showToast = false): void {
+    public info(message: string, showToast: boolean = false): void {
         this.log('INFO', message, showToast ? vscode.window.showInformationMessage : undefined);
     }
 
@@ -175,7 +175,7 @@ export class Logger {
      * @param message Success message
      * @param showToast Whether to show user notification
      */
-    public success(message: string, showToast = true): void {
+    public success(message: string, showToast: boolean = false): void {
         this.log('SUCCESS', message, showToast ? vscode.window.showInformationMessage : undefined);
     }
 
@@ -185,7 +185,7 @@ export class Logger {
      * @param message Warning message
      * @param showToast Whether to show user notification
      */
-    public warn(message: string, showToast = true): void {
+    public warn(message: string, showToast: boolean = false): void {
         this.log('WARN', message, showToast ? vscode.window.showWarningMessage : undefined);
     }
 
@@ -196,7 +196,7 @@ export class Logger {
      * @param error Optional Error object for stack trace
      * @param showToast Whether to show user notification
      */
-    public error(message: string, error?: Error, showToast = true): void {
+    public error(message: string, showToast: boolean = false, error?: Error | undefined): void {
         const fullMessage = error ? `${message}\n${error.message}\n${error.stack}` : message;
         this.log('ERROR', fullMessage, showToast ? vscode.window.showErrorMessage : undefined);
     }

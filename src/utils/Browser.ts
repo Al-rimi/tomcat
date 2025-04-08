@@ -215,7 +215,7 @@ export class Browser {
 
         const browserCommand = this.getBrowserCommand(browser, appUrl);
         if (!browserCommand) {
-            logger.warn(`${browser} is not supported on this platform`);
+            logger.warn(`${browser} is not supported on this platform`, true);
             return;
         }
 
@@ -357,7 +357,7 @@ export class Browser {
                 await this.execCommand(command);
             }
         } catch (err) {
-            logger.error(`Failed to execute command: ${command}`, err as Error);
+            logger.error(`Failed to execute command: ${command}`, false, err as Error);
         }
     }
 
@@ -458,7 +458,7 @@ export class Browser {
                 });
             }
         } catch (error) {
-            logger.warn(`Process check failed: ${error}`);
+            logger.warn(`Process check failed: ${error}`, false);
             return false;
         }
     }
