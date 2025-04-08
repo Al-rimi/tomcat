@@ -170,9 +170,5 @@ function updateSettings(event: vscode.ConfigurationChangeEvent) {
 
     } else if (event.affectsConfiguration('tomcat.defaultBrowser')) {
         Browser.getInstance().updateConfig();
-
-    } else if (event.affectsConfiguration('tomcat.loggingLevel')) {
-        Logger.getInstance().updateConfig();
-        
     }
 }

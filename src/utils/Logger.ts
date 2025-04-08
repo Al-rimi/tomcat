@@ -43,22 +43,9 @@
 
 import * as vscode from 'vscode';
 
-/**
- * Log severity levels following semantic logging conventions
- * with additional extension-specific SUCCESS level.
- */
-enum LogLevel {
-    DEBUG = 0,    // Verbose diagnostic information
-    INFO = 1,     // General operational messages
-    WARN = 2,     // Potentially problematic situations
-    ERROR = 3,    // Critical failure conditions
-    SUCCESS = 4,  // Positive outcome confirmation
-    SILENT = 5    // Complete logging suppression
-}
-
 export class Logger {
     private static instance: Logger;
-    private config: vscode.WorkspaceConfiguration;
+    private defaultDeployMode: string;
     private outputChannel: vscode.OutputChannel;
     private statusBarItem?: vscode.StatusBarItem;
     
@@ -72,7 +59,7 @@ export class Logger {
      * - Resource allocation tracking
      */
     private constructor() {
-        this.config = vscode.workspace.getConfiguration('tomcat');
+        this.defaultDeployMode = vscode.workspace.getConfiguration().get<string>('defaultDeployMode', 'Disabled');    
         this.outputChannel = vscode.window.createOutputChannel('Tomcat', 'tomcat-log'); 
     }
 
@@ -108,19 +95,6 @@ export class Logger {
     }
 
     /**
-     * Configuration reload handler
-     * 
-     * Handles dynamic configuration changes:
-     * - Log level updates
-     * - Output format changes
-     * - Notification preferences
-     * - Status bar configuration
-     */
-    public updateConfig(): void {
-        this.config = vscode.workspace.getConfiguration('tomcat');
-    }
-
-    /**
      * Status bar update handler
      * 
      * Provides real-time operation feedback:
@@ -149,12 +123,11 @@ export class Logger {
      */
     public defaultStatusBar(): void {
         if (this.statusBarItem) {
-            const setting = this.config.get<string>('defaultDeployMode', 'Disabled');
-            const displayText = setting === 'On Shortcut' 
+            const displayText = this.defaultDeployMode === 'On Shortcut' 
                 ? process.platform === 'darwin' ? 'Cmd+S' : 'Ctrl+S'
-                : setting;
+                : this.defaultDeployMode;
                 
-            this.statusBarItem.text = `${setting === 'On Save' ? '$(sync~spin)' : '$(server)'} Tomcat deploy: ${displayText}`;
+            this.statusBarItem.text = `${this.defaultDeployMode === 'On Save' ? '$(sync~spin)' : '$(server)'} Tomcat deploy: ${displayText}`;
             this.statusBarItem.tooltip = 'Click to change deploy mode';
         }
     }
@@ -222,15 +195,13 @@ export class Logger {
      * Persists changes to workspace configuration
      */
     public async toggleDeploySetting() {
-        let setting = this.config.get<string>('defaultDeployMode', 'Disabled');    
-        switch (setting) {
-            case 'Disabled': setting = 'On Shortcut'; break;
-            case 'On Shortcut': setting = 'On Save'; break;
-            case 'On Save': setting = 'Disabled'; break;
+        switch (this.defaultDeployMode) {
+            case 'Disabled': this.defaultDeployMode = 'On Shortcut'; break;
+            case 'On Shortcut': this.defaultDeployMode = 'On Save'; break;
+            case 'On Save': this.defaultDeployMode = 'Disabled'; break;
         }
 
-        await this.config.update('defaultDeployMode', setting, true);
-        this.updateConfig();            
+        await vscode.workspace.getConfiguration().update('defaultDeployMode', this.defaultDeployMode, true);
         this.defaultStatusBar();
     }
 
@@ -257,21 +228,6 @@ export class Logger {
     }
 
     /**
-     * Current log level resolver
-     * 
-     * Determines effective log level from:
-     * - Workspace configuration
-     * - Environment variables
-     * - Default fallback
-     * 
-     * @returns Active log level threshold
-     */
-    private getCurrentLogLevel(): LogLevel {
-        const level = this.config.get<string>('loggingLevel', 'INFO');
-        return LogLevel[level as keyof typeof LogLevel] || LogLevel.INFO;
-    }
-
-    /**
      * Core logging mechanism
      * 
      * Handles log message processing with:
@@ -289,13 +245,6 @@ export class Logger {
         message: string,
         showUI?: (message: string) => Thenable<string | undefined>
     ): void {
-        const minLevel = this.getCurrentLogLevel();
-        const currentLevel = LogLevel[level as keyof typeof LogLevel] || LogLevel.INFO;
-
-        // Apply level filtering
-        if (currentLevel < minLevel) {return;}
-
-        // Format log message with metadata
         const timestamp = new Date().toLocaleString();
         const formattedMessage = `[${timestamp}] [${level}] ${message}`;
         
@@ -303,7 +252,7 @@ export class Logger {
         this.outputChannel.appendLine(formattedMessage);
 
         // Conditionally show UI notification
-        if (showUI && currentLevel >= LogLevel.INFO) {
+        if (showUI) {
             showUI(message).then(selection => {
                 if (selection) {
                     this.outputChannel.appendLine(`User selected: ${selection}`);
@@ -312,7 +261,7 @@ export class Logger {
         }
 
         // Automatically show errors in output channel
-        if (level === 'ERROR') {
+        if (level === 'ERROR' || level === 'WARN') {
             this.outputChannel.show(true);
         }
     }
