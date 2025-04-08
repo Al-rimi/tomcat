@@ -11,9 +11,11 @@
 - Refactor logger methods to include showToast parameter and update Tomcat commands to support message display 
 - All messages optimized to be less annoying
 - Hide tomcat.home and java.home from user in settings.json (auto detect)
+- Hide deployment mode configuration and remove logging level settings
 
 ### Removed
 - Remove restart method from Tomcat class in favor of start and stop methods
+- Refactor Logger class to remove unused log level configuration and streamline deploy mode handling
 
 ## [2.2.3] - 2025-04-07
 ### Changed
