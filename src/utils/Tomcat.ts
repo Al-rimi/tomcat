@@ -230,32 +230,6 @@ export class Tomcat {
     }
 
     /**
-     * Server restart procedure
-     * 
-     * Orchestrates complete server restart cycle:
-     * 1. Ordered shutdown sequence
-     * 2. Configuration verification
-     * 3. Clean startup process
-     * 4. State synchronization
-     * 
-     * @log Error if restart sequence fails
-     */
-    public async restart(): Promise<void> {
-        const tomcatHome = await this.findTomcatHome();
-        const javaHome = await this.findJavaHome();
-        if (!tomcatHome || !javaHome) {return;}
-
-        try {
-            if (await this.isTomcatRunning()) {
-                await this.executeTomcatCommand('stop', tomcatHome, javaHome);
-            }
-            this.executeTomcatCommand('start', tomcatHome, javaHome);
-        } catch (err) {
-            logger.error('Failed to restart Tomcat', err as Error);
-        }
-    }
-
-    /**
      * Server maintenance and cleanup
      * 
      * Performs comprehensive server cleanup:
@@ -349,7 +323,7 @@ export class Tomcat {
             }
     
             const { stdout } = await execAsync(command);
-            return stdout.includes(`:${this.port}`);
+            return stdout.includes(`0.0.0.0:${this.port}`);
         } catch (error) {
             return false;
         }
@@ -631,6 +605,9 @@ export class Tomcat {
         const usersXmlPath = path.join(tomcatHome, 'conf', 'tomcat-users.xml');
         
         try {
+            if (await this.isTomcatRunning()) {
+                await this.stop();
+            }
             let content = await fsp.readFile(usersXmlPath, 'utf8');
             const newUser = '<user username="admin" password="admin" roles="manager-gui,manager-script"/>';
 
@@ -640,7 +617,7 @@ export class Tomcat {
 
             await fsp.writeFile(usersXmlPath, content);
             logger.info('Added admin user to tomcat-users.xml');
-            await this.restart();
+            this.start();
         } catch (err) {
             return;
         }
