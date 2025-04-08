@@ -23,12 +23,12 @@ Automate browser testing across multiple browsers seamlessly.
 
 ## Installation
 
-1. Open VS Code
-2. Launch Extensions View (`Ctrl+Shift+X`)
-3. Search for `Al-rimi.tomcat`
+1. Open VS Code  
+2. Launch Extensions View (`Ctrl+Shift+X`)  
+3. Search for `Al-rimi.tomcat`  
 4. Click <kbd>Install</kbd>
 
-command line:
+Command line:
 ```bash
 code --install-extension Al-rimi.tomcat
 ```
@@ -65,17 +65,16 @@ Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 | `tomcat.defaultBuildType`    | `Fast`            | Default build strategy for deployments (`Fast`, `Maven`, `Gradle`)                       |
 | `tomcat.defaultDeployMode`   | `Disabled`        | Auto-deploy triggers (`Disabled`, `On Save`, `On Shortcut`)                              |
 | `tomcat.defaultBrowser`      | `Google Chrome`   | Browser for app launch & debug (`Google Chrome`, `Microsoft Edge`, `Firefox`, `Safari`, `Brave`, `Opera`) |
-| `tomcat.loggingLevel`        | `WARN`            | Log verbosity level (`DEBUG < INFO < WARN < ERROR < SILENT`)                         |
-| `tomcat.java.home`           | `JAVA_HOME`       | JDK installation path (e.g., `C:\Program Files\Java\jdk-21`)                             |
-| `tomcat.home`                | `CATALINA_HOME`   | Tomcat installation directory (e.g., `C:\Java\apache-tomcat-11.0.4`)                     |
 | `tomcat.port`                | `8080`            | Tomcat server listen port (valid range: `1024`-`65535`)                                  |
-| `tomcat.webApps`             | `["ROOT", "docs", "examples", "manager", "host-manager"]`     | list of protected web apps during cleanup operations                |
+| `tomcat.webApps`             | `["ROOT", "docs", "examples", "manager", "host-manager"]`     | List of protected web apps during cleanup operations                                     |
+
+> ℹ️ `tomcat.home` and `tomcat.java.home` are now auto-detected and hidden from user settings.
 
 ## Requirements
 
 - **Runtime**:
-  - JDK 11+ (`JAVA_HOME` or `tomcat.java.home`)
-  - Apache Tomcat 9+ (`CATALENA_HOME` or `tomcat.home`)
+  - JDK 11+ (`JAVA_HOME` auto-detected)
+  - Apache Tomcat 9+ (`CATALINA_HOME` auto-detected)
   
 - **Build Tools** (optional):
   - `Maven` 3.6+ *or* `Gradle` 6.8+ (if using `Maven` or `Gradle` build types)
@@ -93,13 +92,23 @@ For technical implementation details and contribution guidelines, see:
 
 [![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square)](https://github.com/Al-rimi/tomcat/issues)
 
-## What's New in 2.2.4
+## What's New in 2.3.0
 
-- **Architecture Documentation**: Comprehensive JSDoc and design pattern documentation
-- **Memory Optimization**: Fast build strategy now uses memory lists instead of temp files
-- **Improved Debugging**: Enhanced Java error message organization and syntax highlighting
-- **Reliability Improvements**: Better error handling in Tomcat operations
-- **Build Insights**: Added build duration tracking in deployment process
+### Fixed
+- Fixed `isTomcatRunning` detection bug — now searches for `0.0.0.0:8080` instead of just `:8080`
+- Fixed `findTomcatHome` and `findJavaHome` type from `object` to `string`
+
+### Changed
+- Refactored logger methods to include `showToast` parameter and updated Tomcat commands to support message display
+- All messages optimized to be less annoying
+- `tomcat.home` and `java.home` are now hidden in `settings.json` and auto-detected
+- Deployment mode configuration moved to a button instead of settings
+- Simplified and more reliable configuration logic across all classes
+
+### Removed
+- Removed `loggingLevel` setting (no longer needed)
+- Removed `restart` method from Tomcat class — replaced by `start` and `stop`
+- Refactored `Logger` class to eliminate unused log levels and improve deploy mode handling
 
 [View Full Changelog](https://github.com/Al-rimi/tomcat/blob/main/CHANGELOG.md)
 

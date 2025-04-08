@@ -64,6 +64,53 @@ import { Logger } from './Logger';
 const logger = Logger.getInstance();
 
 export class Browser {
+    private static instance: Browser;
+    private browser: 'Google Chrome' | 'Firefox' | 'Microsoft Edge' | 'Brave' | 'Opera' | 'Safari';
+    private port: number;
+
+    /**
+     * Singleton accessor method
+     * 
+     * Provides global access point to the Browser manager instance while ensuring:
+     * - Thread-safe lazy initialization
+     * - Consistent state management
+     * - Single point of configuration
+     * 
+     * @returns The singleton Browser manager instance
+     */
+    public static getInstance(): Browser {
+        if (!this.instance) {
+            this.instance = new Browser();
+        }
+        return this.instance;
+    }
+
+    /**
+     * Constructor
+     * 
+     * Initializes core browser management properties:
+     * - Loads workspace configuration
+     * - Sets up default browser preferences
+     * - Prepares debug protocol parameters
+     */
+    constructor() {
+        this.browser = vscode.workspace.getConfiguration().get<string>('tomcat.defaultBrowser', 'Google Chrome') as 'Google Chrome' | 'Firefox' | 'Microsoft Edge' | 'Brave' | 'Opera' | 'Safari';
+        this.port = vscode.workspace.getConfiguration().get<number>('tomcat.port', 8080);
+    }
+
+    /**
+     * Configuration reload handler
+     * 
+     * Refreshes internal configuration state from VS Code settings:
+     * - Handles workspace configuration changes
+     * - Maintains configuration cache consistency
+     * - Updates dependent properties
+     */
+    public updateConfig(): void {
+        this.browser = vscode.workspace.getConfiguration().get<string>('tomcat.defaultBrowser', 'Google Chrome') as 'Google Chrome' | 'Firefox' | 'Microsoft Edge' | 'Brave' | 'Opera' | 'Safari';
+        this.port = vscode.workspace.getConfiguration().get<number>('tomcat.port', 8080);
+    }
+
     /**
      * Browser Process Registry
      * 
@@ -150,50 +197,6 @@ export class Browser {
         }
     };
 
-    private config: vscode.WorkspaceConfiguration;
-    private static instance: Browser;
-
-    /**
-     * Singleton accessor method
-     * 
-     * Provides global access point to the Browser manager instance while ensuring:
-     * - Thread-safe lazy initialization
-     * - Consistent state management
-     * - Single point of configuration
-     * 
-     * @returns The singleton Browser manager instance
-     */
-    public static getInstance(): Browser {
-        if (!this.instance) {
-            this.instance = new Browser();
-        }
-        return this.instance;
-    }
-
-    /**
-     * Constructor
-     * 
-     * Initializes core browser management properties:
-     * - Loads workspace configuration
-     * - Sets up default browser preferences
-     * - Prepares debug protocol parameters
-     */
-    constructor() {
-        this.config = vscode.workspace.getConfiguration('tomcat');
-    }
-
-    /**
-     * Configuration reload handler
-     * 
-     * Refreshes internal configuration state from VS Code settings:
-     * - Handles workspace configuration changes
-     * - Maintains configuration cache consistency
-     * - Updates dependent properties
-     */
-    public updateConfig(): void {
-        this.config = vscode.workspace.getConfiguration('tomcat');
-    }
-
     /**
      * Application launch procedure
      * 
@@ -208,18 +211,16 @@ export class Browser {
      * @log warning on unsupported browsers
      */
     public async run(appName: string): Promise<void> {
-        const browser = this.config.get<string>('defaultBrowser') || 'Google Chrome';
-        const port = this.config.get<number>('port', 8080);
-        const appUrl = `http://localhost:${port}/${appName.replace(/\s/g, '%20')}`;
+        const appUrl = `http://localhost:${this.port}/${appName.replace(/\s/g, '%20')}`;
         const debugUrl = `http://localhost:9222/json`;
 
-        const browserCommand = this.getBrowserCommand(browser, appUrl);
+        const browserCommand = this.getBrowserCommand(this.browser, appUrl);
         if (!browserCommand) {
-            logger.warn(`${browser} is not supported on this platform`, true);
+            logger.warn(`${this.browser} is not supported on this platform`, true);
             return;
         }
 
-        logger.updateStatusBar(browser);
+        logger.updateStatusBar(this.browser);
 
         try {
             const response = await this.httpGet(debugUrl);
@@ -235,13 +236,13 @@ export class Browser {
 
             if (target?.webSocketDebuggerUrl) {
                 await this.handleWebSocketReload(target);
-                logger.info(`${browser} reloaded`);
+                logger.info(`${this.browser} reloaded`);
             } else {
-                logger.info(`Opening new ${browser} window`);
+                logger.info(`Opening new ${this.browser} window`);
                 await this.execCommand(browserCommand);
             }
         } catch (err) {
-            await this.handleBrowserError(browser, browserCommand);
+            await this.handleBrowserError(this.browser, browserCommand);
         } finally {
             logger.defaultStatusBar();
         }

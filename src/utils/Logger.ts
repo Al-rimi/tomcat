@@ -81,6 +81,18 @@ export class Logger {
     }
 
     /**
+     * Configuration reload handler
+     * 
+     * Refreshes internal configuration state from VS Code settings:
+     * - Handles workspace configuration changes
+     * - Maintains configuration cache consistency
+     * - Updates dependent properties
+     */
+    public updateConfig(): void {
+        this.defaultDeployMode = vscode.workspace.getConfiguration().get<string>('defaultDeployMode', 'Disabled');
+    }
+
+    /**
      * Resource cleanup handler
      * 
      * Properly disposes of logging resources:
@@ -216,7 +228,11 @@ export class Logger {
      * 
      * @param context VS Code extension context
      */
-    public initStatusBar(context: vscode.ExtensionContext): void {
+    public init(context: vscode.ExtensionContext): void {
+        // Set context for UI contribution enablement
+        vscode.commands.executeCommand('setContext', 'tomcat.showdeployButton', true);
+
+        // Initialize status bar item
         this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
         this.statusBarItem.command = 'extension.tomcat.toggleDeploySetting';
         this.statusBarItem.show();

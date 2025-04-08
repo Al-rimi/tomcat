@@ -2,82 +2,82 @@
 
 ## [Unreleased]
 
-## [2.2.4] - 2025-04-08
+## [2.3.0] - 2025-04-09
 ### Fixed
-- Fix isTomcatRunning detection bug search for 0.0.0.0:8080 instead of :8080
-- Fix findTomcatHome and findJavaHome type opject to string
+- Corrected the `isTomcatRunning` detection logic to search for `0.0.0.0:8080` instead of just `:8080`
+- Adjusted the types of `findTomcatHome` and `findJavaHome` from `object` to `string`
 
 ### Changed
-- Refactor logger methods to include showToast parameter and update Tomcat commands to support message display 
-- All messages optimized to be less annoying
-- Hide tomcat.home and java.home from user in settings.json (auto detect)
-- Hide deployment mode configuration and remove logging level settings
+- Refactored logger methods to include a `showToast` parameter and updated Tomcat commands to support message display
+- Optimized messages to reduce interruptions
+- `tomcat.home` and `java.home` are now automatically detected and hidden in `settings.json`
+- Deployment mode configuration moved from settings to a button for easier access
+- Simplified and enhanced configuration logic across all classes for better reliability
 
 ### Removed
-- Remove restart method from Tomcat class in favor of start and stop methods
-- Refactor Logger class to remove unused log level configuration and streamline deploy mode handling
+- Removed the `loggingLevel` setting as it is no longer required
+- Removed `restart` method from the Tomcat class, replaced with separate `start` and `stop` methods
+- Refined `Logger` class by removing unused log levels and improving deployment mode handling
 
 ## [2.2.3] - 2025-04-07
 ### Changed
-- Compress heavy images from vscode package to reduce package size (link don't work)
+- Compressed heavy images in the vscode package to reduce overall package size (broken link removed)
 
 ## [2.2.2] - 2025-04-07
 ### Changed
-- Reduce delay in updatePort method from 2000ms to 200ms for improved responsiveness
-- Remove heavy images from vscode package to reduce package size (use link instead)
+- Reduced delay in the `updatePort` method from 2000ms to 200ms for better responsiveness
+- Removed large images from the vscode package to improve size (using links instead)
 
 ## [2.2.1] - 2025-04-06
-
 ### Changed
-- Refactor port modification logic: ensure server.xml port is updated after stopping Tomcat
-- Simplify port pattern detection
+- Refactored port modification logic to ensure `server.xml` port updates after stopping Tomcat
+- Simplified port pattern detection for improved consistency
 
 ### Fixed
-- Fix port update server.xml logic to handle invalid port values (throws instead of logging)
+- Corrected logic in `server.xml` port update to handle invalid port values properly (throws error instead of logging)
 
 ## [2.2.0] - 2025-04-06
 ### Added
-- Comprehensive JSDoc comments across all major classes
-- Architectural pattern documentation for core components
-- Memory optimization in fast build strategy (replaced temp files with memory lists)
+- Comprehensive JSDoc comments for major classes and components
+- Detailed architectural pattern documentation for core components
+- Optimized memory usage in fast build strategy (replaced temp files with in-memory lists)
 - Organized error messages for Java compilation and debugging
-- Syntax coloring rules for Tomcat output channel
-- Build duration tracking in deployment process
-- Choice handling for build type selection
+- Syntax coloring rules for Tomcat output in the logs
+- Build duration tracking added to deployment process
+- Enhanced handling for build type selection
 
 ### Changed
-- Refactored activate function with removed try-catch blocks
-- Improved error logging practices in Tomcat and Logger classes
-- Delay handling before stopping Tomcat during port updates
-- Improved configuration management processes
-- Enhanced reliability in deployment operations
-- Updated error handling practices throughout codebase
+- Refined `activate` function by removing unnecessary try-catch blocks
+- Improved error logging practices across Tomcat and Logger classes
+- Added a delay before stopping Tomcat during port updates
+- Streamlined configuration management processes for better reliability
+- Enhanced deployment operation reliability and error handling
 
 ### Fixed
-- Memory leaks in builder operations
-- Port validation edge cases
-- Browser reload synchronization issues
-- Status bar update consistency
+- Fixed memory leaks in builder operations
+- Handled edge cases in port validation
+- Addressed browser reload synchronization issues
+- Ensured status bar updates remain consistent
 
 ## [2.1.1] - 2025-04-05
 ### Fixed
-- Tomcat clean logic uses Java home instead of Catalina home
-- Port update logic in Tomcat class and improve error handling
-- update tomcat-icon-ligh.svg to tomcat-icon-light.svg
+- Fixed Tomcat clean logic by using `JavaHome` instead of `CatalinaHome`
+- Corrected port update logic in the Tomcat class and improved error handling
+- Updated the icon file from `tomcat-icon-ligh.svg` to `tomcat-icon-light.svg`
 
 ## [2.1.0] - 2025-04-03
 ### Fixed
-- Package generation error missing dependencies
-- Correct wepack config file path
+- Fixed package generation error due to missing dependencies
+- Corrected webpack configuration file path
 
 ## [2.0.2] - 2025-04-01
 ### Fixed
-- Browser stealing focus on MacOS/Linux
-- Package dependency issues on MacOS/Linux
+- Resolved browser stealing focus on MacOS/Linux
+- Fixed package dependency issues on MacOS/Linux
 
 ## [2.0.1] - 2025-03-30
 ### Fixed
-- Tomcat reload on case start failure
+- Addressed Tomcat reload failure during case start
 
 ## [2.0.0] - 2025-03-30
 ### Added
@@ -88,145 +88,145 @@
 - Automated project creation wizard
 
 ### Changed
-- Complete codebase refactor to TypeScript classes
+- Refactored codebase to TypeScript with class-based structure
 - Enhanced configuration management system
 - Improved cross-platform path handling
 - Restructured deployment pipeline architecture
 - Optimized browser session management
-- Reduce dependencies on external libraries
+- Reduced dependencies on external libraries
 
 ### Fixed
-- Memory leaks in long-running processes
-- Configuration synchronization issues
-- Windows process management edge cases
-- Deployment race conditions
-- Logging system thread safety
-- Spaces escaping logic for file, Folder and url paths
+- Fixed memory leaks in long-running processes
+- Addressed configuration synchronization issues
+- Resolved Windows process management edge cases
+- Fixed deployment race conditions
+- Improved logging system thread safety
+- Fixed spaces escaping logic for file, folder, and URL paths
 
 ## [1.3.0] - 2025-03-28
 ### Fixed
-- Browser path spaces sscaping logic
-- Browser reload bug (Windows)
-- Path directory spaces sscaping logic for javac (Windows)
-- Tomcat startup failure
+- Corrected browser path spaces escaping logic
+- Fixed browser reload bug (Windows)
+- Addressed path directory spaces escaping logic for `javac` (Windows)
+- Fixed Tomcat startup failure
 
 ### Removed
-- javac environment variable configuration, use `JAVA_HOME` instead
+- Removed `javac` environment variable configuration, using `JAVA_HOME` instead
 
-## [1.2.4] - 2025-03-25  
-### Added  
-- Progress notifications for deployment operations  
-- Configurable logging system with multiple verbosity levels  
-- Windows PowerShell integration for process management (Windows)  
-- Automatic `JAVA_HOME` detection and PATH configuration  
+## [1.2.4] - 2025-03-25
+### Added
+- Progress notifications for deployment operations
+- Configurable logging system with multiple verbosity levels
+- Windows PowerShell integration for process management (Windows)
+- Automatic `JAVA_HOME` detection and PATH configuration
 
-### Changed  
-- **Smart Cleanup**: Preserve default Tomcat webapps during cleaning  
-- **Deployment Sequencing**: Verify Tomcat readiness before browser refresh  
-- **Error Handling**: Enhanced path validation for Java/Tomcat installations  
+### Changed
+- **Smart Cleanup**: Preserved default Tomcat webapps during cleanup
+- **Deployment Sequencing**: Ensured Tomcat readiness before browser refresh
+- **Error Handling**: Enhanced path validation for Java/Tomcat installations
 
-### Fixed  
-- Browser process management inconsistencies (Windows/macOS)  
-- Deployment failures caused by spaces in directory paths  
-- Intermittent reload failures during rapid file saves  
-- Gradle build detection in nested project structures  
+### Fixed
+- Fixed browser process management inconsistencies (Windows/macOS)
+- Resolved deployment failures caused by spaces in directory paths
+- Addressed intermittent reload failures during rapid file saves
+- Fixed Gradle build detection in nested project structures
 
-## [1.2.3] - 2025-03-14  
-### Fixed  
-- Gradle build logic errors and deployment failures  
-- Premature browser reloads before Tomcat initialization  
-- Auto-deploy configuration change detection reliability  
-- Intrusive browser focus behavior on macOS  
-- Enhanced deployment error messaging clarity  
-- Windows process termination commands for browser management  
+## [1.2.3] - 2025-03-14
+### Fixed
+- Resolved Gradle build logic errors and deployment failures
+- Fixed premature browser reloads before Tomcat initialization
+- Corrected auto-deploy configuration change detection reliability
+- Fixed intrusive browser focus behavior on macOS
+- Improved deployment error messaging clarity
+- Fixed Windows process termination commands for browser management
 
-## [1.2.2] - 2025-03-13  
-### Added  
-- Initial support for Firefox and Safari browsers  
+## [1.2.2] - 2025-03-13
+### Added
+- Initial support for Firefox and Safari browsers
 
-### Changed  
-- Renamed `autoDeployType` parameter to `defaultBuildType` for semantic clarity  
-- Optimized cross-platform browser process management  
-- Restructured deployment configuration subsystem  
+### Changed
+- Renamed `autoDeployType` parameter to `defaultBuildType` for clarity
+- Optimized cross-platform browser process management
+- Restructured deployment configuration subsystem
 
-### Fixed  
-- Browser detection logic for non-Chromium browsers  
-- Path validation checks for Java executable locations  
-- Deployment trigger conflicts during concurrent save operations  
-- Status bar tooltip consistency across operating systems  
+### Fixed
+- Fixed browser detection logic for non-Chromium browsers
+- Corrected path validation checks for Java executable locations
+- Addressed deployment trigger conflicts during concurrent save operations
+- Fixed status bar tooltip consistency across OSes
 
-## [1.2.1] - 2025-03-12  
-### Changed  
-- Enhanced visual feedback mechanisms for deployment modes  
-- Renamed `autoDeploy` parameter to `defaultDeployMode` for consistency  
-- Improved synchronization between deployment triggers and save events  
-- Expanded error message details for invalid Tomcat/Java paths  
+## [1.2.1] - 2025-03-12
+### Changed
+- Improved visual feedback mechanisms for deployment modes
+- Renamed `autoDeploy` parameter to `defaultDeployMode` for consistency
+- Enhanced synchronization between deployment triggers and save events
+- Expanded error message details for invalid Tomcat/Java paths
 
-### Fixed  
-- Removed Firefox support due to legacy WebDriver protocol limitations  
-- Path validation issues for `catalina.bat` and `java.exe` (Windows)  
-- Status bar deployment mode toggle reliability  
-- Browser reload functionality stability  
+### Fixed
+- Removed Firefox support due to legacy WebDriver protocol limitations
+- Fixed path validation issues for `catalina.bat` and `java.exe` (Windows)
+- Improved status bar deployment mode toggle reliability
+- Fixed browser reload functionality stability
 
-## [1.2.0] - 2025-03-11  
-### Added  
-- Tomcat reload functionality with basic authentication support  
-- Automatic admin user injection into `tomcat-users.xml` when missing  
-- Editor-integrated deployment trigger button  
-- Real-time status bar deployment indicators  
-- Persistent configuration storage for deployment preferences  
-- Webview-based deployment type selection interface  
+## [1.2.0] - 2025-03-11
+### Added
+- Tomcat reload functionality with basic authentication support
+- Automatic admin user injection into `tomcat-users.xml` when missing
+- Editor-integrated deployment trigger button
+- Real-time status bar deployment indicators
+- Persistent configuration storage for deployment preferences
+- Webview-based deployment type selection interface
 
-### Changed  
-- Redesigned help panel with interactive UI components  
-- Upgraded status bar integration with stateful deployment tracking  
-- Improved configuration change propagation handling  
-- Modernized browser session management architecture  
+### Changed
+- Redesigned help panel with interactive UI components
+- Upgraded status bar integration with stateful deployment tracking
+- Improved configuration change propagation handling
+- Modernized browser session management architecture
 
-### Fixed  
-- Deployment type persistence across sessions  
-- Status bar flickering during active operations  
-- Edge cases in configuration validation logic  
-- Styling inconsistencies in help panel  
-- Crash scenarios from concurrent save requests  
+### Fixed
+- Fixed deployment type persistence across sessions
+- Addressed status bar flickering during active operations
+- Resolved edge cases in configuration validation logic
+- Fixed styling inconsistencies in help panel
+- Fixed crash scenarios from concurrent save requests
 
-## [1.1.1] - 2025-03-10  
-### Fixed  
-- Auto-deploy trigger conditions for `Ctrl+S` keyboard shortcut  
-- Removed disruptive `process.exit()` calls in error handling  
-- Improved error recovery for missing directory scenarios  
-- Unhandled promise rejections during command execution  
+## [1.1.1] - 2025-03-10
+### Fixed
+- Corrected auto-deploy trigger conditions for `Ctrl+S` keyboard shortcut
+- Removed disruptive `process.exit()` calls in error handling
+- Improved error recovery for missing directory scenarios
+- Fixed unhandled promise rejections during command execution
 
-## [1.1.0] - 2025-03-10  
-### Added  
-- Gradle-based deployment pipeline support  
-- Configurable Tomcat server port specification  
-- `JAVA_HOME` configuration override capability  
-- Enhanced Java EE project detection heuristics  
-- Interactive HTML help documentation panel  
-- Advanced browser session management features  
+## [1.1.0] - 2025-03-10
+### Added
+- Gradle-based deployment pipeline support
+- Configurable Tomcat server port specification
+- `JAVA_HOME` configuration override capability
+- Enhanced Java EE project detection heuristics
+- Interactive HTML help documentation panel
+- Advanced browser session management features
 
-### Changed  
-- Default auto-deploy behavior set to "On Save" mode  
-- Restructured configuration management subsystem  
-- Optimized deployment process reliability  
-- Upgraded status bar integration architecture  
+### Changed
+- Default auto-deploy behavior set to "On Save" mode
+- Restructured configuration management subsystem
+- Optimized deployment process reliability
+- Upgraded status bar integration architecture
 
-### Fixed  
-- Deployment failures with non-ASCII directory paths  
-- Maven build detection false negatives  
-- Browser reload race condition scenarios  
-- Configuration change propagation delays  
-- Project validation false positive cases  
+### Fixed
+- Fixed deployment failures with non-ASCII directory paths
+- Resolved Maven build detection false negatives
+- Addressed browser reload race condition scenarios
+- Fixed configuration change propagation delays
+- Resolved project validation false positive cases
 
-## [1.0.1] - 2025-03-09  
-### Fixed  
-- Deployment failures when Java EE project not detected  
-- Project creation workflow usability improvements  
+## [1.0.1] - 2025-03-09
+### Fixed
+- Resolved deployment failures when Java EE project was not detected
+- Improved project creation workflow usability
 
-## [1.0.0] - 2025-03-08  
-### Added  
-- Core Tomcat server management commands  
-- Auto-deployment engine with save-trigger support  
-- Cross-browser integration framework  
+## [1.0.0] - 2025-03-08
+### Added
+- Core Tomcat server management commands
+- Auto-deployment engine with save-trigger support
+- Cross-browser integration framework
 - Hierarchical configuration management system

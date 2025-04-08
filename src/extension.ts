@@ -93,13 +93,9 @@ export function activate(context: vscode.ExtensionContext) {
         })
     );
 
-    // Conditional initialization for Java EE projects
     if (Builder.isJavaEEProject()) {
-        // Initialize status bar UI component
-        Logger.getInstance().initStatusBar(context);
-
-        // Set context for UI contribution enablement
-        vscode.commands.executeCommand('setContext', 'tomcat.showdeployButton', true);
+        // Initialize status bar UI component and deploy button
+        Logger.getInstance().init(context);
 
         // Register save event handler for auto-deployment
         context.subscriptions.push(
@@ -147,26 +143,23 @@ export function deactivate() {
  *   - Scope metadata
  */
 function updateSettings(event: vscode.ConfigurationChangeEvent) {
-    const config = vscode.workspace.getConfiguration('tomcat');
-
     // Cascading configuration updates based on changed settings
     if (event.affectsConfiguration('tomcat.home')) {
-        const tomcatHome = Tomcat.getInstance().findTomcatHome();
-        config.update('home', tomcatHome || '');
-        Tomcat.getInstance().updatePort();
+        Tomcat.getInstance().findTomcatHome();
         Builder.getInstance().updateConfig();
         Browser.getInstance().updateConfig();
 
     } else if (event.affectsConfiguration('tomcat.javaHome')) {
-        const javaHome = Tomcat.getInstance().findJavaHome();
-        config.update('javaHome', javaHome || '');
-        
+        Tomcat.getInstance().findJavaHome();
+        Builder.getInstance().updateConfig();
+
     } else if (event.affectsConfiguration('tomcat.port')) {
         Tomcat.getInstance().updatePort();
 
     } else if (event.affectsConfiguration('tomcat.defaultDeployMode') ||
         event.affectsConfiguration('tomcat.defaultBuildType')) {
         Builder.getInstance().updateConfig();
+        Logger.getInstance().updateConfig();
 
     } else if (event.affectsConfiguration('tomcat.defaultBrowser')) {
         Browser.getInstance().updateConfig();
