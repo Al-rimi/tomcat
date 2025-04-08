@@ -18,6 +18,7 @@
 - Removed the `loggingLevel` setting as it is no longer required
 - Removed `restart` method from the Tomcat class, replaced with separate `start` and `stop` methods
 - Refined `Logger` class by removing unused log levels and improving deployment mode handling
+- Remove logging of Tomcat command stderr output to streamline execution process
 
 ## [2.2.3] - 2025-04-07
 ### Changed
