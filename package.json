@@ -131,7 +131,8 @@
             "On Shortcut"
           ],
           "default": "Disabled",
-          "description": "Select the default deployment mode. 'Disabled' will turn off auto deployment, 'On Save' will deploy the application automatically when a file is saved, and 'On Shortcut' will deploy the application for Windows/Linux on ctrl+s, Mac on cmd+s."
+          "scope": "machine",
+          "description": "Select the default deployment mode. 'On Save' will deploy the project when you save it. 'On Shortcut' will deploy the project when you press Ctrl+Shift+D."
         },
         "tomcat.defaultBuildType": {
           "type": "string",
@@ -155,18 +156,6 @@
           ],
           "default": "Google Chrome",
           "description": "Select your preferred browser to launch the app. Note that Firefox and Safari do not support the Chrome Debug Protocol, and automation is not supported in these browsers."
-        },
-        "tomcat.loggingLevel": {
-          "type": "string",
-          "enum": [
-            "DEBUG",
-            "INFO",
-            "WARN",
-            "ERROR",
-            "SILENT"
-          ],
-          "default": "WARN",
-          "description": "Set the logging verbosity level"
         },
         "tomcat.port": {
           "type": "number",
