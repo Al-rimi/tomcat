@@ -92,23 +92,24 @@ For technical implementation details and contribution guidelines, see:
 
 [![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square)](https://github.com/Al-rimi/tomcat/issues)
 
-## What's New in 2.3.2
+## What's New in 2.3.3
+
+### Added
+- The option to disable the browser future
 
 ### Fixed
 - Fixed `isTomcatRunning` detection bug — now searches for `0.0.0.0:8080` instead of just `:8080`
 - Fixed `findTomcatHome` and `findJavaHome` type from `object` to `string`
+- Fixed `Tomcat.findJavaHome()` using `java.home` instead of `tomcat.java.home` for updating the user settings (use `tomcat.javaHome` now)
 
 ### Changed
-- Refactored logger methods to include `showToast` parameter and updated Tomcat commands to support message display
 - All messages optimized to be less annoying
-- `tomcat.home` and `java.home` are now hidden in `settings.json` and auto-detected
-- Deployment mode configuration moved to a button instead of settings
 - Simplified and more reliable configuration logic across all classes
-
-### Removed
-- Removed `loggingLevel` setting (no longer needed)
-- Removed `restart` method from Tomcat class — replaced by `start` and `stop`
-- Refactored `Logger` class to eliminate unused log levels and improve deploy mode handling
+- Settings `tomcat.defaultBrowser` to `tomcat.browser`
+- Settings `tomcat.defaultDeployMode` to `tomcat.autoDeployMode`
+- Settings `tomcat.defaultBuildType` to `tomcat.autoDeployBuildType`
+- Settings `tomcat.webapps` to `tomcat.protectedWebapps`
+- Settings `tomcat.java.home` to `tomcat.javaHome`
 
 [View Full Changelog](https://github.com/Al-rimi/tomcat/blob/main/CHANGELOG.md)
 
