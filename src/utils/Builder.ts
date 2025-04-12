@@ -354,7 +354,7 @@ export class Builder {
         fs.rmSync(`${targetDir}.war`, { force: true });
 
         this.copyDirectorySync(webAppPath, targetDir);
-        const javaSourcePath = path.join(projectDir, 'src');
+        const javaSourcePath = path.join(projectDir, 'src', 'main');
         const classesDir = path.join(targetDir, 'WEB-INF', 'classes');
 
         if (fs.existsSync(javaSourcePath)) {

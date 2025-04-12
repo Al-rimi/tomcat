@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [2.3.4] - 2025-04-12  
+### Fixed  
+- For the first build method, only build the `src/main` folder and not the `src/test` folder. (Thanks to @ILG2021 for the suggestion)  
+
 ## [2.3.3] - 2025-04-12
 ### Added
 - The option to disable the browser future

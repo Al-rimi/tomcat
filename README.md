@@ -92,14 +92,13 @@ For technical implementation details and contribution guidelines, see:
 
 [![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square)](https://github.com/Al-rimi/tomcat/issues)
 
-## What's New in 2.3.3
+## What's New in 2.3.4
 
 ### Added
 - The option to disable the browser future
 
 ### Fixed
-- Fixed `isTomcatRunning` detection bug — now searches for `0.0.0.0:8080` instead of just `:8080`
-- Fixed `findTomcatHome` and `findJavaHome` type from `object` to `string`
+- For the first build method, only build the `src/main` folder and not the `src/test` folder. (Thanks to @ILG2021 for the suggestion)
 - Fixed `Tomcat.findJavaHome()` using `java.home` instead of `tomcat.java.home` for updating the user settings (use `tomcat.javaHome` now)
 
 ### Changed
