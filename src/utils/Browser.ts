@@ -65,7 +65,7 @@ const logger = Logger.getInstance();
 
 export class Browser {
     private static instance: Browser;
-    private browser: 'Google Chrome' | 'Firefox' | 'Microsoft Edge' | 'Brave' | 'Opera' | 'Safari';
+    private browser: 'Disabled' | 'Google Chrome' | 'Firefox' | 'Microsoft Edge' | 'Brave' | 'Opera' | 'Safari';
     private port: number;
 
     /**
@@ -94,7 +94,7 @@ export class Browser {
      * - Prepares debug protocol parameters
      */
     constructor() {
-        this.browser = vscode.workspace.getConfiguration().get<string>('tomcat.defaultBrowser', 'Google Chrome') as 'Google Chrome' | 'Firefox' | 'Microsoft Edge' | 'Brave' | 'Opera' | 'Safari';
+        this.browser = vscode.workspace.getConfiguration().get<string>('tomcat.defaultBrowser', 'Google Chrome') as 'Disabled' | 'Google Chrome' | 'Firefox' | 'Microsoft Edge' | 'Brave' | 'Opera' | 'Safari';
         this.port = vscode.workspace.getConfiguration().get<number>('tomcat.port', 8080);
     }
 
@@ -107,7 +107,7 @@ export class Browser {
      * - Updates dependent properties
      */
     public updateConfig(): void {
-        this.browser = vscode.workspace.getConfiguration().get<string>('tomcat.defaultBrowser', 'Google Chrome') as 'Google Chrome' | 'Firefox' | 'Microsoft Edge' | 'Brave' | 'Opera' | 'Safari';
+        this.browser = vscode.workspace.getConfiguration().get<string>('tomcat.defaultBrowser', 'Google Chrome') as 'Disabled' | 'Google Chrome' | 'Firefox' | 'Microsoft Edge' | 'Brave' | 'Opera' | 'Safari';
         this.port = vscode.workspace.getConfiguration().get<number>('tomcat.port', 8080);
     }
 
@@ -212,6 +212,10 @@ export class Browser {
      */
     public async run(appName: string): Promise<void> {
         const appUrl = `http://localhost:${this.port}/${appName.replace(/\s/g, '%20')}`;
+        if (this.browser === 'Disabled') { 
+            logger.info(`Access your app at: ${appUrl}`);
+            return;
+        }
         const debugUrl = `http://localhost:9222/json`;
 
         const browserCommand = this.getBrowserCommand(this.browser, appUrl);

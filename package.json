@@ -147,6 +147,7 @@
         "tomcat.defaultBrowser": {
           "type": "string",
           "enum": [
+            "Disabled",
             "Google Chrome",
             "Microsoft Edge",
             "Firefox",

@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- The option to disable the browser future
 
 ## [2.3.2] - 2025-04-09
 ### Fixed

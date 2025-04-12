@@ -126,6 +126,15 @@ export function addSyntaxColoringRules() {
             } 
         },
 
+        // Hyperlink elements - distinct link color
+        { 
+            "scope": "markup.underline.link.tomcat", 
+            "settings": { 
+                "foreground": "#61AFEF",  // Link blue
+                "fontStyle": "underline"  // Emphasize link nature
+            } 
+        },
+        
         // File system elements - path visualization
         { 
             "scope": "entity.name.filename.java.tomcat", 
