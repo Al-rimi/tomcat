@@ -7,6 +7,7 @@
 - The option to disable the browser future
 
 ### Changed
+- Enhance logging messages in `Browser` and `Tomcat` classes for consistency.
 - Refactor `findTomcatHome` and `findJavaHome` methods for improved candidate validation and code clarity
 - Settings `tomcat.defaultBrowser` to `tomcat.browser`
 - Settings `tomcat.defaultDeployMode` to `tomcat.autoDeployMode`

@@ -220,7 +220,7 @@ export class Browser {
 
         const browserCommand = this.getBrowserCommand(this.browser, appUrl);
         if (!browserCommand) {
-            logger.warn(`${this.browser} is not supported on this platform`, true);
+            logger.warn(`${this.browser} is not supported on this platform.`, true);
             return;
         }
 
@@ -240,9 +240,9 @@ export class Browser {
 
             if (target?.webSocketDebuggerUrl) {
                 await this.handleWebSocketReload(target);
-                logger.info(`${this.browser} reloaded`);
+                logger.info(`${this.browser} reloaded.`);
             } else {
-                logger.info(`Opening new ${this.browser} window`);
+                logger.info(`Opening new ${this.browser} window.`);
                 await this.execCommand(browserCommand);
             }
         } catch (err) {

@@ -151,13 +151,13 @@ export class Tomcat {
         if (!tomcatHome || !javaHome) {return;}
 
         if (await this.isTomcatRunning()) {
-            logger.success('Tomcat is already running', showMessages);
+            logger.success('Tomcat is already running.', showMessages);
             return;
         }
 
         try {
             this.executeTomcatCommand('start', tomcatHome, javaHome);
-            logger.success('Tomcat started successfully', showMessages);
+            logger.success('Tomcat started successfully.', showMessages);
         } catch (err) {
             logger.error('Failed to start Tomcat:', showMessages, err as string);
         }
@@ -181,13 +181,13 @@ export class Tomcat {
         if (!tomcatHome || !javaHome) {return;}
 
         if (!await this.isTomcatRunning()) {
-            logger.success('Tomcat is not running', showMessages);
+            logger.success('Tomcat is not running.', showMessages);
             return;
         }
 
         try {
             await this.executeTomcatCommand('stop', tomcatHome, javaHome);
-            logger.success('Tomcat stopped successfully', showMessages);
+            logger.success('Tomcat stopped successfully.', showMessages);
         }catch (err) {
             logger.error('Failed to stop Tomcat:', showMessages, err as string);
         }
@@ -232,7 +232,7 @@ export class Tomcat {
             }
             logger.info('Tomcat reloaded.');
         } catch (err) {
-            logger.warn('Reload failed, attempting to add admin user');
+            logger.warn('Reload failed, attempting to add admin user...');
             await this.addTomcatUser(tomcatHome);
         }
     }
@@ -255,7 +255,7 @@ export class Tomcat {
         const webappsDir = path.join(tomcatHome, 'webapps');
         
         if (!fs.existsSync(webappsDir)) {
-            logger.warn(`Webapps directory not found: ${webappsDir}`, false);
+            logger.warn(`Webapps directory not found: ${webappsDir}`);
             return;
         }
     
@@ -294,7 +294,7 @@ export class Tomcat {
                 }
             });
     
-            logger.success('Tomcat cleaned successfully');
+            logger.success('Tomcat cleaned successfully.', true);
         } catch (err) {
             logger.error(`Error during cleanup:`, false, err as string);
         }
@@ -373,7 +373,7 @@ export class Tomcat {
                 this.tomcatHome = selectedPath;
                 return selectedPath;
             } else {
-                logger.warn(`Invalid Tomcat home: ${selectedPath} not found`, true);
+                logger.warn(`Invalid Tomcat home: ${selectedPath} not found.`, true);
             }
         }
     
@@ -428,7 +428,7 @@ export class Tomcat {
                 this.javaHome = selectedPath;
                 return selectedPath;
             } else {
-                logger.warn(`Invalid Java home: ${selectedPath} not found`, true);
+                logger.warn(`Invalid Java home: ${selectedPath} not found.`, true);
             }
         }
     
@@ -672,7 +672,7 @@ export class Tomcat {
                 .replace(/(<\/tomcat-users>)/, `  ${newUser}\n$1`);
 
             await fsp.writeFile(usersXmlPath, content);
-            logger.info('Added admin user to tomcat-users.xml');
+            logger.info('Added admin user to tomcat-users.xml.');
             this.start();
         } catch (err) {
             return;
