@@ -62,19 +62,19 @@ Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 
 | **Setting**                  | **Default**       | **Description**                                                                          |
 |------------------------------|-------------------|------------------------------------------------------------------------------------------|
-| `tomcat.defaultBuildType`    | `Fast`            | Default build strategy for deployments (`Fast`, `Maven`, `Gradle`)                       |
-| `tomcat.defaultDeployMode`   | `Disabled`        | Auto-deploy triggers (`Disabled`, `On Save`, `On Shortcut`)                              |
-| `tomcat.defaultBrowser`      | `Google Chrome`   | Browser for app launch & debug (`Google Chrome`, `Microsoft Edge`, `Firefox`, `Safari`, `Brave`, `Opera`) |
+| `tomcat.autoDeployBuildType`    | `Fast`            | Default build strategy for deployments (`Fast`, `Maven`, `Gradle`)                       |
+| `tomcat.autoDeployMode`   | `Disabled`        | Auto-deploy triggers (`Disabled`, `On Save`, `On Shortcut`)                              |
+| `tomcat.browser`      | `Google Chrome`   | Browser for app launch & debug (`Google Chrome`, `Microsoft Edge`, `Firefox`, `Safari`, `Brave`, `Opera`) |
 | `tomcat.port`                | `8080`            | Tomcat server listen port (valid range: `1024`-`65535`)                                  |
-| `tomcat.webApps`             | `["ROOT", "docs", "examples", "manager", "host-manager"]`     | List of protected web apps during cleanup operations                                     |
+| `tomcat.protectedWebApps`             | `["ROOT", "docs", "examples", "manager", "host-manager"]`     | List of protected web apps during cleanup operations                                     |
 
-> ℹ️ `tomcat.home` and `tomcat.java.home` are now auto-detected and hidden from user settings.
+> ℹ️ `tomcat.home` and `tomcat.javaHome` are now auto-detected and hidden from user settings.
 
 ## Requirements
 
 - **Runtime**:
-  - JDK 11+ (`JAVA_HOME` auto-detected)
-  - Apache Tomcat 9+ (`CATALINA_HOME` auto-detected)
+  - JDK 11+
+  - Apache Tomcat 9+
   
 - **Build Tools** (optional):
   - `Maven` 3.6+ *or* `Gradle` 6.8+ (if using `Maven` or `Gradle` build types)

@@ -94,7 +94,7 @@ export class Browser {
      * - Prepares debug protocol parameters
      */
     constructor() {
-        this.browser = vscode.workspace.getConfiguration().get<string>('tomcat.defaultBrowser', 'Google Chrome') as 'Disabled' | 'Google Chrome' | 'Firefox' | 'Microsoft Edge' | 'Brave' | 'Opera' | 'Safari';
+        this.browser = vscode.workspace.getConfiguration().get<string>('tomcat.browser', 'Google Chrome') as 'Disabled' | 'Google Chrome' | 'Firefox' | 'Microsoft Edge' | 'Brave' | 'Opera' | 'Safari';
         this.port = vscode.workspace.getConfiguration().get<number>('tomcat.port', 8080);
     }
 
@@ -107,7 +107,7 @@ export class Browser {
      * - Updates dependent properties
      */
     public updateConfig(): void {
-        this.browser = vscode.workspace.getConfiguration().get<string>('tomcat.defaultBrowser', 'Google Chrome') as 'Disabled' | 'Google Chrome' | 'Firefox' | 'Microsoft Edge' | 'Brave' | 'Opera' | 'Safari';
+        this.browser = vscode.workspace.getConfiguration().get<string>('tomcat.browser', 'Google Chrome') as 'Disabled' | 'Google Chrome' | 'Firefox' | 'Microsoft Edge' | 'Brave' | 'Opera' | 'Safari';
         this.port = vscode.workspace.getConfiguration().get<number>('tomcat.port', 8080);
     }
 

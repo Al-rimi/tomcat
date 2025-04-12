@@ -153,15 +153,16 @@ function updateSettings(event: vscode.ConfigurationChangeEvent) {
         Tomcat.getInstance().findJavaHome();
         Builder.getInstance().updateConfig();
 
-    } else if (event.affectsConfiguration('tomcat.port')) {
+    } else if (event.affectsConfiguration('tomcat.port') || 
+        event.affectsConfiguration('tomcat.protectedWebApps')) {
         Tomcat.getInstance().updatePort();
 
-    } else if (event.affectsConfiguration('tomcat.defaultDeployMode') ||
-        event.affectsConfiguration('tomcat.defaultBuildType')) {
+    } else if (event.affectsConfiguration('tomcat.autoDeployMode') ||
+        event.affectsConfiguration('tomcat.autoDeployBuildType')) {
         Builder.getInstance().updateConfig();
         Logger.getInstance().updateConfig();
 
-    } else if (event.affectsConfiguration('tomcat.defaultBrowser')) {
+    } else if (event.affectsConfiguration('tomcat.browser')) {
         Browser.getInstance().updateConfig();
     }
 }

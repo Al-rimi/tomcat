@@ -45,7 +45,7 @@ import * as vscode from 'vscode';
 
 export class Logger {
     private static instance: Logger;
-    private defaultDeployMode: string;
+    private autoDeployMode: string;
     private outputChannel: vscode.OutputChannel;
     private statusBarItem?: vscode.StatusBarItem;
     
@@ -59,7 +59,7 @@ export class Logger {
      * - Resource allocation tracking
      */
     private constructor() {
-        this.defaultDeployMode = vscode.workspace.getConfiguration().get<string>('tomcat.defaultDeployMode', 'Disabled');    
+        this.autoDeployMode = vscode.workspace.getConfiguration().get<string>('tomcat.autoDeployMode', 'Disabled');    
         this.outputChannel = vscode.window.createOutputChannel('Tomcat', 'tomcat-log'); 
     }
 
@@ -89,7 +89,7 @@ export class Logger {
      * - Updates dependent properties
      */
     public updateConfig(): void {
-        this.defaultDeployMode = vscode.workspace.getConfiguration().get<string>('tomcat.defaultDeployMode', 'Disabled');
+        this.autoDeployMode = vscode.workspace.getConfiguration().get<string>('tomcat.autoDeployMode', 'Disabled');
     }
 
     /**
@@ -135,11 +135,11 @@ export class Logger {
      */
     public defaultStatusBar(): void {
         if (this.statusBarItem) {
-            const displayText = this.defaultDeployMode === 'On Shortcut' 
+            const displayText = this.autoDeployMode === 'On Shortcut' 
                 ? process.platform === 'darwin' ? 'Cmd+S' : 'Ctrl+S'
-                : this.defaultDeployMode;
+                : this.autoDeployMode;
                 
-            this.statusBarItem.text = `${this.defaultDeployMode === 'On Save' ? '$(sync~spin)' : '$(server)'} Tomcat deploy: ${displayText}`;
+            this.statusBarItem.text = `${this.autoDeployMode === 'On Save' ? '$(sync~spin)' : '$(server)'} Tomcat deploy: ${displayText}`;
             this.statusBarItem.tooltip = 'Click to change deploy mode';
         }
     }
@@ -207,13 +207,13 @@ export class Logger {
      * Persists changes to workspace configuration
      */
     public async toggleDeploySetting() {
-        switch (this.defaultDeployMode) {
-            case 'Disabled': this.defaultDeployMode = 'On Shortcut'; break;
-            case 'On Shortcut': this.defaultDeployMode = 'On Save'; break;
-            case 'On Save': this.defaultDeployMode = 'Disabled'; break;
+        switch (this.autoDeployMode) {
+            case 'Disabled': this.autoDeployMode = 'On Shortcut'; break;
+            case 'On Shortcut': this.autoDeployMode = 'On Save'; break;
+            case 'On Save': this.autoDeployMode = 'Disabled'; break;
         }
 
-        await vscode.workspace.getConfiguration().update('tomcat.defaultDeployMode', this.defaultDeployMode, true);
+        await vscode.workspace.getConfiguration().update('tomcat.autoDeployMode', this.autoDeployMode, true);
         this.defaultStatusBar();
     }
 

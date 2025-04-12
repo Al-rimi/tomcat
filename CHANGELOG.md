@@ -4,6 +4,16 @@
 ### Added
 - The option to disable the browser future
 
+### Changed
+- Settings `tomcat.defaultBrowser` to `tomcat.browser`
+- Settings `tomcat.defaultDeployMode` to `tomcat.autoDeployMode`
+- Settings `tomcat.defaultBuildType` to `tomcat.autoDeployBuildType`
+- Settings `tomcat.webapps` to `tomcat.protectedWebapps`
+- Settings `tomcat.java.home` to `tomcat.javaHome`
+
+### Fixed
+- `Tomcat.findJavaHome()` using `java.home` instead of `tomcat.java.home` for updating the user settings (use `tomcat.javaHome` now)
+
 ## [2.3.2] - 2025-04-09
 ### Fixed
 - logger undefined error when compiling java in fast mode

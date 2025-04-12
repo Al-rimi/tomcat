@@ -67,7 +67,7 @@ export class Tomcat {
     private static instance: Tomcat;
     private tomcatHome: string;
     private javaHome: string;
-    private webApps: string[];
+    private protectedWebApps: string[];
     private port: number;
 
     private readonly PORT_RANGE = { min: 1024, max: 65535 };
@@ -83,8 +83,8 @@ export class Tomcat {
      */
     private constructor() {
         this.tomcatHome = vscode.workspace.getConfiguration().get<string>('tomcat.home', '');
-        this.javaHome = vscode.workspace.getConfiguration().get<string>('tomcat.java.home', '');
-        this.webApps = vscode.workspace.getConfiguration().get<string[]>('tomcat.webApps', ['ROOT', 'docs', 'examples', 'manager', 'host-manager']);
+        this.javaHome = vscode.workspace.getConfiguration().get<string>('tomcat.javaHome', '');
+        this.protectedWebApps = vscode.workspace.getConfiguration().get<string[]>('tomcat.protectedWebApps', ['ROOT', 'docs', 'examples', 'manager', 'host-manager']);
         this.port = vscode.workspace.getConfiguration().get<number>('tomcat.port', 8080);
     }
 
@@ -128,8 +128,8 @@ export class Tomcat {
      */
     public updateConfig(): void {
         this.tomcatHome = vscode.workspace.getConfiguration().get<string>('tomcat.home', '');
-        this.javaHome = vscode.workspace.getConfiguration().get<string>('java.home', '');
-        this.webApps = vscode.workspace.getConfiguration().get<string[]>('tomcat.webApps', ['ROOT', 'docs', 'examples', 'manager', 'host-manager']);
+        this.javaHome = vscode.workspace.getConfiguration().get<string>('tomcat.javaHome', '');
+        this.protectedWebApps = vscode.workspace.getConfiguration().get<string[]>('tomcat.protectedWebApps', ['ROOT', 'docs', 'examples', 'manager', 'host-manager']);
         this.port = vscode.workspace.getConfiguration().get<number>('tomcat.port', 8080);
     }
 
@@ -265,7 +265,7 @@ export class Tomcat {
             for (const entry of entries) {
                 const entryPath = path.join(webappsDir, entry.name);
                 
-                if (!this.webApps.includes(entry.name)) {
+                if (!this.protectedWebApps.includes(entry.name)) {
                     try {
                         if (entry.isDirectory()) {
                             fs.rmSync(entryPath, { recursive: true, force: true });
@@ -387,9 +387,9 @@ export class Tomcat {
     public async findJavaHome(): Promise<string | null> {
         if (this.javaHome) {return this.javaHome;}
 
-        let javaHome = vscode.workspace.getConfiguration().get<string>('tomcat.java.home') ?? process.env.JAVA_HOME ?? process.env.JDK_HOME ?? process.env.JAVA_JDK_HOME ?? '';
+        let javaHome = vscode.workspace.getConfiguration().get<string>('tomcat.javaHome') ?? vscode.workspace.getConfiguration().get<string>('java.home') ?? vscode.workspace.getConfiguration().get<string>('java.jdt.ls.java.home') ?? process.env.JAVA_HOME ?? process.env.JDK_HOME ?? process.env.JAVA_JDK_HOME ?? '';
         if (javaHome && await this.validateJavaHome(javaHome)) {
-            vscode.workspace.getConfiguration().update('java.home', javaHome, true);
+            vscode.workspace.getConfiguration().update('tomcat.javaHome', javaHome, true);
             this.javaHome = javaHome;
             return javaHome;
         }
@@ -405,7 +405,7 @@ export class Tomcat {
             javaHome = selectedFolder[0].fsPath;
 
             if (await this.validateJavaHome(javaHome)) {
-                await vscode.workspace.getConfiguration().update('tomcat.java.home', javaHome, true);
+                await vscode.workspace.getConfiguration().update('tomcat.javaHome', javaHome, true);
                 this.javaHome = javaHome;
                 return javaHome;
             } else {

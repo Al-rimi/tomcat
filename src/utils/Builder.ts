@@ -71,8 +71,8 @@ const logger = Logger.getInstance();
 
 export class Builder {
     private static instance: Builder;
-    private defaultBuildType: 'Fast' | 'Maven' | 'Gradle';
-    private defaultDeployMode: 'On Save' | 'On Shortcut' | 'Disabled';
+    private autoDeployBuildType: 'Fast' | 'Maven' | 'Gradle';
+    private autoDeployMode: 'On Save' | 'On Shortcut' | 'Disabled';
     private isDeploying = false;
 
     /**
@@ -84,8 +84,8 @@ export class Builder {
      * - Prepares deployment triggers
      */
     private constructor() {
-        this.defaultBuildType = vscode.workspace.getConfiguration().get('tomcat.defaultBuildType', 'Fast') as 'Fast' | 'Maven' | 'Gradle';
-        this.defaultDeployMode = vscode.workspace.getConfiguration().get('tomcat.defaultDeployMode', 'Disabled') as 'On Save' | 'On Shortcut' | 'Disabled';
+        this.autoDeployBuildType = vscode.workspace.getConfiguration().get('tomcat.autoDeployBuildType', 'Fast') as 'Fast' | 'Maven' | 'Gradle';
+        this.autoDeployMode = vscode.workspace.getConfiguration().get('tomcat.autoDeployMode', 'Disabled') as 'On Save' | 'On Shortcut' | 'Disabled';
     }
 
     /**
@@ -114,8 +114,8 @@ export class Builder {
      * - Updates dependent properties
      */
     public updateConfig(): void {
-        this.defaultBuildType = vscode.workspace.getConfiguration().get('tomcat.defaultBuildType', 'Fast') as 'Fast' | 'Maven' | 'Gradle';
-        this.defaultDeployMode = vscode.workspace.getConfiguration().get('tomcat.defaultDeployMode', 'Disabled') as 'On Save' | 'On Shortcut' | 'Disabled';
+        this.autoDeployBuildType = vscode.workspace.getConfiguration().get('tomcat.autoDeployBuildType', 'Fast') as 'Fast' | 'Maven' | 'Gradle';
+        this.autoDeployMode = vscode.workspace.getConfiguration().get('tomcat.autoDeployMode', 'Disabled') as 'On Save' | 'On Shortcut' | 'Disabled';
     }
 
     /**
@@ -263,10 +263,10 @@ export class Builder {
         try {
             this.isDeploying = true;
             
-            if (this.defaultDeployMode === 'On Save') {
-                await this.deploy(this.defaultBuildType);
-            } else if (this.defaultDeployMode === 'On Shortcut' && reason === vscode.TextDocumentSaveReason.Manual) {
-                await this.deploy(this.defaultBuildType);
+            if (this.autoDeployMode === 'On Save') {
+                await this.deploy(this.autoDeployBuildType);
+            } else if (this.autoDeployMode === 'On Shortcut' && reason === vscode.TextDocumentSaveReason.Manual) {
+                await this.deploy(this.autoDeployBuildType);
             }
         } finally {
             this.isDeploying = false;

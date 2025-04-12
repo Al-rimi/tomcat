@@ -112,7 +112,7 @@
     "configuration": {
       "title": "Tomcat",
       "properties": {
-        "tomcat.webApps": {
+        "tomcat.protectedWebApps": {
           "type": "array",
           "default": [
             "ROOT",
@@ -123,7 +123,7 @@
           ],
           "description": "List of web applications to keep when cleaning Apache Tomcat."
         },
-        "tomcat.defaultDeployMode": {
+        "tomcat.autoDeployMode": {
           "type": "string",
           "enum": [
             "Disabled",
@@ -132,9 +132,9 @@
           ],
           "default": "Disabled",
           "scope": "machine",
-          "description": "Select the default deployment mode. 'On Save' will deploy the project when you save it. 'On Shortcut' will deploy the project when you press Ctrl+Shift+D."
+          "description": "Select the auto deployment mode.'On Save' will deploy the project when you save any file in it. 'On Shortcut' will deploy the project when you press Ctrl+S or Cmd+S."
         },
-        "tomcat.defaultBuildType": {
+        "tomcat.autoDeployBuildType": {
           "type": "string",
           "enum": [
             "Fast",
@@ -144,7 +144,7 @@
           "default": "Fast",
           "description": "Select the default build type for auto deployment."
         },
-        "tomcat.defaultBrowser": {
+        "tomcat.browser": {
           "type": "string",
           "enum": [
             "Disabled",
@@ -172,7 +172,7 @@
           "scope": "machine",
           "description": "The path to the Apache Tomcat installation. If not set, the extension will try to find the Tomcat installation automatically."
         },
-        "tomcat.java.home": {
+        "tomcat.javaHome": {
           "type": "string",
           "default": "",
           "scope": "machine",
