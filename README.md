@@ -105,6 +105,7 @@ For technical implementation details and contribution guidelines, see:
 ### Changed
 - All messages optimized to be less annoying
 - Simplified and more reliable configuration logic across all classes
+- Refactor `findTomcatHome` and `findJavaHome` methods for improved candidate validation and code clarity
 - Settings `tomcat.defaultBrowser` to `tomcat.browser`
 - Settings `tomcat.defaultDeployMode` to `tomcat.autoDeployMode`
 - Settings `tomcat.defaultBuildType` to `tomcat.autoDeployBuildType`

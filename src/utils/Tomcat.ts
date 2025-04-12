@@ -340,38 +340,45 @@ export class Tomcat {
      * @returns Valid Tomcat home path or null
      */
     public async findTomcatHome(): Promise<string | null> {
-        if (this.tomcatHome) {return this.tomcatHome;}
-
-        let tomcatHome = process.env.CATALINA_HOME ?? process.env.TOMCAT_HOME ?? vscode.workspace.getConfiguration().get<string>('tomcat.home') ?? '';
-
-        if (tomcatHome && await this.validateTomcatHome(tomcatHome)) {
-            vscode.workspace.getConfiguration().update('tomcat.home', tomcatHome, true);
-            this.tomcatHome = tomcatHome;
-            return tomcatHome;
+        if (this.tomcatHome) return this.tomcatHome;
+    
+        const candidates = [
+            process.env.CATALINA_HOME,
+            process.env.TOMCAT_HOME,
+            vscode.workspace.getConfiguration().get<string>('tomcat.home')
+        ];
+    
+        const validCandidate = candidates.find(path =>
+            typeof path === 'string' && path.trim().length > 0
+        );
+    
+        if (validCandidate && await this.validateTomcatHome(validCandidate)) {
+            await vscode.workspace.getConfiguration().update('tomcat.home', validCandidate, true);
+            this.tomcatHome = validCandidate;
+            return validCandidate;
         }
-
+    
         const selectedFolder = await vscode.window.showOpenDialog({
             canSelectFolders: true,
             canSelectFiles: false,
             canSelectMany: false,
             openLabel: 'Select Tomcat Home Folder'
         });
-
+    
         if (selectedFolder?.[0]?.fsPath) {
-            tomcatHome = selectedFolder[0].fsPath;
-            
-            if (tomcatHome && await this.validateTomcatHome(tomcatHome)) {
-                await vscode.workspace.getConfiguration().update('tomcat.home', tomcatHome, true);
-                this.tomcatHome = tomcatHome;
-                return tomcatHome;
+            const selectedPath = selectedFolder[0].fsPath;
+    
+            if (await this.validateTomcatHome(selectedPath)) {
+                await vscode.workspace.getConfiguration().update('tomcat.home', selectedPath, true);
+                this.tomcatHome = selectedPath;
+                return selectedPath;
             } else {
-                logger.warn(`Invalid Tomcat home: ${tomcatHome} not found`, true);
-                return null;
+                logger.warn(`Invalid Tomcat home: ${selectedPath} not found`, true);
             }
-        } else {
-            return null;
         }
-    }
+    
+        return null;
+    }    
 
     /**
      * JAVA_HOME resolution
@@ -385,38 +392,48 @@ export class Tomcat {
      * @returns Valid Java home path or null
      */
     public async findJavaHome(): Promise<string | null> {
-        if (this.javaHome) {return this.javaHome;}
-
-        let javaHome = vscode.workspace.getConfiguration().get<string>('tomcat.javaHome') ?? vscode.workspace.getConfiguration().get<string>('java.home') ?? vscode.workspace.getConfiguration().get<string>('java.jdt.ls.java.home') ?? process.env.JAVA_HOME ?? process.env.JDK_HOME ?? process.env.JAVA_JDK_HOME ?? '';
-        if (javaHome && await this.validateJavaHome(javaHome)) {
-            vscode.workspace.getConfiguration().update('tomcat.javaHome', javaHome, true);
-            this.javaHome = javaHome;
-            return javaHome;
+        if (this.javaHome) return this.javaHome;
+    
+        const candidates = [
+            vscode.workspace.getConfiguration().get<string>('tomcat.javaHome'),
+            vscode.workspace.getConfiguration().get<string>('java.home'),
+            vscode.workspace.getConfiguration().get<string>('java.jdt.ls.java.home'),
+            process.env.JAVA_HOME,
+            process.env.JDK_HOME,
+            process.env.JAVA_JDK_HOME
+        ];
+    
+        const validCandidate = candidates.find(path =>
+            typeof path === 'string' && path.trim().length > 0
+        );
+    
+        if (validCandidate && await this.validateJavaHome(validCandidate)) {
+            await vscode.workspace.getConfiguration().update('tomcat.javaHome', validCandidate, true);
+            this.javaHome = validCandidate;
+            return validCandidate;
         }
-
+    
         const selectedFolder = await vscode.window.showOpenDialog({
             canSelectFolders: true,
             canSelectFiles: false,
             canSelectMany: false,
             openLabel: 'Select Java Home Folder'
         });
-
+    
         if (selectedFolder?.[0]?.fsPath) {
-            javaHome = selectedFolder[0].fsPath;
-
-            if (await this.validateJavaHome(javaHome)) {
-                await vscode.workspace.getConfiguration().update('tomcat.javaHome', javaHome, true);
-                this.javaHome = javaHome;
-                return javaHome;
+            const selectedPath = selectedFolder[0].fsPath;
+    
+            if (await this.validateJavaHome(selectedPath)) {
+                await vscode.workspace.getConfiguration().update('tomcat.javaHome', selectedPath, true);
+                this.javaHome = selectedPath;
+                return selectedPath;
             } else {
-                logger.warn(`Invalid Java home: ${selectedFolder[0].fsPath} not found`, true);
-                return null;
+                logger.warn(`Invalid Java home: ${selectedPath} not found`, true);
             }
-        } else {
-            return null;
         }
-        
-    }
+    
+        return null;
+    }    
 
     /**
      * Validates a Tomcat directory by checking for the startup script.
