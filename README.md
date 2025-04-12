@@ -98,7 +98,7 @@ For technical implementation details and contribution guidelines, see:
 - The option to disable the browser future
 
 ### Fixed
-- For the first build method, only build the `src/main` folder and not the `src/test` folder. (Thanks to @ILG2021 for the suggestion)
+- For the fast build method, only build the `src/main` folder and not the `src/test` folder. (Thanks to @ILG2021 for the suggestion)
 - Fixed `Tomcat.findJavaHome()` using `java.home` instead of `tomcat.java.home` for updating the user settings (use `tomcat.javaHome` now)
 
 ### Changed
