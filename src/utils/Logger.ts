@@ -1,44 +1,62 @@
 /**
- * Logger.ts - Advanced Logging and Status Reporting Subsystem
+ * Logger.ts - Integrated Logging and Tomcat Deployment Management System
  *
- * Centralized logging facility implementing multi-channel output with intelligent
- * routing and filtering capabilities. Designed specifically for VS Code extensions
- * with enterprise-grade requirements for observability and user feedback.
+ * Unified facility combining advanced logging capabilities with Tomcat server management
+ * features. Provides real-time monitoring of deployment operations and access logs
+ * through tight VS Code integration.
  *
- * Architecture:
- * - Singleton pattern for consistent logging state
- * - Publish-subscribe model for log events
- * - Strategy pattern for output channel handling
- * - Decorator pattern for log message formatting
+ * Key Functionalities:
+ * - Multi-level logging with UI integration
+ * - Tomcat deployment mode management
+ * - Access log file monitoring
+ * - Status bar interaction system
+ * - Configuration synchronization
  *
- * Core Components:
- * 1. Hierarchical Logging System:
- *    - DEBUG (0): Detailed diagnostic information
- *    - INFO (1): General operational messages
- *    - WARN (2): Potentially harmful situations
- *    - ERROR (3): Critical failure conditions
- *    - SUCCESS (4): Positive outcome confirmation
- *    - SILENT (5): Complete logging suppression
+ * Architecture Highlights:
+ * - Singleton service management
+ * - Event-driven log file watching
+ * - Disposable pattern for resource cleanup
+ * - Observer pattern for status updates
+ * - Asynchronous file system operations
  *
- * 2. Output Channels:
- *    - VS Code OutputChannel: Structured log retention
- *    - StatusBarItem: Real-time operation feedback
- *    - Window notifications: User-facing alerts
- *    - Error diagnostics: Stack trace integration
+ * Core Operational Components:
+ * 1. Logging Subsystem:
+ *    - DEBUG: Development diagnostics
+ *    - INFO: Operational milestones
+ *    - WARN: Non-critical issues
+ *    - ERROR: Critical failures
+ *    - SUCCESS: Deployment confirmations
+ *    - HTTP: Access log processing
  *
- * 3. Advanced Features:
- *    - Dynamic log level configuration
- *    - Context-aware message formatting
- *    - Performance metric tracking
- *    - User interaction logging
- *    - Configuration hot-reload
+ * 2. Deployment Management:
+ *    - Status bar mode indicator
+ *    - Deployment mode cycling
+ *    - Configuration persistence
+ *    - Auto-deploy triggers
+ *    - Shortcut key binding
+ *
+ * 3. Log Monitoring:
+ *    - Automatic log file detection
+ *    - Real-time log rotation handling
+ *    - Access log sanitization
+ *    - HTTP event extraction
+ *    - Change delta processing
+ *
+ * Advanced Features:
+ * - Cross-platform shortcut adaptation
+ * - Dynamic status bar animations
+ * - Configurable polling intervals
+ * - User interaction tracking
+ * - Log context preservation
+ * - Automated resource cleanup
  *
  * Technical Implementation:
- * - Implements VS Code's Disposable pattern
- * - Supports ANSI color codes in output channels
- * - Provides thread-safe logging operations
- * - Maintains log message structure consistency
- * - Implements efficient message filtering
+ * - VS Code API integration (OutputChannel, StatusBarItem)
+ * - Node.js filesystem watchers
+ * - Stream-based log processing
+ * - Configuration change listeners
+ * - Disposable resource management
+ * - Async/Promise error handling
  */
 
 import * as vscode from 'vscode';
@@ -47,6 +65,7 @@ import * as fs from 'fs';
 
 export class Logger {
     private static instance: Logger;
+    private tomcatHome: string;
     private autoDeployMode: string;
     private outputChannel: vscode.OutputChannel;
     private statusBarItem?: vscode.StatusBarItem;
@@ -64,6 +83,7 @@ export class Logger {
      * - Resource allocation tracking
      */
     private constructor() {
+        this.tomcatHome = vscode.workspace.getConfiguration().get<string>('tomcat.home', '');
         this.autoDeployMode = vscode.workspace.getConfiguration().get<string>('tomcat.autoDeployMode', 'Disabled');    
         this.outputChannel = vscode.window.createOutputChannel('Tomcat', 'tomcat-log'); 
     }
@@ -94,6 +114,7 @@ export class Logger {
      * - Updates dependent properties
      */
     public updateConfig(): void {
+        this.tomcatHome = vscode.workspace.getConfiguration().get<string>('tomcat.home', '');
         this.autoDeployMode = vscode.workspace.getConfiguration().get<string>('tomcat.autoDeployMode', 'Disabled');
     }
 
@@ -273,32 +294,34 @@ export class Logger {
      * - Configurable polling intervals
      */
     public startLogFileWatcher(): void {
-        const tomcatHome = vscode.workspace.getConfiguration().get<string>('tomcat.home');
-        if (!tomcatHome) {
-            this.error('Tomcat home directory not configured', false, 'Missing tomcat.home configuration');
-            return;
-        }
+        if (!this.tomcatHome) { return; }
 
-        const logsDir = path.join(tomcatHome, 'logs');
+        const logsDir = path.join(this.tomcatHome, 'logs');
         
-        // Check for new files every 10 seconds
         this.fileCheckInterval = setInterval(() => {
             this.checkForNewLogFile(logsDir);
-        }, 100);
+        }, 1000);
 
-        // Initial check
         this.checkForNewLogFile(logsDir);
     }
 
-    // Add this private method
+    /**
+     * Log file rotation detector
+     * 
+     * Monitors log directory for new access log files with:
+     * - Directory content scanning
+     * - Date-based filename sorting
+     * - Latest file detection
+     * - Change event triggering
+     * 
+     * @param logsDir Path to Tomcat logs directory
+     */
     private checkForNewLogFile(logsDir: string): void {
         fs.readdir(logsDir, (err, files) => {
             if (err) {
-                this.error(`Error reading logs directory:`, false, err.message);
                 return;
             }
 
-            // Find latest access log file
             const logFiles = files
                 .filter(file => file.startsWith('localhost_access_log.'))
                 .sort((a, b) => this.extractDate(b) - this.extractDate(a));
@@ -312,19 +335,24 @@ export class Logger {
         });
     }
 
-    // Add this private method
+    /**
+     * Active log file switcher
+     * 
+     * Handles log file rotation by:
+     * - Cleaning up previous file watchers
+     * - Updating current log file reference
+     * - Setting up new file change listener
+     * - Tracking active watchers for cleanup
+     * 
+     * @param newFile Path to new log file to monitor
+     */
     private switchLogFile(newFile: string): void {
-        // Cleanup previous watchers
         this.logWatchers.forEach(({ file, listener }) => fs.unwatchFile(file, listener));
         this.logWatchers = [];
-
-        this.currentLogFile = newFile;
         
-        // Get initial file size
         fs.stat(newFile, (err) => {
             if (err) return;
 
-            // Setup new watcher with polling
             const listener: fs.StatsListener = (curr, prev) => {
                 if (curr.size > prev.size) {
                     this.handleLogUpdate(newFile, prev.size, curr.size);
@@ -336,7 +364,19 @@ export class Logger {
         });
     }
 
-    // Add this private method
+    /**
+     * Log update handler
+     * 
+     * Processes new log entries with:
+     * - Delta change detection
+     * - Stream-based partial reading
+     * - Log line sanitization
+     * - HTTP event extraction
+     * 
+     * @param filePath Path to modified log file
+     * @param prevSize Previous file size in bytes
+     * @param currSize Current file size in bytes
+     */
     private handleLogUpdate(filePath: string, prevSize: number, currSize: number): void {
         const stream = fs.createReadStream(filePath, {
             start: prevSize,
@@ -363,7 +403,18 @@ export class Logger {
         });
     }
 
-    // Add this private method
+    /**
+     * Log filename date extractor
+     * 
+     * Parses timestamp from log filenames for:
+     * - Chronological sorting
+     * - Rotation pattern detection
+     * - File version comparison
+     * - Temporal correlation
+     * 
+     * @param filename Access log filename
+     * @returns Parsed timestamp in milliseconds
+     */
     private extractDate(filename: string): number {
         const dateMatch = filename.match(/(\d{4}-\d{2}-\d{2})/);
         return dateMatch ? Date.parse(dateMatch[1]) : 0;
