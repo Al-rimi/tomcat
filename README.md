@@ -105,13 +105,13 @@ public static isJavaEEProject(): boolean {
 
 </details>
 
-### ![](resources/tomcat-icon-dark.svg) Editor Button
+### ![](resources/tomcat-icon-dark.png) Editor Button
 
 Click the Tomcat icon in the editor title bar to deploy your project.
 
 ![](resources/tomcat-editor-showcase.png)
 
-### ![](resources/server.svg) Status Bar
+### ![](resources/server.png) Status Bar
 
 Click the Tomcat status in the bottom bar to toggle auto-deploy modes.
 
