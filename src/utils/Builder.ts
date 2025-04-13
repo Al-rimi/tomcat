@@ -74,6 +74,7 @@ export class Builder {
     private autoDeployBuildType: 'Fast' | 'Maven' | 'Gradle';
     private autoDeployMode: 'On Save' | 'On Shortcut' | 'Disabled';
     private isDeploying = false;
+    private hasRetried = false;
 
     /**
      * Private constructor for Singleton pattern
@@ -236,8 +237,18 @@ export class Builder {
                 await new Promise(resolve => setTimeout(resolve, 100));
                 Browser.getInstance().run(appName);
             }
+            
+            this.hasRetried = false;
         } catch (err) {
-            logger.error(`${type} Build failed:`, isChoice, err as string);
+            const errorMessage = err instanceof Error ? err.message : String(err);
+            const isBusyError = errorMessage.includes('EBUSY') || errorMessage.includes('resource busy or locked');
+            if (isBusyError && !this.hasRetried) {
+                this.hasRetried = true;
+                await tomcat.kill();
+                this.deploy(type);
+            } else {
+                logger.error(`${type} Build failed:`, isChoice, err as string);
+            }
             logger.defaultStatusBar();
         } finally {
             logger.defaultStatusBar();
