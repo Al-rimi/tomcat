@@ -6,20 +6,23 @@ Advanced Apache Tomcat management. Full server control, smart deployment, browse
 
 ## Features
 
+- **Real-Time HTTP Request Monitoring**  
+  Monitor Tomcat access logs dynamically with built-in syntax highlighting for HTTP traffic analysis
+
 - **Customizable Deployment Strategies**  
   Three build strategies with memory-optimized fast deployment (4× faster than Maven)
 
 - **On-Save Deployment**  
-Automatically deploy your project every time you save a file — no manual steps needed.
+  Automatically deploy your project every time you save a file — no manual steps needed.
 
 - **Built-in Debugging**  
-Java-specific syntax coloring in output channel with organized error messages
+  Java-specific syntax coloring in output channel with organized error messages
 
-- **Custom Port Configuration**  
-Configure and switch Tomcat ports effortlessly to suit your environment.
+- **Smart Resource Management**  
+  Automatic process cleanup and EBUSY error recovery during deployments
 
 - **Cross-Browser Automation**  
-Automate browser testing across multiple browsers seamlessly.
+  Automate browser testing across multiple browsers seamlessly.
 
 ## Installation
 
@@ -165,22 +168,19 @@ For technical implementation details and contribution guidelines, see:
 
 [![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/issues)
 
-## What's New in 2.3.5
+## What's New in 2.4.0
 
-### Added
-- The option to disable the browser future
+- **HTTP Traffic Insights**  
+  New real-time access log monitoring with dynamic file watching capabilities
 
-### Fixed
-- For the fast build method, only build the `src/main` folder and not the `src/test` folder. (Thanks to @ILG2021 for the suggestion)
-- Fixed `Tomcat.findJavaHome()` using `java.home` instead of `tomcat.java.home` for updating the user settings (use `tomcat.javaHome` now)
+- **Enhanced Deployment Reliability**  
+  Added automatic retry mechanism for busy resource errors with process cleanup
 
-### Changed
-- All messages optimized to be less annoying
-- Settings `tomcat.defaultBrowser` to `tomcat.browser`
-- Settings `tomcat.defaultDeployMode` to `tomcat.autoDeployMode`
-- Settings `tomcat.defaultBuildType` to `tomcat.autoDeployBuildType`
-- Settings `tomcat.webapps` to `tomcat.protectedWebapps`
-- Settings `tomcat.java.home` to `tomcat.javaHome`
+- **Diagnostics Improvements**  
+  Syntax highlighting support for Tomcat HTTP logs and admin operations
+
+- **Optimized Build Process**  
+  Refactored fast deployment strategy with improved directory management and JAR skiping logic
 
 [View Full Changelog](https://github.com/Al-rimi/tomcat/blob/main/CHANGELOG.md)
 
