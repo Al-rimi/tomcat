@@ -349,6 +349,8 @@ export class Logger {
     private switchLogFile(newFile: string): void {
         this.logWatchers.forEach(({ file, listener }) => fs.unwatchFile(file, listener));
         this.logWatchers = [];
+
+        this.currentLogFile = newFile;
         
         fs.stat(newFile, (err) => {
             if (err) return;
