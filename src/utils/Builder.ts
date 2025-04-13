@@ -345,57 +345,77 @@ export class Builder {
         if (!fs.existsSync(webAppPath)) {
             throw(`WebApp directory not found: ${webAppPath}`);
         }
-
+    
         const javaHome = await tomcat.findJavaHome();
         if (!javaHome) { return; }
-
+    
         const javacPath = path.join(javaHome, 'bin', 'javac');
-        fs.rmSync(targetDir, { recursive: true, force: true });
-        fs.rmSync(`${targetDir}.war`, { force: true });
-
+    
         this.copyDirectorySync(webAppPath, targetDir);
+    
         const javaSourcePath = path.join(projectDir, 'src', 'main');
         const classesDir = path.join(targetDir, 'WEB-INF', 'classes');
-
+    
+        if (fs.existsSync(classesDir)) {
+            fs.rmSync(classesDir, { recursive: true, force: true });
+        }
+        fs.mkdirSync(classesDir, { recursive: true });
+    
         if (fs.existsSync(javaSourcePath)) {
-            try {
-                fs.mkdirSync(classesDir, { recursive: true });
-                const javaPattern = path.join(javaSourcePath, '**', '*.java');
-                const javaFiles = await this.findFiles(javaPattern);
-                
-                if (javaFiles.length > 0) {
-                    const tomcatLibs = path.join(tomcatHome, 'lib', '*');
-                
-                    const formattedFiles = javaFiles.map(file => {
-                        const safePath = file.split(path.sep).join('//');
-                        return process.platform === 'win32' ? `"${safePath}"` : `'${safePath}'`;
-                    });
-                
-                    const javacCommand = process.platform === 'win32'
-                        ? `"${javacPath}" -d "${classesDir}" -cp "${tomcatLibs}" ${formattedFiles.join(' ')}`
-                        : `'${javacPath}' -d '${classesDir}' -cp '${tomcatLibs}' ${formattedFiles.join(' ')}`;
-                
-                    await this.executeCommand(javacCommand, projectDir);
-                }                
-            } catch (err) {
-                throw(err);
+            const javaPattern = path.join(javaSourcePath, '**', '*.java');
+            const javaFiles = await this.findFiles(javaPattern);
+            
+            if (javaFiles.length > 0) {
+                const tomcatLibs = path.join(tomcatHome, 'lib', '*');
+            
+                const formattedFiles = javaFiles.map(file => {
+                    const safePath = file.split(path.sep).join('//');
+                    return process.platform === 'win32' ? `"${safePath}"` : `'${safePath}'`;
+                });
+            
+                const javacCommand = process.platform === 'win32'
+                    ? `"${javacPath}" -d "${classesDir}" -cp "${tomcatLibs}" ${formattedFiles.join(' ')}`
+                    : `'${javacPath}' -d '${classesDir}' -cp '${tomcatLibs}' ${formattedFiles.join(' ')}`;
+            
+                await this.executeCommand(javacCommand, projectDir);
             }
         }
-
+    
         const existingClasses = path.join(projectDir, 'WEB-INF', 'classes');
         if (fs.existsSync(existingClasses)) {
             this.copyDirectorySync(existingClasses, classesDir);
         }
-
+    
         const libDir = path.join(projectDir, 'lib');
         if (fs.existsSync(libDir)) {
             const targetLib = path.join(targetDir, 'WEB-INF', 'lib');
             fs.mkdirSync(targetLib, { recursive: true });
-            fs.readdirSync(libDir).forEach(file => {
-                if (file.endsWith('.jar')) {
-                    fs.copyFileSync(path.join(libDir, file), path.join(targetLib, file));
+    
+            const sourceJars = fs.readdirSync(libDir).filter(file => file.endsWith('.jar'));
+            const targetFiles = fs.readdirSync(targetLib).filter(file => file.endsWith('.jar'));
+            const sourceJarSet = new Set(sourceJars);
+    
+            for (const jar of sourceJars) {
+                const sourcePath = path.join(libDir, jar);
+                const targetPath = path.join(targetLib, jar);
+    
+                let needsCopy = !fs.existsSync(targetPath);
+                if (!needsCopy) {
+                    const sourceStat = fs.statSync(sourcePath);
+                    const targetStat = fs.statSync(targetPath);
+                    needsCopy = sourceStat.mtimeMs > targetStat.mtimeMs;
                 }
-            });
+    
+                if (needsCopy) {
+                    fs.copyFileSync(sourcePath, targetPath);
+                }
+            }
+    
+            for (const jar of targetFiles) {
+                if (!sourceJarSet.has(jar)) {
+                    fs.unlinkSync(path.join(targetLib, jar));
+                }
+            }
         }
     }
 
