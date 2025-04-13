@@ -97,7 +97,7 @@ public static isJavaEEProject(): boolean {
 }
 ```
 
-If you notice any false positives/negatives or have better ideas for detection logic, you are more than welcome to contribute. [Method location](https://github.com/Al-rimi/tomcat/blob/main/src/utils/Builder.ts#L121-L159)
+[Method location](https://github.com/Al-rimi/tomcat/blob/main/src/utils/Builder.ts#L121-L159), If you notice any false positives/negatives or have better ideas for detection logic, you are more than welcome to contribute:
 
 [![Create an issue](https://img.shields.io/badge/-Create_an_issue-red?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/issues/new?title=Improve+Java+EE+Project+Detection+Logic)
 
@@ -163,7 +163,7 @@ For technical implementation details and contribution guidelines, see:
 
 - Firefox and Safari will always open a new tab instead of reusing the existing one due to browser limitations.
 
-[![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square)](https://github.com/Al-rimi/tomcat/issues)
+[![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/issues)
 
 ## What's New in 2.3.4
 
