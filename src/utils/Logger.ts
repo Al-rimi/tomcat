@@ -389,8 +389,8 @@ export class Logger {
         let buffer = '';
         stream.on('data', chunk => buffer += chunk);
         stream.on('end', () => {
-            const lines = buffer.split('\n').filter(line => line.trim());
-            if (lines.length > 0) {
+            let lines = buffer.split('\n').filter(line => line.trim());
+            while (lines.length > 0) {
                 const cleanedLine = lines[lines.length - 1]
                 .replace(/(0:0:0:0:0:0:0:1|127\.0\.0\.1) - -?\s?/g, '')
                 .replace(/\[.*?\]/g, '')
@@ -398,9 +398,11 @@ export class Logger {
                 .replace(/"\s?/g, '')
                 .replace(/\s+/g, ' - ')
                 .replace(/^ - | - $/g, '')
+                .replace(/- -/g, '- 200')
                 .trim();
                 
-                this.http(cleanedLine, false);            
+                this.http(cleanedLine, false);
+                lines.pop();
             }
         });
     }
