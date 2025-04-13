@@ -258,18 +258,9 @@ export class Tomcat {
             logger.warn(`Webapps directory not found: ${webappsDir}`);
             return;
         }
-        
-        try {
-            if (process.platform === 'win32') {
-                exec(`taskkill /F /IM java.exe`);
-                exec(`taskkill /F /IM javaw.exe`);
-            } else {
-                exec(`pkill -f tomcat`);
-                exec(`pkill -f java`);
-            }
-        } catch {}
     
         try {
+            await this.kill();
             const entries = fs.readdirSync(webappsDir, { withFileTypes: true });
     
             for (const entry of entries) {
@@ -308,6 +299,28 @@ export class Tomcat {
         } catch (err) {
             logger.error('Tomcat cleanup failed:', true, err as string);
         }
+    }
+
+    /**
+     * Terminates Java-related processes to release locked Tomcat resources
+     * 
+     * Handles platform-specific process termination:
+     * - Windows: Uses `taskkill` to forcibly stop `java.exe` and `javaw.exe`
+     * - Unix-like: Uses `pkill` to target `java` and `tomcat` processes
+     * 
+     * Ensures file resources such as JARs are no longer locked by running JVMs
+     * before attempting to clean the Tomcat directories.
+     */
+    public async kill(): Promise<void> {
+        try {
+            if (process.platform === 'win32') {
+                await execAsync(`taskkill /F /IM java.exe`);
+                await execAsync(`taskkill /F /IM javaw.exe`);
+            } else {
+                await execAsync(`pkill -f tomcat`);
+                await execAsync(`pkill -f java`);
+            }
+        } catch {}
     }
 
     /**
