@@ -258,6 +258,16 @@ export class Tomcat {
             logger.warn(`Webapps directory not found: ${webappsDir}`);
             return;
         }
+        
+        try {
+            if (process.platform === 'win32') {
+                exec(`taskkill /F /IM java.exe`);
+                exec(`taskkill /F /IM javaw.exe`);
+            } else {
+                exec(`pkill -f tomcat`);
+                exec(`pkill -f java`);
+            }
+        } catch {}
     
         try {
             const entries = fs.readdirSync(webappsDir, { withFileTypes: true });
@@ -296,7 +306,7 @@ export class Tomcat {
     
             logger.success('Tomcat cleaned successfully.', true);
         } catch (err) {
-            logger.error(`Error during cleanup:`, false, err as string);
+            logger.error('Tomcat cleanup failed:', true, err as string);
         }
     }
 
