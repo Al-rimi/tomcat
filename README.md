@@ -35,10 +35,10 @@ code --install-extension Al-rimi.tomcat
 
 ## Usage
 
-> The `Editor Button` and `Status Bar` are only visible when the current project is detected as a Java EE project. 
+> ℹ️ The `Editor Button` and `Status Bar` are only visible when the current project is detected as a Java EE project, following VScode [Editor Actions](https://code.visualstudio.com/api/ux-guidelines/editor-actions) and [Status Bar](https://code.visualstudio.com/api/ux-guidelines/status-bar) Guidelines.
 
 <details>
-<summary> How the extension detects a Java EE project</summary>
+<summary>When is a project considered a Java EE project? click to expand</summary>
 
 ```typescript
 public static isJavaEEProject(): boolean {
