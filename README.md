@@ -35,10 +35,10 @@ code --install-extension Al-rimi.tomcat
 
 ## Usage
 
-> ℹ️ **Note**: The `Editor Button` and `Status Bar` are only visible when the current project is detected as a Java EE project. 
+> The `Editor Button` and `Status Bar` are only visible when the current project is detected as a Java EE project. 
 
 <details>
-<summary>How the extension detects a Java EE project</summary>
+<summary> How the extension detects a Java EE project</summary>
 
 ```typescript
 public static isJavaEEProject(): boolean {
