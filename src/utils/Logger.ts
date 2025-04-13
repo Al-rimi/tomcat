@@ -42,12 +42,17 @@
  */
 
 import * as vscode from 'vscode';
+import * as path from 'path';
+import * as fs from 'fs';
 
 export class Logger {
     private static instance: Logger;
     private autoDeployMode: string;
     private outputChannel: vscode.OutputChannel;
     private statusBarItem?: vscode.StatusBarItem;
+    private currentLogFile: string | null = null;
+    private fileCheckInterval?: NodeJS.Timeout;
+    private logWatchers: { file: string; listener: fs.StatsListener }[] = [];
     
     /**
      * Private constructor for Singleton pattern
@@ -104,6 +109,37 @@ export class Logger {
     public deactivate(): void {
         this.outputChannel.dispose();
         this.statusBarItem?.dispose();
+        if (this.fileCheckInterval) clearInterval(this.fileCheckInterval);
+        this.logWatchers.forEach(watcher => fs.unwatchFile(watcher.file, watcher.listener));
+    }
+
+    /**
+     * Status bar initializer
+     * 
+     * Sets up status bar component with:
+     * - Persistent UI element
+     * - Command binding
+     * - Context subscriptions
+     * - Initial state
+     * 
+     * @param context VS Code extension context
+     */
+    public init(context: vscode.ExtensionContext): void {
+        // Set context for UI contribution enablement
+        vscode.commands.executeCommand('setContext', 'tomcat.showdeployButton', true);
+
+        // Initialize watcher for log files
+        this.startLogFileWatcher();
+
+        // Initialize status bar item
+        this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
+        this.statusBarItem.command = 'extension.tomcat.toggleDeploySetting';
+        this.statusBarItem.show();
+        context.subscriptions.push(
+            this.statusBarItem,
+            vscode.commands.registerCommand('extension.tomcat.toggleDeploySetting', () => this.toggleDeploySetting())
+        );
+        this.defaultStatusBar();
     }
 
     /**
@@ -195,6 +231,16 @@ export class Logger {
         const fullMessage = error ? `${message}\n${error}` : message;
         this.log('ERROR', fullMessage, showToast ? vscode.window.showErrorMessage : undefined);
     }
+    
+    /**
+     * HTTP request logging
+     * 
+     * @param message HTTP request details
+     * @param showToast Whether to show user notification
+     */
+    public http(message: string, showToast: boolean = false): void {
+        this.log('HTTP', message, showToast ? vscode.window.showInformationMessage : undefined);
+    }
 
     /**
      * Deployment mode toggler
@@ -218,29 +264,109 @@ export class Logger {
     }
 
     /**
-     * Status bar initializer
+     * Log file watcher initialization
      * 
-     * Sets up status bar component with:
-     * - Persistent UI element
-     * - Command binding
-     * - Context subscriptions
-     * - Initial state
-     * 
-     * @param context VS Code extension context
+     * Starts monitoring Tomcat access logs with:
+     * - Automatic latest file detection
+     * - Cross-platform file watching
+     * - Smart log entry extraction
+     * - Configurable polling intervals
      */
-    public init(context: vscode.ExtensionContext): void {
-        // Set context for UI contribution enablement
-        vscode.commands.executeCommand('setContext', 'tomcat.showdeployButton', true);
+    public startLogFileWatcher(): void {
+        const tomcatHome = vscode.workspace.getConfiguration().get<string>('tomcat.home');
+        if (!tomcatHome) {
+            this.error('Tomcat home directory not configured', false, 'Missing tomcat.home configuration');
+            return;
+        }
 
-        // Initialize status bar item
-        this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
-        this.statusBarItem.command = 'extension.tomcat.toggleDeploySetting';
-        this.statusBarItem.show();
-        context.subscriptions.push(
-            this.statusBarItem,
-            vscode.commands.registerCommand('extension.tomcat.toggleDeploySetting', () => this.toggleDeploySetting())
-        );
-        this.defaultStatusBar();
+        const logsDir = path.join(tomcatHome, 'logs');
+        
+        // Check for new files every 10 seconds
+        this.fileCheckInterval = setInterval(() => {
+            this.checkForNewLogFile(logsDir);
+        }, 100);
+
+        // Initial check
+        this.checkForNewLogFile(logsDir);
+    }
+
+    // Add this private method
+    private checkForNewLogFile(logsDir: string): void {
+        fs.readdir(logsDir, (err, files) => {
+            if (err) {
+                this.error(`Error reading logs directory:`, false, err.message);
+                return;
+            }
+
+            // Find latest access log file
+            const logFiles = files
+                .filter(file => file.startsWith('localhost_access_log.'))
+                .sort((a, b) => this.extractDate(b) - this.extractDate(a));
+
+            if (logFiles.length === 0) return;
+
+            const latestFile = path.join(logsDir, logFiles[0]);
+            if (latestFile !== this.currentLogFile) {
+                this.switchLogFile(latestFile);
+            }
+        });
+    }
+
+    // Add this private method
+    private switchLogFile(newFile: string): void {
+        // Cleanup previous watchers
+        this.logWatchers.forEach(({ file, listener }) => fs.unwatchFile(file, listener));
+        this.logWatchers = [];
+
+        this.currentLogFile = newFile;
+        
+        // Get initial file size
+        fs.stat(newFile, (err) => {
+            if (err) return;
+
+            // Setup new watcher with polling
+            const listener: fs.StatsListener = (curr, prev) => {
+                if (curr.size > prev.size) {
+                    this.handleLogUpdate(newFile, prev.size, curr.size);
+                }
+            };
+
+            fs.watchFile(newFile, { interval: 1000 }, listener);
+            this.logWatchers.push({ file: newFile, listener });
+        });
+    }
+
+    // Add this private method
+    private handleLogUpdate(filePath: string, prevSize: number, currSize: number): void {
+        const stream = fs.createReadStream(filePath, {
+            start: prevSize,
+            end: currSize - 1,
+            encoding: 'utf8'
+        });
+
+        let buffer = '';
+        stream.on('data', chunk => buffer += chunk);
+        stream.on('end', () => {
+            const lines = buffer.split('\n').filter(line => line.trim());
+            if (lines.length > 0) {
+                const cleanedLine = lines[lines.length - 1]
+                .replace(/(0:0:0:0:0:0:0:1|127\.0\.0\.1) - -?\s?/g, '')
+                .replace(/\[.*?\]/g, '')
+                .replace(/(HTTP\/1\.1|"+)\s?/g, '')
+                .replace(/"\s?/g, '')
+                .replace(/\s+/g, ' - ')
+                .replace(/^ - | - $/g, '')
+                .trim();
+                
+                this.http(cleanedLine, false);            
+            }
+        });
+    }
+
+    // Add this private method
+    private extractDate(filename: string): number {
+        const dateMatch = filename.match(/(\d{4}-\d{2}-\d{2})/);
+        return dateMatch ? Date.parse(dateMatch[1]) : 0;
     }
 
     /**
