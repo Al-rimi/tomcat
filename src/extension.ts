@@ -70,14 +70,11 @@ import { Browser } from './utils/Browser';
  *   - Environment information
  */
 export function activate(context: vscode.ExtensionContext) {
-    // Initialize core services using singleton pattern
     const builder = Builder.getInstance();
     const tomcat = Tomcat.getInstance();
 
-    // Configure editor syntax highlighting
     addSyntaxColoringRules();
 
-    // Register command palette entries
     context.subscriptions.push(
         vscode.commands.registerCommand('tomcat.start', () => tomcat.start(true)),
         vscode.commands.registerCommand('tomcat.stop', () => tomcat.stop(true)),
@@ -143,7 +140,6 @@ export function deactivate() {
  *   - Scope metadata
  */
 function updateSettings(event: vscode.ConfigurationChangeEvent) {
-    // Cascading configuration updates based on changed settings
     if (event.affectsConfiguration('tomcat.home')) {
         Tomcat.getInstance().findTomcatHome();
         Builder.getInstance().updateConfig();
@@ -164,5 +160,8 @@ function updateSettings(event: vscode.ConfigurationChangeEvent) {
 
     } else if (event.affectsConfiguration('tomcat.browser')) {
         Browser.getInstance().updateConfig();
+
+    } else if (event.affectsConfiguration('tomcat.autoScrollOutput')) {
+        Logger.getInstance().updateConfig();
     }
 }

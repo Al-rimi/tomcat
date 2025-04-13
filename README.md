@@ -143,6 +143,7 @@ Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 | `tomcat.browser`      | `Google Chrome`   | Browser for app launch & debug (`Google Chrome`, `Microsoft Edge`, `Firefox`, `Safari`, `Brave`, `Opera`) |
 | `tomcat.port`                | `8080`            | Tomcat server listen port (valid range: `1024`-`65535`)                                  |
 | `tomcat.protectedWebApps`             | `["ROOT", "docs", "examples", "manager", "host-manager"]`     | List of protected web apps during cleanup operations                                     |
+| `tomcat.autoScrollOutput`    | `true`            | Automatically reveal and scroll output channel when new logs are added                   |
 
 > ℹ️ `tomcat.home` and `tomcat.javaHome` are now auto-detected and hidden from user settings.
 
@@ -172,6 +173,9 @@ For technical implementation details and contribution guidelines, see:
 
 - **HTTP Traffic Insights**  
   New real-time access log monitoring with dynamic file watching capabilities
+
+- **Enhanced Debugging Experience**  
+  Added `tomcat.autoScrollOutput` setting to automatically scroll output channel logs disable if it interferes with your workflow
 
 - **Enhanced Deployment Reliability**  
   Added automatic retry mechanism for busy resource errors with process cleanup

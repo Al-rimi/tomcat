@@ -166,6 +166,11 @@
           "errorMessage": "Port must be between 1024-49151",
           "description": "The port number for the Tomcat server, allowed range is 1024-49151."
         },
+        "tomcat.autoScrollOutput": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically reveal and scroll output channel when new logs are added. Disable to prevent automatic panel focus changes."
+        },
         "tomcat.home": {
           "type": "string",
           "default": "",

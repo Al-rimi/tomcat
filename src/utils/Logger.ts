@@ -67,6 +67,7 @@ export class Logger {
     private static instance: Logger;
     private tomcatHome: string;
     private autoDeployMode: string;
+    private autoScrollOutput: boolean;
     private outputChannel: vscode.OutputChannel;
     private statusBarItem?: vscode.StatusBarItem;
     private currentLogFile: string | null = null;
@@ -84,7 +85,8 @@ export class Logger {
      */
     private constructor() {
         this.tomcatHome = vscode.workspace.getConfiguration().get<string>('tomcat.home', '');
-        this.autoDeployMode = vscode.workspace.getConfiguration().get<string>('tomcat.autoDeployMode', 'Disabled');    
+        this.autoDeployMode = vscode.workspace.getConfiguration().get<string>('tomcat.autoDeployMode', 'Disabled'); 
+        this.autoScrollOutput = vscode.workspace.getConfiguration().get<boolean>('tomcat.autoScrollOutput', true);   
         this.outputChannel = vscode.window.createOutputChannel('Tomcat', 'tomcat-log'); 
     }
 
@@ -116,6 +118,7 @@ export class Logger {
     public updateConfig(): void {
         this.tomcatHome = vscode.workspace.getConfiguration().get<string>('tomcat.home', '');
         this.autoDeployMode = vscode.workspace.getConfiguration().get<string>('tomcat.autoDeployMode', 'Disabled');
+        this.autoScrollOutput = vscode.workspace.getConfiguration().get<boolean>('tomcat.autoScrollOutput', true);
     }
 
     /**
@@ -445,10 +448,8 @@ export class Logger {
         const timestamp = new Date().toLocaleString();
         const formattedMessage = `[${timestamp}] [${level}] ${message}`;
         
-        // Write to output channel
         this.outputChannel.appendLine(formattedMessage);
 
-        // Conditionally show UI notification
         if (showUI) {
             showUI(message).then(selection => {
                 if (selection) {
@@ -457,8 +458,7 @@ export class Logger {
             });
         }
 
-        // Automatically show errors in output channel
-        if (level === 'ERROR' || level === 'WARN') {
+        if (this.autoScrollOutput || level === 'ERROR' || level === 'WARN') {
             this.outputChannel.show(true);
         }
     }

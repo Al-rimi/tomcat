@@ -6,6 +6,7 @@
 ### Added
 - Implemented on-demand access logging for Tomcat with dynamic log file watching
 - Added retry mechanism for EBUSY errors during deployment (kills Tomcat process before retry)
+- Add `tomcat.autoScrollOutput` configuration option to automatically reveal and scroll output channel when new logs are added
 - Introduced syntax highlighting rules for Tomcat HTTP logs and admin actions
 
 ### Fixed
