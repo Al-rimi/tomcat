@@ -3,102 +3,117 @@
     "scopeName": "source.tomcat-log",
     "patterns": [
         {
+            "name": "meta.http.admin.tomcat",
+            "match": "(\\[\\d{1,2}/\\d{1,2}/\\d{4}, \\d{1,2}:\\d{2}:\\d{2} [AP]M\\])\\s+(\\[HTTP\\])\\s+(admin)\\s+-\\s+(GET|POST|PUT|DELETE)\\s+-\\s+(\\S+)\\s+-\\s+(\\d{3}|-)\\s+-\\s+(\\d+|-|)",
+            "captures": {
+                "1": { "name": "meta.timestamp.tomcat" },
+                "2": { "name": "support.type.log-level.http.tomcat" },
+                "3": { "name": "entity.name.user.admin.tomcat" },
+                "4": { "name": "http.method.tomcat" },
+                "5": { "name": "http.path.tomcat" },
+                "6": { 
+                    "name": "http.status.code.tomcat",
+                    "patterns": [{
+                        "match": "\\b(2\\d{2})\\b",
+                        "name": "http.status.success.tomcat"
+                    }]
+                },
+                "7": { "name": "http.response.size.tomcat" }
+            }
+        },
+        {
+            "name": "meta.http.log.tomcat",
+            "match": "(\\[\\d{1,2}/\\d{1,2}/\\d{4}, \\d{1,2}:\\d{2}:\\d{2} [AP]M\\])\\s+(\\[HTTP\\])\\s+(GET|POST|PUT|DELETE)\\s+-\\s+(\\S+)\\s+-\\s+(\\d{3}|-)\\s+-\\s+(\\d+|-|)",
+            "captures": {
+                "1": { "name": "meta.timestamp.tomcat" },
+                "2": { "name": "support.type.log-level.http.tomcat" },
+                "3": { "name": "http.method.tomcat" },
+                "4": { "name": "http.path.tomcat" },
+                "5": { 
+                    "name": "http.status.code.tomcat",
+                    "patterns": [{
+                        "match": "\\b(2\\d{2})\\b",
+                        "name": "http.status.success.tomcat"
+                    }]
+                },
+                "6": { "name": "http.response.size.tomcat" }
+            }
+        },
+        {
+            "name": "constant.numeric.build-duration.tomcat",
+            "match": "(\\b\\d+ms)(?=\\s*$)",
+            "captures": {
+                "1": { "name": "constant.numeric.build-duration.tomcat" }
+            }
+        },
+        {
             "name": "meta.timestamp.tomcat",
             "match": "(\\[\\d{1,2}/\\d{1,2}/\\d{4}, \\d{1,2}:\\d{2}:\\d{2} [AP]M\\])",
             "captures": {
-                "1": {
-                    "name": "meta.timestamp.tomcat"
-                }
+                "1": { "name": "meta.timestamp.tomcat" }
             }
         },
         {
             "name": "support.type.log-level.info.tomcat",
             "match": "(\\[INFO\\])",
             "captures": {
-                "1": {
-                    "name": "support.type.log-level.info.tomcat"
-                }
+                "1": { "name": "support.type.log-level.info.tomcat" }
             }
         },
         {
             "name": "support.type.log-level.debug.tomcat",
             "match": "(\\[DEBUG\\])",
             "captures": {
-                "1": {
-                    "name": "support.type.log-level.debug.tomcat"
-                }
+                "1": { "name": "support.type.log-level.debug.tomcat" }
             }
         },
         {
             "name": "support.type.log-level.error.tomcat",
             "match": "(\\[ERROR\\])",
             "captures": {
-                "1": {
-                    "name": "support.type.log-level.error.tomcat"
-                }
+                "1": { "name": "support.type.log-level.error.tomcat" }
             }
         },
         {
             "name": "support.type.log-level.success.tomcat",
             "match": "(\\[SUCCESS\\])",
             "captures": {
-                "1": {
-                    "name": "support.type.log-level.success.tomcat"
-                }
+                "1": { "name": "support.type.log-level.success.tomcat" }
             }
         },
         {
             "name": "support.type.log-level.warn.tomcat",
             "match": "(\\[WARN\\])",
             "captures": {
-                "1": {
-                    "name": "support.type.log-level.warn.tomcat"
-                }
+                "1": { "name": "support.type.log-level.warn.tomcat" }
             }
         },
         {
             "name": "entity.name.filename.java.tomcat",
             "match": "(?:[\\/\\\\])([^\\/\\\\]+\\.(?:java|class|jsp|xml|properties))(?=[:\\s])",
             "captures": {
-                "1": {
-                    "name": "entity.name.filename.java.tomcat"
-                }
+                "1": { "name": "entity.name.filename.java.tomcat" }
             }
         },
         {
             "name": "invalid.illegal.java.tomcat",
             "match": "(error:\\s*(?:'[^']+' expected|cannot find symbol|illegal start of type|class, interface, enum, or record expected|unnamed classes are a preview feature))",
             "captures": {
-                "1": {
-                    "name": "invalid.illegal.java.tomcat"
-                }
+                "1": { "name": "invalid.illegal.java.tomcat" }
             }
         },
         {
             "name": "markup.error.tomcat",
             "match": "(\\^+|~+)",
             "captures": {
-                "1": {
-                    "name": "markup.error.tomcat"
-                }
-            }
-        },
-        {
-            "name": "constant.numeric.build-duration.tomcat",
-            "match": "(\\b\\d+ms\\b)",
-            "captures": {
-                "1": {
-                    "name": "constant.numeric.build-duration.tomcat"
-                }
+                "1": { "name": "markup.error.tomcat" }
             }
         },
         {
             "name": "variable.language.line-number.tomcat",
             "match": "(?::)(\\d+)(?=:?)",
             "captures": {
-                "1": {
-                    "name": "constant.numeric.integer.tomcat"
-                }
+                "1": { "name": "constant.numeric.integer.tomcat" }
             }
         },
         {
@@ -113,18 +128,14 @@
             "name": "entity.name.class.java.tomcat",
             "match": "\\b([A-Z][A-Za-z0-9_]*)\\b(?=\\s*(<|\\{|extends|implements))",
             "captures": {
-                "1": {
-                    "name": "entity.name.class.java.tomcat"
-                }
+                "1": { "name": "entity.name.class.java.tomcat" }
             }
         },
         {
             "name": "entity.name.function.java.tomcat",
             "match": "(\\b\\w+\\b)(?=\\s*\\()",
             "captures": {
-                "1": {
-                    "name": "entity.name.function.java.tomcat"
-                }
+                "1": { "name": "entity.name.function.java.tomcat" }
             }
         },
         {
@@ -159,9 +170,7 @@
             "name": "meta.annotation.parameters.java.tomcat",
             "match": "(?<=@\\w+)(\\([^)]+\\))",
             "captures": {
-                "1": {
-                    "name": "meta.annotation.parameters.java.tomcat"
-                }
+                "1": { "name": "meta.annotation.parameters.java.tomcat" }
             }
         },
         {
@@ -216,9 +225,7 @@
             "name": "markup.underline.link.tomcat",
             "match": "(http[s]?://[^\\s]+)",
             "captures": {
-                "1": {
-                    "name": "markup.underline.link.tomcat"
-                }
+                "1": { "name": "markup.underline.link.tomcat" }
             }
         }
     ]

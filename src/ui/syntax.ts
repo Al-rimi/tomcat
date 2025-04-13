@@ -297,6 +297,57 @@ export function addSyntaxColoringRules() {
                 "foreground": "#569CD6",  // Blue for imports
                 "fontStyle": "" 
             } 
+        },
+
+        // HTTP Log coloring rules
+        { 
+            "scope": "support.type.log-level.http.tomcat", 
+            "settings": { 
+                "foreground": "#4EC9B0",  // VS Code default teal
+                "fontStyle": "bold"
+            } 
+        },
+        { 
+            "scope": "http.method.tomcat", 
+            "settings": { 
+                "foreground": "#C586C0",  // Purple for methods
+                "fontStyle": "bold"
+            } 
+        },
+        { 
+            "scope": "http.status.success.tomcat", 
+            "settings": { 
+                "foreground": "#73C991",  // Green for 2xx
+                "fontStyle": "bold"
+            } 
+        },
+        { 
+            "scope": "http.status.redirect.tomcat", 
+            "settings": { 
+                "foreground": "#4FC1FF",  // Blue for 3xx
+                "fontStyle": "bold"
+            } 
+        },
+        { 
+            "scope": "http.status.client-error.tomcat", 
+            "settings": { 
+                "foreground": "#FFCC66",  // Amber for 4xx
+                "fontStyle": "bold"
+            } 
+        },
+        { 
+            "scope": "http.response.size.tomcat", 
+            "settings": { 
+                "foreground": "#B5CEA8",  // Soft green for sizes
+                "fontStyle": "" 
+            } 
+        },
+        {
+            "scope": "entity.name.user.admin.tomcat",
+            "settings": {
+                "foreground": "#FFA07A",  // Light salmon (distinct but not alarming)
+                "fontStyle": "italic"
+            }
         }
     ];
 
