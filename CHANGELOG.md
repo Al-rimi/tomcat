@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [2.3.5] - 2025-04-13
+### Changed
+- Update documentation for `ARCHITECTURE.md` and `README.md`.
 ## [2.3.4] - 2025-04-12  
 ### Fixed  
 - For the fast build method, only build the `src/main` folder and not the `src/test` folder. (Thanks to @ILG2021 for the suggestion)  

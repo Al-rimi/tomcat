@@ -165,7 +165,7 @@ For technical implementation details and contribution guidelines, see:
 
 [![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/issues)
 
-## What's New in 2.3.4
+## What's New in 2.3.5
 
 ### Added
 - The option to disable the browser future
@@ -176,8 +176,6 @@ For technical implementation details and contribution guidelines, see:
 
 ### Changed
 - All messages optimized to be less annoying
-- Simplified and more reliable configuration logic across all classes
-- Refactor `findTomcatHome` and `findJavaHome` methods for improved candidate validation and code clarity
 - Settings `tomcat.defaultBrowser` to `tomcat.browser`
 - Settings `tomcat.defaultDeployMode` to `tomcat.autoDeployMode`
 - Settings `tomcat.defaultBuildType` to `tomcat.autoDeployBuildType`
