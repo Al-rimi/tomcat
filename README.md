@@ -2,7 +2,7 @@
 
 Advanced Apache Tomcat management. Full server control, smart deployment, browser integration and debugging support.
 
-![Tomcat showcase video](resources/tomcat-video-showcase.gif)
+![](resources/tomcat-video-showcase.gif)
 
 ## Features
 
@@ -34,27 +34,100 @@ code --install-extension Al-rimi.tomcat
 ```
 
 ## Usage
-> The extension is Fully AUTOMATED to work out of the box. Simply open a Java EE project and start coding...
 
-### Editor Button
+> ℹ️ **Note**: The `Editor Button` and `Status Bar` are only visible when the current project is detected as a Java EE project. 
 
-#### Click to Deploy the current project
-![Tomcat Editor Button](resources/tomcat-editor-showcase.png)
+<details>
+<summary>How the extension detects a Java EE project</summary>
 
-### Status Bar
+```typescript
+public static isJavaEEProject(): boolean {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
 
-#### Click to Change the default deploy mode
-![Tomcat Status Bar](resources/tomcat-status-showcase.png)
+    // Check 0: Workspace must be open
+    if (!workspaceFolders) {
+        return false;
+    }
 
-### Command Palette (`Ctrl+Shift+P`)
+    const rootPath = workspaceFolders[0].uri.fsPath;
+    const webInfPath = path.join(rootPath, 'src', 'main', 'webapp', 'WEB-INF');
 
-| Command                | Action                                           |
-|------------------------|--------------------------------------------------|
-| `Tomcat: Start`        | Launches Tomcat server                           |
-| `Tomcat: Stop`         | Stops Tomcat server                              | 
-| `Tomcat: Clean`        | Cleans Tomcat webapps, temp and work directories |
-| `Tomcat: Deploy`       | Deploys current project                          | 
-| `Tomcat: Help`         | Shows interactive help documentation             |
+    // Check 1: Look for WEB-INF directory in the standard structure
+    if (fs.existsSync(webInfPath)) {
+        return true;
+    }
+
+    // Check 2: Check for presence of deployment descriptor (web.xml)
+    if (fs.existsSync(path.join(webInfPath, 'web.xml'))) {
+        return true;
+    }
+
+    const pomPath = path.join(rootPath, 'pom.xml');
+
+    // Check 3: Look for WAR packaging in Maven project
+    if (
+        fs.existsSync(pomPath) &&
+        fs.readFileSync(pomPath, 'utf-8').includes('<packaging>war</packaging>')
+    ) {
+        return true;
+    }
+
+    const gradlePath = path.join(rootPath, 'build.gradle');
+
+    // Check 4: Look for Java EE-related keywords in Gradle config
+    if (
+        fs.existsSync(gradlePath) &&
+        fs.readFileSync(gradlePath, 'utf-8').match(/(tomcat|jakarta|javax\.ee)/i)
+    ) {
+        return true;
+    }
+
+    const targetPath = path.join(rootPath, 'target');
+
+    // Check 5: Look for compiled artifacts (.war or .ear) in target folder
+    if (
+        fs.existsSync(targetPath) &&
+        fs.readdirSync(targetPath).some(file => file.endsWith('.war') || file.endsWith('.ear'))
+    ) {
+        return true;
+    }
+
+    // If none match, project is not considered a Java EE project
+    return false;
+}
+```
+
+If you notice any false positives/negatives or have better ideas for detection logic, you are more than welcome to contribute. [Method location](https://github.com/Al-rimi/tomcat/blob/main/src/utils/Builder.ts#L121-L159)
+
+[![Create an issue](https://img.shields.io/badge/-Create_an_issue-red?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/issues/new?title=Improve+Java+EE+Project+Detection+Logic)
+
+---
+
+</details>
+
+### ![](resources/tomcat-icon-dark.svg) Editor Button
+
+Click the Tomcat icon in the editor title bar to deploy your project.
+
+![](resources/tomcat-editor-showcase.png)
+
+### ![](resources/server.svg) Status Bar
+
+Click the Tomcat status in the bottom bar to toggle auto-deploy modes.
+
+![](resources/tomcat-status-showcase.png)
+
+### Command Palette
+
+Use the Command Palette (`Ctrl+Shift+P`) to quickly access core commands:
+
+| Command                | Description                                         |
+|------------------------|-----------------------------------------------------|
+| `Tomcat: Start`        | Launch the Tomcat server                            |
+| `Tomcat: Stop`         | Stop the running server                             |
+| `Tomcat: Clean`        | Clean Tomcat `webapps`, `temp`, and `work` folders |
+| `Tomcat: Deploy`       | Deploy the current Java EE project                 |
+| `Tomcat: Help`         | Show the help documentation                        |
 
 ## Configuration
 
