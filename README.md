@@ -6,8 +6,8 @@ Advanced Apache Tomcat management. Full server control, smart deployment, browse
 
 ## Features
 
-- **Real-Time HTTP Request Monitoring**  
-  Monitor Tomcat access logs dynamically with built-in syntax highlighting for HTTP traffic analysis
+- **Real-Time HTTP Traffic Monitoring**  
+  Monitor Tomcat access logs dynamically with built-in syntax highlighting
 
 - **Customizable Deployment Strategies**  
   Three build strategies with memory-optimized fast deployment (4× faster than Maven)
