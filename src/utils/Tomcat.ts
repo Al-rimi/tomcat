@@ -363,7 +363,9 @@ export class Tomcat {
      * @returns Valid Tomcat home path or null
      */
     public async findTomcatHome(): Promise<string | null> {
-        if (this.tomcatHome) return this.tomcatHome;
+        if (this.tomcatHome && await this.validateTomcatHome(this.tomcatHome)) {
+            return this.tomcatHome;
+        }
     
         const candidates = [
             process.env.CATALINA_HOME,
@@ -415,7 +417,9 @@ export class Tomcat {
      * @returns Valid Java home path or null
      */
     public async findJavaHome(): Promise<string | null> {
-        if (this.javaHome) return this.javaHome;
+        if (this.javaHome && await this.validateJavaHome(this.javaHome)){
+            return this.javaHome;
+        }
     
         const candidates = [
             vscode.workspace.getConfiguration().get<string>('tomcat.javaHome'),
