@@ -60,8 +60,12 @@
     "languages": [
       {
         "id": "tomcat-log",
-        "aliases": ["Tomcat Log"],
-        "extensions": [".tlog"],
+        "aliases": [
+          "Tomcat Log"
+        ],
+        "extensions": [
+          ".tlog"
+        ],
         "configuration": "./language-configuration.json"
       }
     ],
