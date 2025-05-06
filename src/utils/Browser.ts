@@ -137,7 +137,7 @@ export class Browser {
             'linux': ['firefox']
         },
         'Microsoft Edge': {
-            'win32': ['msedge', 'msedgewebview'],
+            'win32': ['msedge', 'msedgewebview2'],
             'darwin': ['Microsoft Edge'],
             'linux': ['microsoft-edge']
         },
