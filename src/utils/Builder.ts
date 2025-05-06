@@ -358,11 +358,12 @@ export class Builder {
         }
         const javaHome = await tomcat.findJavaHome();
         if (!javaHome) return;
+
         const javacPath = path.join(javaHome, 'bin', 'javac');
         const javaSourcePath = path.join(projectDir, 'src', 'main', 'java');
         const classesDir = path.join(targetDir, 'WEB-INF', 'classes');
     
-        this.brutalSync(webAppPath, targetDir);
+        this.brutalSync(webAppPath, targetDir, true);
     
         fs.rmSync(classesDir, { force: true, recursive: true });
         fs.mkdirSync(classesDir, { recursive: true });
@@ -588,12 +589,17 @@ export class Builder {
      * @param dest Target directory path (will be created/cleaned)
      * @throws Error if critical filesystem operations fail
      */
-    private brutalSync(src: string, dest: string) {
+    private brutalSync(src: string, dest: string, restricted: boolean = false) {
         if (fs.existsSync(dest)) {
             const keepers = new Set(fs.readdirSync(src));
+            const restrictedFolders = [
+                'classes',
+                'lib'
+            ];
             fs.readdirSync(dest).forEach(f => {
-                if (!keepers.has(f)) {
-                    fs.rmSync(path.join(dest, f), { force: true, recursive: true });
+                const fullPath = path.join(dest, f);
+                if (!keepers.has(f) && (!restricted ? true : !restrictedFolders.includes(f))) {
+                    try { fs.rmSync(fullPath, { force: true, recursive: true }); } catch (e) {}
                 }
             });
         }
@@ -604,7 +610,7 @@ export class Builder {
             const destPath = path.join(dest, entry.name);
             
             if (entry.isDirectory()) {
-                this.brutalSync(srcPath, destPath);
+                this.brutalSync(srcPath, destPath, restricted);
             } else {
                 try {
                     fs.copyFileSync(srcPath, destPath);

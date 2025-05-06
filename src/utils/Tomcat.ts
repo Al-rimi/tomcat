@@ -211,11 +211,6 @@ export class Tomcat {
         
         if (!tomcatHome || !javaHome) { return; }
 
-        if (!await this.isTomcatRunning()) {
-            this.start();
-            return;
-        }
-
         try {
             const appName = path.basename(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '');
             if (!appName) {return;}
@@ -225,15 +220,19 @@ export class Tomcat {
                     'Authorization': `Basic ${Buffer.from('admin:admin').toString('base64')}`
                 }
             });
-         
 
             if (!response.ok) {
                 throw new Error(`Reload failed: ${await response.text()}`);
             }
             logger.info('Tomcat reloaded.');
         } catch (err) {
-            logger.warn('Reload failed, attempting to add admin user...');
-            await this.addTomcatUser(tomcatHome);
+            if (!await this.isTomcatRunning()) {
+                this.start();
+                return;
+            } else {
+                logger.warn('Reload failed, attempting to add admin user...');
+                await this.addTomcatUser(tomcatHome);
+            }
         }
     }
 
