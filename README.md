@@ -169,22 +169,20 @@ For technical implementation details and contribution guidelines, see:
 
 [![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/issues)
 
+
 ## What's New in 2.4.1
 
-- **HTTP Traffic Insights**  
-  New real-time access log monitoring with dynamic file watching capabilities
-
-- **Enhanced Debugging Experience**  
-  Added `tomcat.autoScrollOutput` setting to automatically scroll output channel logs disable if it interferes with your workflow
-
-- **Enhanced Deployment Reliability**  
-  Added automatic retry mechanism for busy resource errors with process cleanup
-
-- **Diagnostics Improvements**  
-  Syntax highlighting support for Tomcat HTTP logs and admin operations
-
-- **Optimized Build Process**  
-  Refactored fast deployment strategy with improved directory management and JAR skiping logic
+- **Enhanced Browser Compatibility**  
+  Updated Microsoft Edge browser command to include `msedgewebview2` process (Thanks to @zhuxiaodics6)
+  
+- **Improved Deployment Reliability**  
+  Fixed brutalSync method with better restricted folder handling and optimized Tomcat reload logic
+  
+- **Butter Environment Detection**  
+  Added strict filesystem validation in `findTomcatHome` and `findJavaHome` methods
+  
+- **Optimized Deployment**  
+  Refactored fast deployment strategy with improved file synchronization and fault tolerance
 
 [View Full Changelog](https://github.com/Al-rimi/tomcat/blob/main/CHANGELOG.md)
 
