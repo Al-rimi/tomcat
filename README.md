@@ -143,7 +143,7 @@ Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 | `tomcat.browser`      | `Google Chrome`   | Browser for app launch & debug (`Google Chrome`, `Microsoft Edge`, `Firefox`, `Safari`, `Brave`, `Opera`) |
 | `tomcat.port`                | `8080`            | Tomcat server listen port (valid range: `1024`-`65535`)                                  |
 | `tomcat.protectedWebApps`             | `["ROOT", "docs", "examples", "manager", "host-manager"]`     | List of protected web apps during cleanup operations                                     |
-| `tomcat.autoScrollOutput`    | `true`            | Automatically reveal and scroll output channel when new logs are added                   |
+| `tomcat.autoScrollOutput`    | `false`            | Automatically reveal output channel when new logs are added                   |
 
 > ℹ️ `tomcat.home` and `tomcat.javaHome` are now auto-detected and hidden from user settings.
 
@@ -169,7 +169,7 @@ For technical implementation details and contribution guidelines, see:
 
 [![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/issues)
 
-## What's New in 2.4.0
+## What's New in 2.4.1
 
 - **HTTP Traffic Insights**  
   New real-time access log monitoring with dynamic file watching capabilities

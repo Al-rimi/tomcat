@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [2.4.1] - 2025-05-07
+### Fixed
+- Updated Microsoft Edge browser command for Windows to include `msedgewebview2` process (Thanks to @zhuxiaodics6)
+
+### Added
+- Introduced `brutalSync` method for aggressive directory synchronization with delta based file copying and clean target pruning
+
+### Changed
+- Changed default value of `tomcat.autoScrollOutput` to `false` for better user experience
+- filesystem validation in `findTomcatHome` and `findJavaHome` methods with strict path verification
+- Refactored `Builder.fastDeploy` with improved file synchronization and improve fault tolerance during directory synchronization operations
+
 ## [2.4.0] - 2025-04-14
 ### Added
 - Implemented on-demand access logging for Tomcat with dynamic log file watching
