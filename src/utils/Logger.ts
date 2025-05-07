@@ -73,6 +73,8 @@ export class Logger {
     private currentLogFile: string | null = null;
     private fileCheckInterval?: NodeJS.Timeout;
     private logWatchers: { file: string; listener: fs.StatsListener }[] = [];
+    private accessLogStream?: fs.ReadStream;
+    private accessLogWatcher?: fs.FSWatcher;
 
     private readonly TOMCAT_FILTERS = [
         /^Loaded Apache Tomcat Native library/,
@@ -82,6 +84,7 @@ export class Logger {
         /^Log4j API could not find a logging provider/,
         /^You need to add "--add-opens"/,
         /^Match \[Context\] failed to set property/,
+        /^org.apache.catalina.core.ApplicationContext log/,
         /^Manager: init:/,
         /^Reloading Context with name/,
         /^SessionListener: contextInitialized/,
@@ -157,6 +160,8 @@ export class Logger {
         this.statusBarItem?.dispose();
         if (this.fileCheckInterval) clearInterval(this.fileCheckInterval);
         this.logWatchers.forEach(watcher => fs.unwatchFile(watcher.file, watcher.listener));
+        this.accessLogStream?.destroy();
+        this.accessLogWatcher?.close();
     }
 
     /**
@@ -319,15 +324,14 @@ export class Logger {
      * - Configurable polling intervals
      */
     public startLogFileWatcher(): void {
-        if (!this.tomcatHome) { return; }
+        if (!this.tomcatHome) return;
 
         const logsDir = path.join(this.tomcatHome, 'logs');
-        
         this.fileCheckInterval = setInterval(() => {
             this.checkForNewLogFile(logsDir);
-        }, 1000);
+        }, 500);
 
-        this.checkForNewLogFile(logsDir);
+        this.watchAccessLogDirectly(this.tomcatHome);
     }
 
     public appendRawLine(message: string): void {
@@ -339,13 +343,10 @@ export class Logger {
     }
 
     private processTomcatLine(rawLine: string): [string, string] | null {        
-
-        // Remove ANSI escape codes first
         const cleanLine = rawLine
         .replace(/\x1B\[\d+m/g, '')
         .replace(/^\w+ \d+, \d+ \d+:\d+:\d+ [AP]M /, '');
 
-        // Parse structured Tomcat logs
         const logMatch = cleanLine.match(
             /^(?:\w+ \d+, \d+ \d+:\d+:\d+ [AP]M )?.*?\b(?:SEVERE|WARNING|INFO|FINE)\b:?\s+(.*)$/i
         );
@@ -356,12 +357,12 @@ export class Logger {
                 .replace(/\s{2,}/g, ' ')           // Collapse multiple spaces
                 .trim();
             
-            // Filter deployment details except completion
-            if (message.startsWith('Deploying web application') || message.startsWith('At least one JAR was scanned for TLDs yet')) {
+            if (message.startsWith('Deploying web application') || 
+                message.startsWith('At least one JAR was scanned for TLDs yet') || 
+                message.startsWith('You need to add "')) {
                 return null;
             }
 
-            // Map log levels
             const levelMap: { [key: string]: string } = {
                 'SEVERE': 'ERROR',
                 'WARNING': 'WARN',
@@ -375,25 +376,100 @@ export class Logger {
             return [mappedLevel, message];
         }
 
-        // Handle special cases
         if (cleanLine.includes('Server startup in')) {
             return ['INFO', cleanLine.replace(/.*?(Server startup in.*)/, '$1')];
         }
 
-        // Handle HTTP access logs
         if (cleanLine.match(/GET|POST|PUT|DELETE/)) {
             const httpMessage = cleanLine
-                .replace(/(\d+)\s*ms$/, '')  // Remove milliseconds
-                .replace(/\s{2,}/g, ' ')     // Collapse spaces
+                .replace(/(\d+)\s*ms$/, '')
+                .replace(/\s{2,}/g, ' ')
                 .trim();
             return ['HTTP', httpMessage];
         }
 
-        if (this.TOMCAT_FILTERS.some(pattern => pattern.test(cleanLine)) || cleanLine.trim().length === 0) {
+        if (cleanLine.startsWith('org.apache.')) {
+            return ['DEBUG', cleanLine];
+        }
+
+        if (this.TOMCAT_FILTERS.some(pattern => pattern.test(cleanLine)) || 
+            cleanLine.trim().length === 0 || 
+            cleanLine.includes('API could not find a logging provider.')) {
             return null;
         }
 
-        return ['DEBUG', cleanLine];
+        return ['APP', cleanLine];
+    }
+
+    private async watchAccessLogDirectly(tomcatHome: string) {
+        const logsDir = path.join(tomcatHome, 'logs');
+        const accessLogPattern = /localhost_access_log\.\d{4}-\d{2}-\d{2}\.log/;
+
+        if (this.accessLogStream) {
+            this.accessLogStream.destroy();
+            this.accessLogWatcher?.close();
+        }
+
+        const files = await fs.promises.readdir(logsDir);
+        const accessLogs = files.filter(f => accessLogPattern.test(f))
+                               .sort().reverse();
+        
+        if (accessLogs.length > 0) {
+            const logPath = path.join(logsDir, accessLogs[0]);
+            this.setupRealtimeAccessLog(logPath);
+        }
+    }
+
+    private setupRealtimeAccessLog(logPath: string) {
+        this.accessLogWatcher = fs.watch(logPath, (eventType) => {
+            if (eventType === 'change') this.handleLiveLogUpdate(logPath);
+        });
+
+        this.accessLogStream = fs.createReadStream(logPath, {
+            encoding: 'utf8',
+            autoClose: false,
+            start: fs.existsSync(logPath) ? fs.statSync(logPath).size : 0
+        });
+
+        this.accessLogStream.on('data', (data) => {
+            const lines = data.toString().split('\n');
+            lines.forEach(line => {
+                if (line.trim()) this.processAccessLogLine(line);
+            });
+        });
+    }
+
+    private handleLiveLogUpdate(logPath: string) {
+        const newSize = fs.statSync(logPath).size;
+        const oldSize = this.accessLogStream?.bytesRead || 0;
+        
+        if (newSize > oldSize) {
+            const stream = fs.createReadStream(logPath, {
+                start: oldSize,
+                end: newSize - 1,
+                encoding: 'utf8'
+            });
+            
+            stream.on('data', data => {
+                data.toString().split('\n').forEach(line => {
+                    if (line.trim()) this.processAccessLogLine(line);
+                });
+            });
+        }
+    }
+
+    private processAccessLogLine(rawLine: string) {
+        const cleanedLine = rawLine
+            .replace(/(0:0:0:0:0:0:0:1|127\.0\.0\.1) - -?\s?/g, '')
+            .replace(/\[.*?\]/g, '')
+            .replace(/(HTTP\/1\.1|"+)\s?/g, '')
+            .replace(/"\s?/g, '')
+            .replace(/\s+/g, ' - ')
+            .replace(/^ - | - $/g, '')
+            .replace(/- -/g, '- 200')
+            .trim();
+            
+        this.http(cleanedLine, false);
     }
 
     /**
