@@ -173,6 +173,7 @@ function updateSettings(event: vscode.ConfigurationChangeEvent) {
             Logger.getInstance().warn(`Unsupported encoding '${configured}' detected. Falling back to utf8.`);
             vscode.workspace.getConfiguration().update('tomcat.logEncoding', 'utf8', true);
         }
+        Tomcat.getInstance().kill();
         Logger.getInstance().updateConfig();
     }
 }

@@ -121,21 +121,17 @@
           "default": "utf8",
           "enum": [
             "utf8",
+            "ascii",
             "utf-8",
             "utf16le",
+            "utf-16le",
             "ucs2",
-            "ascii",
-            "latin1",
+            "ucs-2",
             "base64",
-            "hex",
-            "gbk",
-            "gb18030",
-            "gb2312",
-            "iso88591",
-            "win1252",
-            "shiftjis",
-            "eucjp",
-            "koi8r"
+            "base64url",
+            "latin1",
+            "binary",
+            "hex"
           ],
           "description": "Encoding for Tomcat logs. This setting is used to read the logs and should match the encoding used by Tomcat. If you are unsure, use 'utf8'."
         },
