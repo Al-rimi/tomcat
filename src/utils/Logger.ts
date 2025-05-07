@@ -76,6 +76,17 @@ export class Logger {
     private logWatchers: { file: string; listener: fs.StatsListener }[] = [];
     private accessLogStream?: fs.ReadStream;
     private accessLogWatcher?: fs.FSWatcher;
+    private logLevel: string;
+    private showTimestamp: boolean;
+    private logLevels: { [key: string]: number } = {
+    DEBUG: 0,
+    INFO: 1,
+    SUCCESS: 2,
+    HTTP: 3,
+    APP: 4,
+    WARN: 5,
+    ERROR: 6
+    };
 
     private readonly TOMCAT_FILTERS = [
         /^Loaded Apache Tomcat Native library/,
@@ -112,7 +123,12 @@ export class Logger {
     private constructor() {
         this.tomcatHome = vscode.workspace.getConfiguration().get<string>('tomcat.home', '');
         this.autoDeployMode = vscode.workspace.getConfiguration().get<string>('tomcat.autoDeployMode', 'Disabled'); 
-        this.autoScrollOutput = vscode.workspace.getConfiguration().get<boolean>('tomcat.autoScrollOutput', true);   
+        this.autoScrollOutput = vscode.workspace.getConfiguration().get<boolean>('tomcat.autoScrollOutput', true);
+        this.logLevel = vscode.workspace.getConfiguration().get<string>('tomcat.logLevel', 'INFO').toUpperCase();
+        if (!Object.keys(this.logLevels).includes(this.logLevel)) {
+          this.logLevel = 'INFO';
+        }
+        this.showTimestamp = vscode.workspace.getConfiguration().get<boolean>('tomcat.showTimestamp', true); 
         this.outputChannel = vscode.window.createOutputChannel('Tomcat', 'tomcat-log'); 
     }
 
@@ -145,6 +161,11 @@ export class Logger {
         this.tomcatHome = vscode.workspace.getConfiguration().get<string>('tomcat.home', '');
         this.autoDeployMode = vscode.workspace.getConfiguration().get<string>('tomcat.autoDeployMode', 'Disabled');
         this.autoScrollOutput = vscode.workspace.getConfiguration().get<boolean>('tomcat.autoScrollOutput', true);
+        this.logLevel = vscode.workspace.getConfiguration().get<string>('tomcat.logLevel', 'INFO').toUpperCase();
+        if (!Object.keys(this.logLevels).includes(this.logLevel)) {
+          this.logLevel = 'INFO';
+        }
+        this.showTimestamp = vscode.workspace.getConfiguration().get<boolean>('tomcat.showTimestamp', true);
     }
 
     /**
@@ -675,8 +696,12 @@ export class Logger {
         message: string,
         showUI?: (message: string) => Thenable<string | undefined>
     ): void {
-        const timestamp = new Date().toLocaleString();
-        const formattedMessage = `[${timestamp}] [${level}] ${message}`;
+        const messageLevel = level.toUpperCase();
+        const messageLevelValue = this.logLevels[messageLevel] ?? this.logLevels.INFO;
+        if (messageLevelValue < this.logLevels[this.logLevel]) return;
+
+        const timestamp = this.showTimestamp ? `[${new Date().toLocaleString()}] ` : '';
+        const formattedMessage = `${timestamp}[${level}] ${message}`;
         
         // Directly append to channel without recursion
         this.outputChannel.appendLine(formattedMessage);

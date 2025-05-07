@@ -161,7 +161,9 @@ function updateSettings(event: vscode.ConfigurationChangeEvent) {
     } else if (event.affectsConfiguration('tomcat.browser')) {
         Browser.getInstance().updateConfig();
 
-    } else if (event.affectsConfiguration('tomcat.autoScrollOutput')) {
+    } else if (event.affectsConfiguration('tomcat.autoScrollOutput') ||
+        event.affectsConfiguration('tomcat.showTimestamp') ||
+        event.affectsConfiguration('tomcat.logLevel')) {
         Logger.getInstance().updateConfig();
     }
 }

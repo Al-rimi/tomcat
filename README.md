@@ -138,12 +138,14 @@ Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 
 | **Setting**                  | **Default**       | **Description**                                                                          |
 |------------------------------|-------------------|------------------------------------------------------------------------------------------|
-| `tomcat.autoDeployBuildType`    | `Fast`            | Default build strategy for deployments (`Fast`, `Maven`, `Gradle`)                       |
-| `tomcat.autoDeployMode`   | `Disabled`        | Auto-deploy triggers (`Disabled`, `On Save`, `On Shortcut`)                              |
-| `tomcat.browser`      | `Google Chrome`   | Browser for app launch & debug (`Google Chrome`, `Microsoft Edge`, `Firefox`, `Safari`, `Brave`, `Opera`) |
+| `tomcat.autoDeployBuildType` | `Fast`            | Default build strategy for deployments (`Fast`, `Maven`, `Gradle`)                       |
+| `tomcat.autoDeployMode`      | `Disabled`        | Auto-deploy triggers (`Disabled`, `On Save`, `On Shortcut`)                              |
+| `tomcat.browser`             | `Google Chrome`   | Browser for app launch & debug (`Google Chrome`, `Microsoft Edge`, `Firefox`, `Safari`, `Brave`, `Opera`) |
 | `tomcat.port`                | `8080`            | Tomcat server listen port (valid range: `1024`-`65535`)                                  |
-| `tomcat.protectedWebApps`             | `["ROOT", "docs", "examples", "manager", "host-manager"]`     | List of protected web apps during cleanup operations                                     |
-| `tomcat.autoScrollOutput`    | `false`            | Automatically reveal output channel when new logs are added                   |
+| `tomcat.protectedWebApps`    | `["ROOT", "docs", "examples", "manager", "host-manager"]` | List of protected web apps during cleanup operations |
+| `tomcat.logLevel`            | `INFO`            | Minimum log level to display (`DEBUG`, `INFO`, `SUCCESS`, `HTTP`, `APP`, `WARN`, `ERROR`) |
+| `tomcat.showTimestamp`       | `true`            | Whether to include timestamps in log messages                                            |
+| `tomcat.autoScrollOutput`    | `false`           | Automatically reveal output channel when new logs are added                              |
 
 > ℹ️ `tomcat.home` and `tomcat.javaHome` are now auto-detected and hidden from user settings.
 

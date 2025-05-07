@@ -116,6 +116,17 @@
     "configuration": {
       "title": "Tomcat",
       "properties": {
+        "tomcat.logLevel": {
+          "type": "string",
+          "enum": ["DEBUG", "INFO", "SUCCESS", "HTTP", "APP", "WARN", "ERROR"],
+          "default": "INFO",
+          "description": "Minimum log level to display. Messages at or above this level will be shown."
+        },
+        "tomcat.showTimestamp": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to include timestamps in log messages."
+        },
         "tomcat.protectedWebApps": {
           "type": "array",
           "default": [
