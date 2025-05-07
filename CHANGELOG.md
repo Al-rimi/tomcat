@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Fixed
+- Server sometimes won't be able to find some library, so we add a await(50) after deploy
 
 ## [2.5.0] - 2025-05-07
 ### Added
