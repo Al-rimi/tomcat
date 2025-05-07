@@ -116,9 +116,40 @@
     "configuration": {
       "title": "Tomcat",
       "properties": {
+        "tomcat.logEncoding": {
+          "type": "string",
+          "default": "utf8",
+          "enum": [
+            "utf8",
+            "utf-8",
+            "utf16le",
+            "ucs2",
+            "ascii",
+            "latin1",
+            "base64",
+            "hex",
+            "gbk",
+            "gb18030",
+            "gb2312",
+            "iso88591",
+            "win1252",
+            "shiftjis",
+            "eucjp",
+            "koi8r"
+          ],
+          "description": "Encoding for Tomcat logs. This setting is used to read the logs and should match the encoding used by Tomcat. If you are unsure, use 'utf8'."
+        },
         "tomcat.logLevel": {
           "type": "string",
-          "enum": ["DEBUG", "INFO", "SUCCESS", "HTTP", "APP", "WARN", "ERROR"],
+          "enum": [
+            "DEBUG",
+            "INFO",
+            "SUCCESS",
+            "HTTP",
+            "APP",
+            "WARN",
+            "ERROR"
+          ],
           "default": "INFO",
           "description": "Minimum log level to display. Messages at or above this level will be shown."
         },

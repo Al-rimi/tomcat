@@ -78,6 +78,7 @@ export class Logger {
     private accessLogWatcher?: fs.FSWatcher;
     private logLevel: string;
     private showTimestamp: boolean;
+    private logEncoding: string;
     private logLevels: { [key: string]: number } = {
     DEBUG: 0,
     INFO: 1,
@@ -130,6 +131,7 @@ export class Logger {
         }
         this.showTimestamp = vscode.workspace.getConfiguration().get<boolean>('tomcat.showTimestamp', true); 
         this.outputChannel = vscode.window.createOutputChannel('Tomcat', 'tomcat-log'); 
+        this.logEncoding = vscode.workspace.getConfiguration().get<string>('tomcat.logEncoding', 'utf8');
     }
 
     /**
@@ -149,6 +151,10 @@ export class Logger {
         return Logger.instance;
     }
 
+    public getLogEncoding(): string {
+        return this.logEncoding;
+    }
+
     /**
      * Configuration reload handler
      * 
@@ -166,6 +172,7 @@ export class Logger {
           this.logLevel = 'INFO';
         }
         this.showTimestamp = vscode.workspace.getConfiguration().get<boolean>('tomcat.showTimestamp', true);
+        this.logEncoding = vscode.workspace.getConfiguration().get<string>('tomcat.logEncoding', 'utf8');
     }
 
     /**
@@ -498,7 +505,7 @@ export class Logger {
         });
 
         this.accessLogStream = fs.createReadStream(logPath, {
-            encoding: 'utf8',
+            encoding: this.logEncoding as BufferEncoding,
             autoClose: false,
             start: fs.existsSync(logPath) ? fs.statSync(logPath).size : 0
         });
@@ -530,7 +537,7 @@ export class Logger {
             const stream = fs.createReadStream(logPath, {
                 start: oldSize,
                 end: newSize - 1,
-                encoding: 'utf8'
+                encoding: this.logEncoding as BufferEncoding
             });
             
             stream.on('data', data => {
@@ -643,7 +650,7 @@ export class Logger {
         const stream = fs.createReadStream(filePath, {
             start: prevSize,
             end: currSize - 1,
-            encoding: 'utf8'
+            encoding: this.logEncoding as BufferEncoding
         });
 
         let buffer = '';

@@ -637,16 +637,18 @@ export class Tomcat {
         javaHome: string
     ): Promise<void> {
         if (action === 'start') {
+            const logEncoding = logger.getLogEncoding();
             const { command, args } = this.buildCommand(action, tomcatHome, javaHome);
 
             const child = spawn(command, args, {
                 stdio: 'pipe',
                 shell: process.platform === 'win32'
             });
-
             this.tomcatProcess = child;
 
-            // Buffer management for partial lines
+            child.stdout.setEncoding(logEncoding as BufferEncoding);
+            child.stderr.setEncoding(logEncoding as BufferEncoding);
+
             let stdoutBuffer = '';
             let stderrBuffer = '';
 
