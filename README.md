@@ -195,7 +195,7 @@ For technical implementation details and contribution guidelines, see:
 - **Cross-Platform Stability**  
   Fixed concurrent access during log rotation and improved multi-OS line ending handling
 
-[View Full Changelog](https://github.com/Al-rimi/tomcat/blob/main/CHANGELOG.md#250-2025-05-07)
+[View Full Changelog](https://github.com/Al-rimi/tomcat/blob/main/CHANGELOG.md)
 
 ---
 
