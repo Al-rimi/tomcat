@@ -4,7 +4,7 @@
 
 ## [2.5.0] - 2025-05-07
 ### Added
-- Full server instant logs
+- Full server instant logs support (Thanks to @zhuxiaodics6)
 - Implemented dual-stream architecture for HTTP access log
 - Added hybrid filesystem watcher combining event-driven and polling strategies
 - Introduced memory-efficient log processing pipeline with <100ms latency

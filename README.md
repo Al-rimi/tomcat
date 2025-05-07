@@ -178,7 +178,7 @@ For technical implementation details and contribution guidelines, see:
 ## What's New in 2.5.0
 
 - **Real-Time Server Insights**  
-  Instant full server logging with dual-stream architecture for HTTP access monitoring
+  Instant full server logging with dual-stream architecture for all server events (Thanks to @zhuxiaodics6)
 
 - **Smart File Watching**  
   Hybrid filesystem watcher combines event-driven and polling strategies for reliable change detection
