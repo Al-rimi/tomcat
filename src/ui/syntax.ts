@@ -101,7 +101,7 @@ export function addSyntaxColoringRules() {
             "scope": "support.type.log-level.debug.tomcat", 
             "settings": { 
                 "foreground": "#888888",  // Secondary gray
-                "fontStyle": "italic"     // De-emphasized
+                "fontStyle": "bold"     // High visibility
             } 
         },
         { 

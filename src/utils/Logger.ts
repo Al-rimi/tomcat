@@ -404,7 +404,8 @@ export class Logger {
             
             if (message.startsWith('Deploying web application') || 
                 message.startsWith('At least one JAR was scanned for TLDs yet') || 
-                message.startsWith('You need to add "')) {
+                message.startsWith('You need to add "') ||
+                message.startsWith('Match [Context] failed to set property')){
                 return null;
             }
 
@@ -433,7 +434,10 @@ export class Logger {
             return ['HTTP', httpMessage];
         }
 
-        if (cleanLine.startsWith('org.apache.')) {
+        if (cleanLine.includes('org.apache.') ||
+            cleanLine.includes('java.') ||
+            cleanLine.includes('javax.') ||
+            cleanLine.includes('jakarta.')) {
             return ['DEBUG', cleanLine];
         }
 
@@ -714,7 +718,7 @@ export class Logger {
             });
         }
 
-        if (this.autoScrollOutput || level === 'ERROR' || level === 'WARN') {
+        if (this.autoScrollOutput || level === 'ERROR' || level === 'WARN' || level === 'APP') {
             this.outputChannel.show(true);
         }
     }

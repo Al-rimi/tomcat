@@ -61,6 +61,13 @@
             }
         },
         {
+            "name": "support.type.log-level.info.tomcat",
+            "match": "(\\[HTTP\\])",
+            "captures": {
+                "1": { "name": "support.type.log-level.info.tomcat" }
+            }
+        },
+        {
             "name": "support.type.log-level.debug.tomcat",
             "match": "(\\[DEBUG\\])",
             "captures": {
@@ -77,6 +84,13 @@
         {
             "name": "support.type.log-level.success.tomcat",
             "match": "(\\[SUCCESS\\])",
+            "captures": {
+                "1": { "name": "support.type.log-level.success.tomcat" }
+            }
+        },
+        {
+            "name": "support.type.log-level.success.tomcat",
+            "match": "(\\[APP\\])",
             "captures": {
                 "1": { "name": "support.type.log-level.success.tomcat" }
             }
@@ -140,7 +154,7 @@
         },
         {
             "name": "variable.parameter.java.tomcat",
-            "match": "\\b(request|response|session|out|config|application)\\b"
+            "match": "\\b(request|response|session|config)\\b"
         },
         {
             "name": "keyword.control.java.tomcat",
