@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+## [2.5.0] - 2025-05-07
+### Added
+- Full server instant logs
+- Implemented dual-stream architecture for HTTP access log
+- Added hybrid filesystem watcher combining event-driven and polling strategies
+- Introduced memory-efficient log processing pipeline with <100ms latency
+- Added `tomcat.logLevel` configuration option to control log verbosity
+- Added `tomcat.showTimestamp` configuration option to show or hide log timestamps
+
+### Changed
+- Updated log rotation detection to use optimized date pattern matching
+
+### Fixed
+- Resolved concurrent access issues during log file rotation
+- Addressed edge cases in multi-platform line ending processing
+
 ## [2.4.1] - 2025-05-07
 ### Fixed
 - Updated Microsoft Edge browser command for Windows to include `msedgewebview2` process (Thanks to @zhuxiaodics6)

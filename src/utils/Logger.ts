@@ -434,10 +434,12 @@ export class Logger {
             return ['HTTP', httpMessage];
         }
 
-        if (cleanLine.includes('org.apache.') ||
-            cleanLine.includes('java.') ||
+        if (cleanLine.includes('java.') ||
             cleanLine.includes('javax.') ||
-            cleanLine.includes('jakarta.')) {
+            cleanLine.includes('jakarta.') ||
+            cleanLine.includes('org.') ||
+            cleanLine.includes('com.') || 
+            cleanLine.match(/.java:([0-9]+)\)/)) {
             return ['DEBUG', cleanLine];
         }
 

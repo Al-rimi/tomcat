@@ -6,7 +6,10 @@ Advanced Apache Tomcat management. Full server control, smart deployment, browse
 
 ## Features
 
-- **Real-Time HTTP Traffic Monitoring**  
+- **Full Server Logs Monitoring**
+  Monitor all+ Tomcat logs in real-time with syntax highlighting
+
+- **HTTP Traffic Monitoring**  
   Monitor Tomcat access logs dynamically with built-in syntax highlighting
 
 - **Customizable Deployment Strategies**  
@@ -38,7 +41,7 @@ code --install-extension Al-rimi.tomcat
 
 ## Usage
 
-> ℹ️ The `Editor Button` and `Status Bar` are only visible when the current project is detected as a Java EE project, following VScode [Editor Actions](https://code.visualstudio.com/api/ux-guidelines/editor-actions) and [Status Bar](https://code.visualstudio.com/api/ux-guidelines/status-bar) Guidelines.
+> The `Editor Button` and `Status Bar` are only visible when the current project is detected as a Java EE project, following VScode [Editor Actions](https://code.visualstudio.com/api/ux-guidelines/editor-actions) and [Status Bar](https://code.visualstudio.com/api/ux-guidelines/status-bar) Guidelines.
 
 <details>
 <summary>When is a project considered a Java EE project? click to expand</summary>
@@ -147,7 +150,7 @@ Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 | `tomcat.showTimestamp`       | `true`            | Whether to include timestamps in log messages                                            |
 | `tomcat.autoScrollOutput`    | `false`           | Automatically reveal output channel when new logs are added                              |
 
-> ℹ️ `tomcat.home` and `tomcat.javaHome` are now auto-detected and hidden from user settings.
+> `tomcat.home` and `tomcat.javaHome` are now auto-detected and hidden from user settings.
 
 ## Requirements
 
@@ -172,21 +175,27 @@ For technical implementation details and contribution guidelines, see:
 [![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/issues)
 
 
-## What's New in 2.4.1
+## What's New in 2.5.0
 
-- **Enhanced Browser Compatibility**  
-  Updated Microsoft Edge browser command to include `msedgewebview2` process (Thanks to @zhuxiaodics6)
-  
-- **Improved Deployment Reliability**  
-  Fixed brutalSync method with better restricted folder handling and optimized Tomcat reload logic
-  
-- **Butter Environment Detection**  
-  Added strict filesystem validation in `findTomcatHome` and `findJavaHome` methods
-  
-- **Optimized Deployment**  
-  Refactored fast deployment strategy with improved file synchronization and fault tolerance
+- **Real-Time Server Insights**  
+  Instant full server logging with dual-stream architecture for HTTP access monitoring
 
-[View Full Changelog](https://github.com/Al-rimi/tomcat/blob/main/CHANGELOG.md)
+- **Smart File Watching**  
+  Hybrid filesystem watcher combines event-driven and polling strategies for reliable change detection
+
+- **Performance Boost**  
+  Memory-optimized log processing pipeline guarantees sub-100ms latency
+
+- **Granular Log Control**  
+  New `tomcat.logLevel` and `tomcat.showTimestamp` settings for customized logging
+
+- **Reliable Log Rotation**  
+  Enhanced date pattern matching for accurate log rotation detection
+
+- **Cross-Platform Stability**  
+  Fixed concurrent access during log rotation and improved multi-OS line ending handling
+
+[View Full Changelog](https://github.com/Al-rimi/tomcat/blob/main/CHANGELOG.md#250-2025-05-07)
 
 ---
 
