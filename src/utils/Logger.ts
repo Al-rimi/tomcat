@@ -73,6 +73,28 @@ export class Logger {
     private currentLogFile: string | null = null;
     private fileCheckInterval?: NodeJS.Timeout;
     private logWatchers: { file: string; listener: fs.StatsListener }[] = [];
+
+    private readonly TOMCAT_FILTERS = [
+        /^Loaded Apache Tomcat Native library/,
+        /^org.apache.catalina.startup.VersionLoggerListener log/,
+        /^OpenSSL successfully initialized/,
+        /^At least one JAR was scanned for TLDs/,
+        /^Log4j API could not find a logging provider/,
+        /^You need to add "--add-opens"/,
+        /^Match \[Context\] failed to set property/,
+        /^Manager: init:/,
+        /^Reloading Context with name/,
+        /^SessionListener: contextInitialized/,
+        /^ContextListener: /,
+        /^Starting ProtocolHandler/,
+        /^Server version name/,
+        /^Server built:/,
+        /^OS Name:/,
+        /^Architecture:/,
+        /^Java Home:/,
+        /^JVM Version:/,
+        /^CATALINA_/
+    ];
     
     /**
      * Private constructor for Singleton pattern
@@ -308,6 +330,72 @@ export class Logger {
         this.checkForNewLogFile(logsDir);
     }
 
+    public appendRawLine(message: string): void {
+        const processed = this.processTomcatLine(message);
+        if (processed) {
+            const [level, cleanMessage] = processed;
+            this.log(level, cleanMessage);
+        }
+    }
+
+    private processTomcatLine(rawLine: string): [string, string] | null {        
+
+        // Remove ANSI escape codes first
+        const cleanLine = rawLine
+        .replace(/\x1B\[\d+m/g, '')
+        .replace(/^\w+ \d+, \d+ \d+:\d+:\d+ [AP]M /, '');
+
+        // Parse structured Tomcat logs
+        const logMatch = cleanLine.match(
+            /^(?:\w+ \d+, \d+ \d+:\d+:\d+ [AP]M )?.*?\b(?:SEVERE|WARNING|INFO|FINE)\b:?\s+(.*)$/i
+        );
+
+        if (logMatch) {
+            const message = logMatch[1]
+                .replace(/^\s*\[[^\]]+\]\s*/, '')  // Remove bracketed prefixes
+                .replace(/\s{2,}/g, ' ')           // Collapse multiple spaces
+                .trim();
+            
+            // Filter deployment details except completion
+            if (message.startsWith('Deploying web application') || message.startsWith('At least one JAR was scanned for TLDs yet')) {
+                return null;
+            }
+
+            // Map log levels
+            const levelMap: { [key: string]: string } = {
+                'SEVERE': 'ERROR',
+                'WARNING': 'WARN',
+                'INFO': 'INFO',
+                'FINE': 'DEBUG'
+            };
+
+            const level = Object.keys(levelMap).find(l => cleanLine.includes(l)) || 'INFO';
+            const mappedLevel = levelMap[level];
+
+            return [mappedLevel, message];
+        }
+
+        // Handle special cases
+        if (cleanLine.includes('Server startup in')) {
+            return ['INFO', cleanLine.replace(/.*?(Server startup in.*)/, '$1')];
+        }
+
+        // Handle HTTP access logs
+        if (cleanLine.match(/GET|POST|PUT|DELETE/)) {
+            const httpMessage = cleanLine
+                .replace(/(\d+)\s*ms$/, '')  // Remove milliseconds
+                .replace(/\s{2,}/g, ' ')     // Collapse spaces
+                .trim();
+            return ['HTTP', httpMessage];
+        }
+
+        if (this.TOMCAT_FILTERS.some(pattern => pattern.test(cleanLine)) || cleanLine.trim().length === 0) {
+            return null;
+        }
+
+        return ['DEBUG', cleanLine];
+    }
+
     /**
      * Log file rotation detector
      * 
@@ -448,6 +536,7 @@ export class Logger {
         const timestamp = new Date().toLocaleString();
         const formattedMessage = `[${timestamp}] [${level}] ${message}`;
         
+        // Directly append to channel without recursion
         this.outputChannel.appendLine(formattedMessage);
 
         if (showUI) {

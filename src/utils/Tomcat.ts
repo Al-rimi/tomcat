@@ -59,6 +59,7 @@ import { promisify } from 'util';
 import { Logger } from './Logger';
 import { Buffer } from 'buffer';
 import { Browser } from './Browser';
+import { ChildProcess, spawn } from 'child_process';
 
 const execAsync = promisify(exec);
 const logger = Logger.getInstance();
@@ -69,6 +70,7 @@ export class Tomcat {
     private javaHome: string;
     private protectedWebApps: string[];
     private port: number;
+    private tomcatProcess: ChildProcess | null = null;
 
     private readonly PORT_RANGE = { min: 1024, max: 65535 };
 
@@ -186,9 +188,15 @@ export class Tomcat {
         }
 
         try {
-            await this.executeTomcatCommand('stop', tomcatHome, javaHome);
-            logger.success('Tomcat stopped successfully.', showMessages);
-        }catch (err) {
+            if (this.tomcatProcess) {
+                this.tomcatProcess.kill('SIGTERM');
+                this.tomcatProcess = null;
+                logger.success('Tomcat stopped (process terminated)', showMessages);
+            } else {
+                await this.executeTomcatCommand('stop', tomcatHome, javaHome);
+                logger.success('Tomcat stopped (via command)', showMessages);
+            }
+        } catch (err) {
             logger.error('Failed to stop Tomcat:', showMessages, err as string);
         }
     }
@@ -334,6 +342,7 @@ export class Tomcat {
      * @returns Boolean indicating server running state
      */
     private async isTomcatRunning(): Promise<boolean> {
+        if (this.tomcatProcess && !this.tomcatProcess.killed) return true;
         try {
             let command: string;
     
@@ -627,14 +636,53 @@ export class Tomcat {
         tomcatHome: string,
         javaHome: string
     ): Promise<void> {
+        if (action === 'start') {
+            const { command, args } = this.buildCommand(action, tomcatHome, javaHome);
 
-        const command = this.buildCommand(action, tomcatHome, javaHome);
-        try {
-            await execAsync(command);
-        } catch (err) {
-            throw err;
+            const child = spawn(command, args, {
+                stdio: 'pipe',
+                shell: process.platform === 'win32'
+            });
+
+            this.tomcatProcess = child;
+
+            // Buffer management for partial lines
+            let stdoutBuffer = '';
+            let stderrBuffer = '';
+
+            child.stdout.on('data', (data) => {
+                stdoutBuffer += data.toString();
+                const lines = stdoutBuffer.split(/\r?\n/);
+                stdoutBuffer = lines.pop() || '';
+                lines.forEach(line => logger.appendRawLine(line));
+            });
+
+            child.stderr.on('data', (data) => {
+                stderrBuffer += data.toString();
+                const lines = stderrBuffer.split(/\r?\n/);
+                stderrBuffer = lines.pop() || '';
+                lines.forEach(line => logger.appendRawLine(line));
+            });
+
+            return new Promise((resolve, reject) => {
+                child.on('close', (code) => {
+                    this.tomcatProcess = null;
+                    code === 0 ? resolve() : reject(new Error(`Start failed with code ${code}`));
+                });
+
+                child.on('error', (err) => {
+                    this.tomcatProcess = null;
+                    reject(err);
+                });
+            });
+        } else {
+            // Existing stop command handling
+            const { command, args } = this.buildCommand(action, tomcatHome, javaHome);
+            const stopCommand = [command, ...args].join(' ');
+            await execAsync(stopCommand);
         }
     }
+
 
     /**
      * Tomcat command construction
@@ -654,22 +702,25 @@ export class Tomcat {
         action: 'start' | 'stop',
         tomcatHome: string,
         javaHome: string
-    ): string {
+    ): { command: string; args: string[] } {
         const javaExecutable = path.join(javaHome, 'bin', `java${process.platform === 'win32' ? '.exe' : ''}`);
         const classpath = [
             path.join(tomcatHome, 'bin', 'bootstrap.jar'),
             path.join(tomcatHome, 'bin', 'tomcat-juli.jar')
         ].join(path.delimiter);
 
-        return [
-            `"${javaExecutable.replace(/"/g, '\\"')}"`,
-            `-cp "${classpath}"`,
-            `-Dcatalina.base="${tomcatHome}"`,
-            `-Dcatalina.home="${tomcatHome}"`,
-            `-Djava.io.tmpdir="${path.join(tomcatHome, 'temp')}"`,
-            'org.apache.catalina.startup.Bootstrap',
-            action
-        ].join(' ');
+        return {
+            command: javaExecutable,
+            args: [
+                '-cp',
+                classpath,
+                `-Dcatalina.base=${tomcatHome}`,
+                `-Dcatalina.home=${tomcatHome}`,
+                `-Djava.io.tmpdir=${path.join(tomcatHome, 'temp')}`,
+                'org.apache.catalina.startup.Bootstrap',
+                action
+            ]
+        };
     }
 
     /**
