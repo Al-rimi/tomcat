@@ -27,6 +27,7 @@
  *    - ERROR: Critical failures
  *    - SUCCESS: Deployment confirmations
  *    - HTTP: Access log processing
+ *    - APP: Application-specific messages
  *
  * 2. Deployment Management:
  *    - Status bar mode indicator
@@ -147,13 +148,19 @@ export class Logger {
     }
 
     /**
-     * Resource cleanup handler
+     * Resource Cleanup Handler
      * 
-     * Properly disposes of logging resources:
-     * - Releases output channel
-     * - Removes status bar items
-     * - Cleans up subscriptions
-     * - Preserves final log state
+     * Now handles four resource types:
+     * 1. Output channels
+     * 2. Status bar components
+     * 3. Polling intervals
+     * 4. Filesystem watchers (both polling and event-driven)
+     * 
+     * Guarantees zero resource leaks during:
+     * - Extension reloads
+     * - Configuration changes
+     * - Server restarts
+     * - Unexpected errors
      */
     public deactivate(): void {
         this.outputChannel.dispose();
@@ -315,13 +322,15 @@ export class Logger {
     }
 
     /**
-     * Log file watcher initialization
+     * Log file watcher initialization (Enhanced)
      * 
-     * Starts monitoring Tomcat access logs with:
-     * - Automatic latest file detection
-     * - Cross-platform file watching
-     * - Smart log entry extraction
-     * - Configurable polling intervals
+     * Implements hybrid monitoring strategy:
+     * - 500ms polling interval for rotation detection
+     * - Event-driven access log watching
+     * - Cross-platform filesystem abstraction
+     * 
+     * Combines reliability of polling with responsiveness
+     * of OS-level notifications
      */
     public startLogFileWatcher(): void {
         if (!this.tomcatHome) return;
@@ -342,6 +351,21 @@ export class Logger {
         }
     }
 
+    /**
+     * Raw log line processor (Enhanced)
+     * 
+     * Handles multi-format log inputs:
+     * - Tomcat's native formatted logs
+     * - Server startup metadata
+     * - HTTP access patterns
+     * - Unstructured debug output
+     * 
+     * Output standardization features:
+     * - Level translation (SEVERE → ERROR)
+     * - Contextual filtering
+     * - Whitespace normalization
+     * - Redundancy elimination
+     */
     private processTomcatLine(rawLine: string): [string, string] | null {        
         const cleanLine = rawLine
         .replace(/\x1B\[\d+m/g, '')
@@ -401,6 +425,17 @@ export class Logger {
         return ['APP', cleanLine];
     }
 
+    /**
+     * Direct access log monitoring initializer
+     * 
+     * Implements low-latency access log observation:
+     * 1. Identifies current access log file
+     * 2. Establishes filesystem watcher
+     * 3. Configures continuous stream reader
+     * 4. Handles log rotation transparently
+     * 
+     * @param tomcatHome Valid Tomcat installation directory
+     */
     private async watchAccessLogDirectly(tomcatHome: string) {
         const logsDir = path.join(tomcatHome, 'logs');
         const accessLogPattern = /localhost_access_log\.\d{4}-\d{2}-\d{2}\.log/;
@@ -420,6 +455,16 @@ export class Logger {
         }
     }
 
+    /**
+     * Real-time access log processor
+     * 
+     * Configures dual monitoring mechanisms:
+     * - Event-driven filesystem watcher for instant notifications
+     * - Persistent read stream for efficient data consumption
+     * - Coordinates with log rotation detection system
+     * 
+     * @param logPath Full path to current access log file
+     */
     private setupRealtimeAccessLog(logPath: string) {
         this.accessLogWatcher = fs.watch(logPath, (eventType) => {
             if (eventType === 'change') this.handleLiveLogUpdate(logPath);
@@ -439,6 +484,17 @@ export class Logger {
         });
     }
 
+    /**
+     * Live log update handler
+     * 
+     * Processes file change events with:
+     * - Size comparison for delta calculation
+     * - Targeted partial file reading
+     * - Line-by-line processing pipeline
+     * - Memory-efficient stream handling
+     * 
+     * @param logPath Path to modified log file
+     */
     private handleLiveLogUpdate(logPath: string) {
         const newSize = fs.statSync(logPath).size;
         const oldSize = this.accessLogStream?.bytesRead || 0;
@@ -458,6 +514,18 @@ export class Logger {
         }
     }
 
+    /**
+     * Access log entry processor
+     * 
+     * Transforms raw access log lines to standardized format:
+     * 1. Removes localhost IP variations
+     * 2. Strips bracketed timestamps
+     * 3. Normalizes HTTP version markers
+     * 4. Collapses whitespace
+     * 5. Formats as [METHOD] - [PATH] - [STATUS] - [DURATION]
+     * 
+     * @param rawLine Unprocessed access log entry
+     */
     private processAccessLogLine(rawLine: string) {
         const cleanedLine = rawLine
             .replace(/(0:0:0:0:0:0:0:1|127\.0\.0\.1) - -?\s?/g, '')
@@ -473,13 +541,12 @@ export class Logger {
     }
 
     /**
-     * Log file rotation detector
+     * Log file rotation detector (Enhanced)
      * 
-     * Monitors log directory for new access log files with:
-     * - Directory content scanning
-     * - Date-based filename sorting
-     * - Latest file detection
-     * - Change event triggering
+     * Now handles access log specific patterns:
+     * - Uses optimized filename date extraction
+     * - Coordinates with direct access log watcher
+     * - Maintains dual monitoring consistency
      * 
      * @param logsDir Path to Tomcat logs directory
      */
@@ -503,13 +570,12 @@ export class Logger {
     }
 
     /**
-     * Active log file switcher
+     * Active log file switcher (Updated)
      * 
-     * Handles log file rotation by:
-     * - Cleaning up previous file watchers
-     * - Updating current log file reference
-     * - Setting up new file change listener
-     * - Tracking active watchers for cleanup
+     * Maintains dual monitoring consistency during rotation:
+     * 1. Preserves active access log stream
+     * 2. Updates both polling and event-driven watchers
+     * 3. Handles cross-platform filesystem quirks
      * 
      * @param newFile Path to new log file to monitor
      */
