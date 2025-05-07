@@ -149,6 +149,7 @@ Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 | `tomcat.logLevel`            | `INFO`            | Minimum log level to display (`DEBUG`, `INFO`, `SUCCESS`, `HTTP`, `APP`, `WARN`, `ERROR`) |
 | `tomcat.showTimestamp`       | `true`            | Whether to include timestamps in log messages                                            |
 | `tomcat.autoScrollOutput`    | `false`           | Automatically reveal output channel when new logs are added                              |
+| `tomcat.logEncoding`       | `utf8`           | Encoding for Tomcat logs (`utf8`, `gbk`, `shiftjis` ...)                              |
 
 > `tomcat.home` and `tomcat.javaHome` are now auto-detected and hidden from user settings.
 
@@ -175,16 +176,13 @@ For technical implementation details and contribution guidelines, see:
 [![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/issues)
 
 
-## What's New in 2.5.0
+## What's New in 2.5.1
 
 - **Real-Time Server Insights**  
   Instant full server logging with dual-stream architecture for all server events (Thanks to @zhuxiaodics6)
 
-- **Smart File Watching**  
-  Hybrid filesystem watcher combines event-driven and polling strategies for reliable change detection
-
-- **Performance Boost**  
-  Memory-optimized log processing pipeline guarantees sub-100ms latency
+- **Universal Log Encoding Support**  
+  Added `tomcat.logEncoding` configuration with 15 supported encodings for proper international log handling
 
 - **Granular Log Control**  
   New `tomcat.logLevel` and `tomcat.showTimestamp` settings for customized logging

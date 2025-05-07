@@ -1,8 +1,15 @@
 # Change Log
 
 ## [Unreleased]
+
+## [2.5.1] - 2025-05-08
+### Added
+- Added log encoding configuration (`tomcat.logEncoding`) with support for 15 character encodings
+- Implemented encoding handling in Logger and Tomcat classes for proper log processing
+
 ### Fixed
-- Server sometimes won't be able to find some library, so we add a await(50) after deploy
+- Resolved server library detection issues by adding 50ms delay after deployment
+- Improved log file handling with proper encoding support across platforms
 
 ## [2.5.0] - 2025-05-07
 ### Added

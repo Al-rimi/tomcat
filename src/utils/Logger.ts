@@ -151,6 +151,11 @@ export class Logger {
         return Logger.instance;
     }
 
+    /**
+     * Tomcat Log Encoding getter
+     * 
+     * @returns Current log encoding setting
+     */
     public getLogEncoding(): string {
         return this.logEncoding;
     }
