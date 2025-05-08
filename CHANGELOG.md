@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [2.5.2] - 2025-05-09
+### Changed
+- Updated syntax coloring for error/warning log levels in syntax.ts for better visibility
+- Enhanced Logger class with improved log level handling and new message patterns
+- Cleaned up redundant comments in Tomcat command handling
+- Improved log level matching and syntax highlighting captures in tomcat-log.tmLanguage.json
+- Restructured package organization
+- Standardized logging messages across Browser, Builder, and Tomcat services
+
+### Removed
+- Removed help command and associated documentation
+- Removed `tomcat.autoScrollOutput` configuration setting
+
 ## [2.5.1] - 2025-05-08
 ### Added
 - Added log encoding configuration (`tomcat.logEncoding`) with support for 15 character encodings

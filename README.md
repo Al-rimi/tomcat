@@ -7,7 +7,7 @@ Advanced Apache Tomcat management. Full server control, smart deployment, browse
 ## Features
 
 - **Full Server Logs Monitoring**
-  Monitor all+ Tomcat logs in real-time with syntax highlighting
+  Monitor All+ Tomcat logs in real-time with syntax highlighting
 
 - **HTTP Traffic Monitoring**  
   Monitor Tomcat access logs dynamically with built-in syntax highlighting
@@ -174,7 +174,7 @@ For technical implementation details and contribution guidelines, see:
 [![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/issues)
 
 
-## What's New in 2.5.1
+## What's New in 2.5.2
 
 - **Real-Time Server Insights**  
   Instant full server logging with dual-stream architecture for all server events (Thanks to @zhuxiaodics6)
@@ -190,6 +190,9 @@ For technical implementation details and contribution guidelines, see:
 
 - **Cross-Platform Stability**  
   Fixed concurrent access during log rotation and improved multi-OS line ending handling
+
+- **Removed Unnecessary Futures**
+  Removed help command and associated documentation and `tomcat.autoScrollOutput` configuration setting
 
 [View Full Changelog](https://github.com/Al-rimi/tomcat/blob/main/CHANGELOG.md)
 
