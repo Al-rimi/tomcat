@@ -122,13 +122,13 @@ export class Tomcat {
         if (!tomcatHome || !javaHome) {return;}
 
         if (await this.isTomcatRunning()) {
-            logger.success('Tomcat is already running.', showMessages);
+            logger.info('Tomcat is already running', showMessages);
             return;
         }
 
         try {
             this.executeTomcatCommand('start', tomcatHome, javaHome);
-            logger.success('Tomcat started successfully.', showMessages);
+            logger.success('Tomcat started successfully', showMessages);
         } catch (err) {
             logger.error('Failed to start Tomcat:', showMessages, err as string);
         }
@@ -152,7 +152,7 @@ export class Tomcat {
         if (!tomcatHome || !javaHome) {return;}
 
         if (!await this.isTomcatRunning()) {
-            logger.success('Tomcat is not running.', showMessages);
+            logger.info('Tomcat is not running', showMessages);
             return;
         }
 
@@ -163,7 +163,7 @@ export class Tomcat {
                 logger.success('Tomcat stopped (process terminated)', showMessages);
             } else {
                 await this.executeTomcatCommand('stop', tomcatHome, javaHome);
-                logger.success('Tomcat stopped (via command)', showMessages);
+                logger.success('Tomcat stopped successfully', showMessages);
             }
         } catch (err) {
             logger.error('Failed to stop Tomcat:', showMessages, err as string);
@@ -201,7 +201,7 @@ export class Tomcat {
             if (!response.ok) {
                 throw new Error(`Reload failed: ${await response.text()}`);
             }
-            logger.info('Tomcat reloaded.');
+            logger.success('Tomcat reloaded');
         } catch (err) {
             if (!await this.isTomcatRunning()) {
                 this.start();
@@ -271,7 +271,7 @@ export class Tomcat {
                 }
             });
     
-            logger.success('Tomcat cleaned successfully.', true);
+            logger.success('Tomcat cleaned successfully', true);
         } catch (err) {
             logger.error('Tomcat cleanup failed:', true, err as string);
         }
@@ -719,7 +719,7 @@ export class Tomcat {
                 .replace(/(<\/tomcat-users>)/, `  ${newUser}\n$1`);
 
             await fsp.writeFile(usersXmlPath, content);
-            logger.info('Added admin user to tomcat-users.xml.');
+            logger.info('Added admin user to tomcat-users.xml');
             this.start();
         } catch (err) {
             return;

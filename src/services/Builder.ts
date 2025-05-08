@@ -151,10 +151,7 @@ export class Builder {
             await subAction.then((choice) => {
                 type = (choice as 'Fast' | 'Maven' | 'Gradle');
             });
-            if (!type || type === 'Choice') {
-                logger.info('Tomcat deploy canceled.');
-                return;
-            }
+            if (!type || type === 'Choice') { return; }
         }
 
         const appName = path.basename(projectDir);
@@ -284,7 +281,7 @@ export class Builder {
                     type: 'maven',
                     archetype: 'maven-archetype-webapp'
                 });
-                logger.info('New Maven web app project created.');
+                logger.info('New Maven web app project created');
             } catch (err) {
                 vscode.window.showErrorMessage(
                     'Project creation failed. Ensure Java Extension Pack is installed and configured.',
@@ -296,7 +293,7 @@ export class Builder {
                 });
             }
         } else {
-            logger.success('Tomcat deploy canceled.', true);
+            logger.success('Tomcat deploy canceled', true);
         }
     }
 
