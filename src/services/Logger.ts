@@ -27,7 +27,6 @@ export class Logger {
     private static instance: Logger;
     private tomcatHome: string;
     private autoDeployMode: string;
-    private autoScrollOutput: boolean;
     private outputChannel: vscode.OutputChannel;
     private statusBarItem?: vscode.StatusBarItem;
     private currentLogFile: string | null = null;
@@ -83,7 +82,6 @@ export class Logger {
     private constructor() {
         this.tomcatHome = vscode.workspace.getConfiguration().get<string>('tomcat.home', '');
         this.autoDeployMode = vscode.workspace.getConfiguration().get<string>('tomcat.autoDeployMode', 'Disabled');
-        this.autoScrollOutput = vscode.workspace.getConfiguration().get<boolean>('tomcat.autoScrollOutput', true);
         this.logLevel = vscode.workspace.getConfiguration().get<string>('tomcat.logLevel', 'INFO').toUpperCase();
         if (!Object.keys(this.logLevels).includes(this.logLevel)) {
             this.logLevel = 'INFO';
@@ -130,7 +128,6 @@ export class Logger {
     public updateConfig(): void {
         this.tomcatHome = vscode.workspace.getConfiguration().get<string>('tomcat.home', '');
         this.autoDeployMode = vscode.workspace.getConfiguration().get<string>('tomcat.autoDeployMode', 'Disabled');
-        this.autoScrollOutput = vscode.workspace.getConfiguration().get<boolean>('tomcat.autoScrollOutput', true);
         this.logLevel = vscode.workspace.getConfiguration().get<string>('tomcat.logLevel', 'INFO').toUpperCase();
         if (!Object.keys(this.logLevels).includes(this.logLevel)) {
             this.logLevel = 'INFO';
@@ -703,7 +700,7 @@ export class Logger {
             });
         }
 
-        if (this.autoScrollOutput || level === 'ERROR' || level === 'WARN' || level === 'APP') {
+        if (level === 'ERROR' || level === 'WARN' || level === 'APP') {
             this.outputChannel.show(true);
         }
     }

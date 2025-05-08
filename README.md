@@ -133,7 +133,6 @@ Use the Command Palette (`Ctrl+Shift+P`) to quickly access core commands:
 | `Tomcat: Stop`         | Stop the running server                             |
 | `Tomcat: Clean`        | Clean Tomcat `webapps`, `temp`, and `work` folders |
 | `Tomcat: Deploy`       | Deploy the current Java EE project                 |
-| `Tomcat: Help`         | Show the help documentation                        |
 
 ## Configuration
 
@@ -148,7 +147,6 @@ Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 | `tomcat.protectedWebApps`    | `["ROOT", "docs", "examples", "manager", "host-manager"]` | List of protected web apps during cleanup operations |
 | `tomcat.logLevel`            | `INFO`            | Minimum log level to display (`DEBUG`, `INFO`, `SUCCESS`, `HTTP`, `APP`, `WARN`, `ERROR`) |
 | `tomcat.showTimestamp`       | `true`            | Whether to include timestamps in log messages                                            |
-| `tomcat.autoScrollOutput`    | `false`           | Automatically reveal output channel when new logs are added                              |
 | `tomcat.logEncoding`         | `utf8`            | Encoding for Tomcat logs (`utf8`, `ascii`, `utf-8`, `utf16le`, `utf-16le`, `ucs2`, `ucs-2`, `base64`, `base64url`, `latin1`, `binary`, `hex`) |
 
 > `tomcat.home` and `tomcat.javaHome` are now auto-detected and hidden from user settings.

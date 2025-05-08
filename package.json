@@ -97,10 +97,6 @@
       {
         "command": "tomcat.clean",
         "title": "Tomcat: Clean"
-      },
-      {
-        "command": "tomcat.help",
-        "title": "Tomcat: Help"
       }
     ],
     "menus": {

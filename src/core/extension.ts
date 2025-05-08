@@ -23,7 +23,6 @@
  */
 
 import * as vscode from 'vscode';
-import { showHelpPanel } from '../utils/help';
 import { addSyntaxColoringRules } from '../utils/syntax';
 import { Builder } from '../services/Builder';
 import { Tomcat } from '../services/Tomcat';
@@ -57,7 +56,6 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('tomcat.stop', () => tomcat.stop(true)),
         vscode.commands.registerCommand('tomcat.clean', () => tomcat.clean()),
         vscode.commands.registerCommand('tomcat.deploy', () => builder.deploy('Choice')),
-        vscode.commands.registerCommand('tomcat.help', () => showHelpPanel(context)),
 
         // Configuration change listener with efficient filtering
         vscode.workspace.onDidChangeConfiguration(async (event) => {
@@ -137,8 +135,7 @@ function updateSettings(event: vscode.ConfigurationChangeEvent) {
     } else if (event.affectsConfiguration('tomcat.browser')) {
         Browser.getInstance().updateConfig();
 
-    } else if (event.affectsConfiguration('tomcat.autoScrollOutput') ||
-        event.affectsConfiguration('tomcat.showTimestamp') ||
+    } else if (event.affectsConfiguration('tomcat.showTimestamp') ||
         event.affectsConfiguration('tomcat.logLevel')) {
         Logger.getInstance().updateConfig();
     } else if (event.affectsConfiguration('tomcat.logEncoding')) {
