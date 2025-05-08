@@ -373,6 +373,10 @@ export class Logger {
                 return null;
             }
 
+            if (cleanLine.includes('Server startup in')) {
+                return ['SUCCESS', cleanLine.replace(/.*?(Server startup in.*)/, '$1').replace('Server startup in [', 'Tomcat started in ').replace('] milliseconds', 'ms')];
+            }
+
             const levelMap: { [key: string]: string } = {
                 'SEVERE': 'ERROR',
                 'WARNING': 'WARN',
@@ -384,10 +388,6 @@ export class Logger {
             const mappedLevel = levelMap[level];
 
             return [mappedLevel, message];
-        }
-
-        if (cleanLine.includes('Server startup in')) {
-            return ['INFO', cleanLine.replace(/.*?(Server startup in.*)/, '$1')];
         }
 
         if (cleanLine.match(/GET|POST|PUT|DELETE/)) {

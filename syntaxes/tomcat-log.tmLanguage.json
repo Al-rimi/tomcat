@@ -85,7 +85,7 @@
         },
         {
             "name": "support.type.log-level.info.tomcat",
-            "match": "(\\INFO|\\HTTP)",
+            "match": "\\b(INFO|HTTP|APP)\\b",
             "captures": {
                 "1": {
                     "name": "support.type.log-level.info.tomcat"
@@ -112,7 +112,7 @@
         },
         {
             "name": "support.type.log-level.success.tomcat",
-            "match": "\\b(SUCCESS|APP)\\b",
+            "match": "\\b(SUCCESS)\\b",
             "captures": {
                 "1": {
                     "name": "support.type.log-level.success.tomcat"

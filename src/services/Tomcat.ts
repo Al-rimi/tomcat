@@ -128,7 +128,9 @@ export class Tomcat {
 
         try {
             this.executeTomcatCommand('start', tomcatHome, javaHome);
-            logger.success('Tomcat started successfully', showMessages);
+            if (showMessages) {
+                logger.info('Tomcat started successfully', showMessages);
+            }
         } catch (err) {
             logger.error('Failed to start Tomcat:', showMessages, err as string);
         }
