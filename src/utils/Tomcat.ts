@@ -678,7 +678,6 @@ export class Tomcat {
                 });
             });
         } else {
-            // Existing stop command handling
             const { command, args } = this.buildCommand(action, tomcatHome, javaHome);
             const stopCommand = [command, ...args].join(' ');
             await execAsync(stopCommand);

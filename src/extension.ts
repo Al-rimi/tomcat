@@ -91,10 +91,8 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     if (Builder.isJavaEEProject()) {
-        // Initialize status bar UI component and deploy button
         Logger.getInstance().init(context);
 
-        // Register save event handler for auto-deployment
         context.subscriptions.push(
             vscode.workspace.onWillSaveTextDocument((e) => {
                 const workspaceFolders = vscode.workspace.workspaceFolders;
@@ -106,6 +104,7 @@ export function activate(context: vscode.ExtensionContext) {
                 }
             })
         );
+        tomcat.kill();
     }
 }
 

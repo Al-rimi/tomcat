@@ -80,13 +80,13 @@ export class Logger {
     private showTimestamp: boolean;
     private logEncoding: string;
     private logLevels: { [key: string]: number } = {
-    DEBUG: 0,
-    INFO: 1,
-    SUCCESS: 2,
-    HTTP: 3,
-    APP: 4,
-    WARN: 5,
-    ERROR: 6
+        DEBUG: 0,
+        INFO: 1,
+        SUCCESS: 2,
+        HTTP: 3,
+        APP: 4,
+        WARN: 5,
+        ERROR: 6
     };
 
     private readonly TOMCAT_FILTERS = [
@@ -111,7 +111,7 @@ export class Logger {
         /^JVM Version:/,
         /^CATALINA_/
     ];
-    
+
     /**
      * Private constructor for Singleton pattern
      * 
@@ -123,14 +123,14 @@ export class Logger {
      */
     private constructor() {
         this.tomcatHome = vscode.workspace.getConfiguration().get<string>('tomcat.home', '');
-        this.autoDeployMode = vscode.workspace.getConfiguration().get<string>('tomcat.autoDeployMode', 'Disabled'); 
+        this.autoDeployMode = vscode.workspace.getConfiguration().get<string>('tomcat.autoDeployMode', 'Disabled');
         this.autoScrollOutput = vscode.workspace.getConfiguration().get<boolean>('tomcat.autoScrollOutput', true);
         this.logLevel = vscode.workspace.getConfiguration().get<string>('tomcat.logLevel', 'INFO').toUpperCase();
         if (!Object.keys(this.logLevels).includes(this.logLevel)) {
-          this.logLevel = 'INFO';
+            this.logLevel = 'INFO';
         }
-        this.showTimestamp = vscode.workspace.getConfiguration().get<boolean>('tomcat.showTimestamp', true); 
-        this.outputChannel = vscode.window.createOutputChannel('Tomcat', 'tomcat-log'); 
+        this.showTimestamp = vscode.workspace.getConfiguration().get<boolean>('tomcat.showTimestamp', true);
+        this.outputChannel = vscode.window.createOutputChannel('Tomcat', 'tomcat-log');
         this.logEncoding = vscode.workspace.getConfiguration().get<string>('tomcat.logEncoding', 'utf8');
     }
 
@@ -174,7 +174,7 @@ export class Logger {
         this.autoScrollOutput = vscode.workspace.getConfiguration().get<boolean>('tomcat.autoScrollOutput', true);
         this.logLevel = vscode.workspace.getConfiguration().get<string>('tomcat.logLevel', 'INFO').toUpperCase();
         if (!Object.keys(this.logLevels).includes(this.logLevel)) {
-          this.logLevel = 'INFO';
+            this.logLevel = 'INFO';
         }
         this.showTimestamp = vscode.workspace.getConfiguration().get<boolean>('tomcat.showTimestamp', true);
         this.logEncoding = vscode.workspace.getConfiguration().get<string>('tomcat.logEncoding', 'utf8');
@@ -216,13 +216,9 @@ export class Logger {
      * @param context VS Code extension context
      */
     public init(context: vscode.ExtensionContext): void {
-        // Set context for UI contribution enablement
         vscode.commands.executeCommand('setContext', 'tomcat.showdeployButton', true);
-
-        // Initialize watcher for log files
         this.startLogFileWatcher();
 
-        // Initialize status bar item
         this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
         this.statusBarItem.command = 'extension.tomcat.toggleDeploySetting';
         this.statusBarItem.show();
@@ -262,10 +258,10 @@ export class Logger {
      */
     public defaultStatusBar(): void {
         if (this.statusBarItem) {
-            const displayText = this.autoDeployMode === 'On Shortcut' 
+            const displayText = this.autoDeployMode === 'On Shortcut'
                 ? process.platform === 'darwin' ? 'Cmd+S' : 'Ctrl+S'
                 : this.autoDeployMode;
-                
+
             this.statusBarItem.text = `${this.autoDeployMode === 'On Save' ? '$(sync~spin)' : '$(server)'} Tomcat deploy: ${displayText}`;
             this.statusBarItem.tooltip = 'Click to change deploy mode';
         }
@@ -322,7 +318,7 @@ export class Logger {
         const fullMessage = error ? `${message}\n${error}` : message;
         this.log('ERROR', fullMessage, showToast ? vscode.window.showErrorMessage : undefined);
     }
-    
+
     /**
      * HTTP request logging
      * 
@@ -399,10 +395,10 @@ export class Logger {
      * - Whitespace normalization
      * - Redundancy elimination
      */
-    private processTomcatLine(rawLine: string): [string, string] | null {        
+    private processTomcatLine(rawLine: string): [string, string] | null {
         const cleanLine = rawLine
-        .replace(/\x1B\[\d+m/g, '')
-        .replace(/^\w+ \d+, \d+ \d+:\d+:\d+ [AP]M /, '');
+            .replace(/\x1B\[\d+m/g, '')
+            .replace(/^\w+ \d+, \d+ \d+:\d+:\d+ [AP]M /, '');
 
         const logMatch = cleanLine.match(
             /^(?:\w+ \d+, \d+ \d+:\d+:\d+ [AP]M )?.*?\b(?:SEVERE|WARNING|INFO|FINE)\b:?\s+(.*)$/i
@@ -413,11 +409,11 @@ export class Logger {
                 .replace(/^\s*\[[^\]]+\]\s*/, '')  // Remove bracketed prefixes
                 .replace(/\s{2,}/g, ' ')           // Collapse multiple spaces
                 .trim();
-            
-            if (message.startsWith('Deploying web application') || 
-                message.startsWith('At least one JAR was scanned for TLDs yet') || 
+
+            if (message.startsWith('Deploying web application') ||
+                message.startsWith('At least one JAR was scanned for TLDs yet') ||
                 message.startsWith('You need to add "') ||
-                message.startsWith('Match [Context] failed to set property')){
+                message.startsWith('Match [Context] failed to set property')) {
                 return null;
             }
 
@@ -443,20 +439,36 @@ export class Logger {
                 .replace(/(\d+)\s*ms$/, '')
                 .replace(/\s{2,}/g, ' ')
                 .trim();
-            return ['HTTP', httpMessage];
+            if (httpMessage.includes('/manager/text/reload?path=')) {
+                return ['DEBUG', httpMessage];
+            } else {
+                return ['HTTP', httpMessage];
+            }
+        }
+
+        if (cleanLine.includes('Syntax error on token "finally"') ||
+            cleanLine.includes('] in the jsp file')) {
+            return ['ERROR', cleanLine];
         }
 
         if (cleanLine.includes('java.') ||
             cleanLine.includes('javax.') ||
             cleanLine.includes('jakarta.') ||
             cleanLine.includes('org.') ||
-            cleanLine.includes('com.') || 
+            cleanLine.includes('in the generated') ||
+            cleanLine.includes('cannot be resolved') ||
+            cleanLine.includes('Syntax error on token') ||
+            cleanLine.includes('com.') ||
+            cleanLine.includes('Stacktrace:') ||
+            cleanLine.includes('Syntax error') ||
+            cleanLine.includes('An error occurred') ||
+            cleanLine.match(/^\d+:/) ||
             cleanLine.match(/.java:([0-9]+)\)/)) {
             return ['DEBUG', cleanLine];
         }
 
-        if (this.TOMCAT_FILTERS.some(pattern => pattern.test(cleanLine)) || 
-            cleanLine.trim().length === 0 || 
+        if (this.TOMCAT_FILTERS.some(pattern => pattern.test(cleanLine)) ||
+            cleanLine.trim().length === 0 ||
             cleanLine.includes('API could not find a logging provider.')) {
             return null;
         }
@@ -486,8 +498,8 @@ export class Logger {
 
         const files = await fs.promises.readdir(logsDir);
         const accessLogs = files.filter(f => accessLogPattern.test(f))
-                               .sort().reverse();
-        
+            .sort().reverse();
+
         if (accessLogs.length > 0) {
             const logPath = path.join(logsDir, accessLogs[0]);
             this.setupRealtimeAccessLog(logPath);
@@ -537,14 +549,14 @@ export class Logger {
     private handleLiveLogUpdate(logPath: string) {
         const newSize = fs.statSync(logPath).size;
         const oldSize = this.accessLogStream?.bytesRead || 0;
-        
+
         if (newSize > oldSize) {
             const stream = fs.createReadStream(logPath, {
                 start: oldSize,
                 end: newSize - 1,
                 encoding: this.logEncoding as BufferEncoding
             });
-            
+
             stream.on('data', data => {
                 data.toString().split('\n').forEach(line => {
                     if (line.trim()) this.processAccessLogLine(line);
@@ -575,7 +587,7 @@ export class Logger {
             .replace(/^ - | - $/g, '')
             .replace(/- -/g, '- 200')
             .trim();
-            
+
         this.http(cleanedLine, false);
     }
 
@@ -623,7 +635,7 @@ export class Logger {
         this.logWatchers = [];
 
         this.currentLogFile = newFile;
-        
+
         fs.stat(newFile, (err) => {
             if (err) return;
 
@@ -664,15 +676,15 @@ export class Logger {
             let lines = buffer.split('\n').filter(line => line.trim());
             while (lines.length > 0) {
                 const cleanedLine = lines[lines.length - 1]
-                .replace(/(0:0:0:0:0:0:0:1|127\.0\.0\.1) - -?\s?/g, '')
-                .replace(/\[.*?\]/g, '')
-                .replace(/(HTTP\/1\.1|"+)\s?/g, '')
-                .replace(/"\s?/g, '')
-                .replace(/\s+/g, ' - ')
-                .replace(/^ - | - $/g, '')
-                .replace(/- -/g, '- 200')
-                .trim();
-                
+                    .replace(/(0:0:0:0:0:0:0:1|127\.0\.0\.1) - -?\s?/g, '')
+                    .replace(/\[.*?\]/g, '')
+                    .replace(/(HTTP\/1\.1|"+)\s?/g, '')
+                    .replace(/"\s?/g, '')
+                    .replace(/\s+/g, ' - ')
+                    .replace(/^ - | - $/g, '')
+                    .replace(/- -/g, '- 200')
+                    .trim();
+
                 this.http(cleanedLine, false);
                 lines.pop();
             }
@@ -720,7 +732,7 @@ export class Logger {
 
         const timestamp = this.showTimestamp ? `[${new Date().toLocaleString()}] ` : '';
         const formattedMessage = `${timestamp}[${level}] ${message}`;
-        
+
         // Directly append to channel without recursion
         this.outputChannel.appendLine(formattedMessage);
 

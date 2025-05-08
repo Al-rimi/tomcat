@@ -107,7 +107,7 @@ export function addSyntaxColoringRules() {
         { 
             "scope": "support.type.log-level.error.tomcat", 
             "settings": { 
-                "foreground": "#FF6B6B",  // Error red
+                "foreground": "#D32F2F",  // Error dark red
                 "fontStyle": "bold"       // High visibility
             } 
         },
@@ -121,10 +121,18 @@ export function addSyntaxColoringRules() {
         { 
             "scope": "support.type.log-level.warn.tomcat", 
             "settings": { 
-                "foreground": "#FFCC66",  // Warning amber
+                "foreground": "#FF6B6B",  // Warning red
                 "fontStyle": "" 
             } 
         },
+        { 
+            "scope": "entity.name.log-level.brackets.tomcat", 
+            "settings": { 
+                "foreground": "#FFD700", // Gold for emphasis
+                "fontStyle": "" 
+            } 
+        },
+
 
         // Hyperlink elements - distinct link color
         { 
