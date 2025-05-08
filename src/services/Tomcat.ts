@@ -1,53 +1,22 @@
 /**
- * Tomcat.ts - Apache Tomcat Server Lifecycle Management System
- *
- * Core service responsible for complete Tomcat server instance control within the VS Code
- * environment. Implements enterprise-grade server management capabilities following
- * Apache Tomcat's architectural principles while providing IDE integration features.
- *
- * Architecture:
- * - Implements Singleton pattern to ensure single control point for server state
- * - Follows Facade pattern for complex Tomcat operations
- * - Adheres to VS Code's Disposable pattern for resource management
- * - Uses Strategy pattern for platform-specific implementations
- *
- * Core Capabilities:
- * 1. Server Lifecycle Management:
- *    - Start/Stop/Restart operations with proper sequencing
- *    - Process monitoring and health checking
- *    - Graceful shutdown handling
- *    - PID management for process tracking
- *
- * 2. Configuration Management:
- *    - Dynamic port configuration with validation
- *    - server.xml modification with atomic updates
- *    - Environment variable resolution hierarchy
- *    - Configuration versioning and rollback
- *
- * 3. Security Management:
- *    - tomcat-users.xml administration
- *    - Role-based access control
- *    - Credential management
- *    - Secure configuration updates
- *
- * 4. System Integration:
- *    - Java environment detection
- *    - Platform-specific path handling
- *    - Filesystem permission management
- *    - Network port conflict resolution
- *
- * 5. Maintenance Operations:
- *    - Work directory cleanup
- *    - Temp file management
- *    - Deployment artifact cleanup
- *    - Log file rotation
- *
- * Technical Implementation:
- * - Uses child_process for Tomcat process control
- * - Implements filesystem watchers for configuration changes
- * - Provides atomic operations for critical configurations
- * - Maintains cross-platform compatibility
- * - Implements proper error recovery procedures
+ * Tomcat server lifecycle management system
+ * 
+ * Architectural Role:
+ * - Singleton server controller
+ * - Facade pattern for complex operations
+ * - Strategy pattern for platform-specific implementations
+ * 
+ * Core Responsibilities:
+ * 1. Lifecycle Control: Start/Stop/Restart operations
+ * 2. Configuration Management: Port and XML updates
+ * 3. Security: User management and role configuration
+ * 4. Maintenance: Resource cleanup and temp management
+ * 
+ * Implementation Notes:
+ * - Child process management with SIGTERM handling
+ * - Atomic server.xml modification
+ * - Environment variable resolution hierarchy
+ * - Port conflict detection and resolution
  */
 
 import * as vscode from 'vscode';

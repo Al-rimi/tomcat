@@ -1,59 +1,22 @@
 /**
- * Builder.ts - Enterprise-Grade Build System Orchestration Layer
- *
- * Sophisticated build management system providing unified control over multiple build strategies
- * with deep integration into Java EE ecosystems. Implements production-grade features following
- * modern CI/CD principles while maintaining seamless IDE workflow integration.
- *
- * Architecture:
- * - Implements Singleton pattern for consistent build state management
- * - Uses Strategy pattern for build system implementations
- * - Follows Factory pattern for build artifact handling
- * - Adheres to VS Code's Disposable pattern for resource management
- * - Implements Observer pattern for build progress monitoring
- *
- * Core Capabilities:
- * 1. Multi-Strategy Build System:
- *    - Fast deployment (direct file synchronization)
- *    - Maven lifecycle integration (full POM support)
- *    - Gradle build system support (war task integration)
- *    - Build strategy auto-detection
- *    - Custom strategy injection points
- *
- * 2. Java EE Project Intelligence:
- *    - Project structure detection heuristics
- *    - Web application descriptor validation
- *    - Build system configuration analysis
- *    - Dependency graph resolution
- *    - Artifact signature verification
- *
- * 3. Build Process Management:
- *    - Thread-safe operation execution
- *    - Progress reporting integration
- *    - Build artifact handling
- *    - Error recovery procedures
- *    - Performance telemetry collection
- *
- * 4. Deployment Automation:
- *    - On-save deployment triggers
- *    - Manual deployment control
- *    - Post-build application reload
- *    - Browser launch coordination
- *    - Deployment history tracking
- *
- * 5. Project Scaffolding:
- *    - New project initialization
- *    - Maven archetype integration
- *    - Workspace configuration
- *    - Dependency management
- *    - Template generation
- *
- * Technical Implementation:
- * - Uses child_process for build system execution
- * - Implements filesystem watchers for auto-deploy
- * - Provides atomic operations for critical build steps
- * - Maintains comprehensive Java EE compatibility
- * - Implements proper resource cleanup procedures
+ * Enterprise build orchestration system for Java EE workflows
+ * 
+ * Architectural Role:
+ * - Singleton build coordinator
+ * - Factory pattern for artifact handling
+ * - Observer pattern for progress monitoring
+ * 
+ * Core Responsibilities:
+ * 1. Multi-strategy Builds: Fast/Maven/Gradle deployment
+ * 2. Project Validation: Structure analysis and verification
+ * 3. Auto-deployment: Save event integration
+ * 4. Scaffolding: Project initialization and templating
+ * 
+ * Implementation Notes:
+ * - Filesystem watchers with project scope filtering
+ * - Atomic directory synchronization (brutalSync)
+ * - Build system detection heuristics
+ * - Concurrency control for deployment operations
  */
 
 import * as vscode from 'vscode';

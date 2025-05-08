@@ -1,58 +1,22 @@
 /**
- * Browser.ts - Intelligent Cross-platform Browser Management System
- *
- * Advanced browser control layer providing sophisticated integration with major browsers
- * for application preview and debugging. Implements enterprise-grade features following
- * modern web development practices while maintaining deep IDE integration.
- *
- * Architecture:
- * - Implements Singleton pattern for consistent browser management
- * - Uses Strategy pattern for browser-specific implementations
- * - Follows VS Code's Disposable pattern for resource management
- * - Implements Adapter pattern for debug protocol integration
- * - Uses Factory pattern for browser command generation
- *
- * Core Capabilities:
- * 1. Browser Process Management:
- *    - Cross-platform process control for all major browsers
- *    - Intelligent process detection and resurrection
- *    - Graceful error recovery procedures
- *    - Process lifecycle monitoring
- *
- * 2. Debug Protocol Integration:
- *    - Chrome Debug Protocol (CDP) implementation
- *    - WebSocket-based communication layer
- *    - Tab/session management
- *    - Hot-reload capabilities
- *    - Debug session persistence
- *
- * 3. Cross-platform Support:
- *    - Windows (Win32) specific implementations
- *    - macOS (Darwin) specific implementations
- *    - Linux platform support
- *    - Architecture-specific handling
- *    - Path resolution hierarchy
- *
- * 4. Browser Feature Matrix:
- *    - Google Chrome/Chromium feature support
- *    - Firefox debug protocol integration
- *    - Microsoft Edge compatibility
- *    - Safari technology preview support
- *    - Brave/Opera/Vivaldi compatibility
- *
- * 5. Advanced Functionality:
- *    - Automatic URL encoding/decoding
- *    - Workspace-relative path resolution
- *    - Multi-session management
- *    - Debug port conflict resolution
- *    - Network error recovery
- *
- * Technical Implementation:
- * - Uses child_process for browser process control
- * - Implements WebSocket client for debug protocol
- * - Provides atomic operations for critical browser commands
- * - Maintains comprehensive platform compatibility
- * - Implements proper error recovery procedures
+ * Cross-platform browser management system with debug protocol integration
+ * 
+ * Architectural Role:
+ * - Singleton browser controller
+ * - Strategy pattern for browser-specific implementations
+ * - Adapter pattern for debug protocol integration
+ * 
+ * Core Responsibilities:
+ * 1. Process Management: Cross-platform launch/termination
+ * 2. Debug Integration: WebSocket-based CDP implementation
+ * 3. Session Handling: Tab management and hot-reload
+ * 4. Platform Support: OS-specific command generation
+ * 
+ * Implementation Notes:
+ * - Child process management for browser instances
+ * - Hybrid filesystem watching (polling + event-driven)
+ * - Atomic command generation with debug arguments
+ * - Process resurrection with error recovery
  */
 
 import * as vscode from 'vscode';

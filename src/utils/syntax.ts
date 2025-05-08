@@ -1,59 +1,24 @@
 /**
- * syntax.ts - Advanced Syntax Highlighting and Semantic Coloring System
- *
- * Sophisticated syntax highlighting module providing enhanced visual representation
- * for Java EE development environments. Implements production-grade TextMate grammar
- * rules with deep integration into VS Code's theming system.
- *
- * Architecture:
- * - Implements TextMate grammar rules for maximum compatibility
- * - Follows VS Code's token color customization system
- * - Uses semantic scope hierarchy for precise targeting
- * - Adheres to theme-aware color selection principles
- * - Maintains non-destructive rule merging
- *
- * Core Capabilities:
- * 1. Log File Enhancement:
- *    - Timestamp differentiation with subtle styling
- *    - Log level semantic coloring (INFO, DEBUG, ERROR, etc.)
- *    - Structured log message parsing
- *    - Error/warning prioritization
- *    - Success state visualization
- *
- * 2. Java EE Syntax Augmentation:
- *    - Class/method semantic highlighting
- *    - Annotation-specific styling
- *    - Parameter/argument differentiation
- *    - Type hierarchy visualization
- *    - Access modifier emphasis
- *
- * 3. Build System Integration:
- *    - Build duration/time metrics
- *    - Numeric constant formatting
- *    - File path/artifact highlighting
- *    - Error stack trace parsing
- *    - Warning/notice differentiation
- *
- * 4. Configuration File Support:
- *    - XML/Properties file enhancement
- *    - Server configuration elements
- *    - Environment variable highlighting
- *    - Port/network configuration
- *    - Security realm visualization
- *
- * 5. Theme Integration:
- *    - Works with both light and dark themes
- *    - Maintains contrast ratios for accessibility
- *    - Non-destructive rule merging
- *    - Fallback color handling
- *    - Customization point exposure
- *
- * Technical Implementation:
- * - Uses VS Code's TextMate grammar system
- * - Implements scope hierarchy best practices
- * - Provides atomic rule updates
- * - Maintains existing user customizations
- * - Follows semantic versioning for rule changes
+ * Advanced syntax highlighting system for Java EE development
+ * 
+ * Architectural Role:
+ * - TextMate grammar rule implementation
+ * - Semantic scope hierarchy management
+ * - Theme-aware color customization
+ * 
+ * Core Responsibilities:
+ * 1. Log File Analysis: Level-based coloring and timestamp differentiation
+ * 2. Java EE Semantics: Class/method/annotation highlighting
+ * 3. Build System Visualization: Metrics and path highlighting
+ * 4. Configuration Support: XML/properties enhancement
+ * 5. Theme Integration: Light/dark mode compatibility
+ * 
+ * Implementation Notes:
+ * - Non-destructive rule merging with user customizations
+ * - Accessibility-focused contrast ratios
+ * - Atomic configuration updates
+ * - Scope-based priority system
+ * - Cross-theme color fallbacks
  */
 
 import * as vscode from 'vscode';

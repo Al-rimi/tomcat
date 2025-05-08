@@ -1,57 +1,34 @@
 /**
- * extension.ts - VS Code Extension Main Entry Point
+ * VS Code Tomcat Extension Main Entry Point
  * 
- * Primary module responsible for initializing and coordinating all Tomcat management
- * functionality within the VS Code extension host environment. Implements the VS Code
- * Extension API contract for activation/deactivation lifecycle management.
- *
  * Architectural Role:
- * - Serves as the composition root for dependency injection
- * - Implements the mediator pattern for cross-component coordination
- * - Acts as the event hub for configuration changes and workspace events
- * - Maintains the subscription registry for proper resource cleanup
- *
- * Core Functionality:
- * 1. Extension Lifecycle Management:
- *    - Implements activate()/deactivate() hooks per VS Code API spec
- *    - Manages singleton component initialization
- *    - Handles extension context subscription disposal
- *
- * 2. Command Registration:
- *    - Exposes Tomcat control surface via VS Code command palette
- *    - Maps CLI-style commands to component methods
- *    - Maintains context-aware command enablement states
- *
- * 3. Configuration Management:
- *    - Monitors workspace configuration changes
- *    - Coordinates cascading configuration updates
- *    - Handles environment variable resolution
- *
- * 4. Event Handling:
- *    - Listens to workspace save events for auto-deploy
- *    - Filters events by project scope
- *    - Implements debouncing where needed
- *
- * 5. UI Integration:
- *    - Initializes syntax highlighting rules
- *    - Manages status bar components
- *    - Controls webview-based help system
- *
- * Implementation Details:
- * - Uses VS Code's Disposable pattern for resource management
- * - Implements lazy initialization for heavy components
- * - Follows the principle of least privilege for API access
- * - Maintains separation of concerns between UI and core logic
- * - Implements defensive programming for workspace state
+ * - Composition root for dependency injection
+ * - Mediator for cross-component coordination
+ * - Central event hub for workspace/config events
+ * - Subscription management for resource disposal
+ * 
+ * Core Responsibilities:
+ * 1. Lifecycle Management: Activation/deactivation hooks, singleton initialization
+ * 2. Command Surface: Palette command registration with context-aware states
+ * 3. Config Management: Cascading updates with env variable resolution
+ * 4. Event Handling: Workspace save events with project-scoped filtering
+ * 5. UI Integration: Syntax highlighting, status bar, webview panels
+ * 
+ * Implementation Notes:
+ * - Strict Disposable pattern adherence
+ * - Lazy initialization for resource-heavy components
+ * - Principle of least privilege for VS Code API access
+ * - Decoupled UI/core logic architecture
+ * - Defensive workspace state handling
  */
 
 import * as vscode from 'vscode';
-import { showHelpPanel } from './ui/help';
-import { addSyntaxColoringRules } from './ui/syntax';
-import { Builder } from './utils/Builder';
-import { Tomcat } from './utils/Tomcat';
-import { Logger } from './utils/Logger';
-import { Browser } from './utils/Browser';
+import { showHelpPanel } from '../utils/help';
+import { addSyntaxColoringRules } from '../utils/syntax';
+import { Builder } from '../services/Builder';
+import { Tomcat } from '../services/Tomcat';
+import { Logger } from '../services/Logger';
+import { Browser } from '../services/Browser';
 
 /**
  * Extension activation hook

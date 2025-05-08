@@ -1,63 +1,22 @@
 /**
- * Logger.ts - Integrated Logging and Tomcat Deployment Management System
- *
- * Unified facility combining advanced logging capabilities with Tomcat server management
- * features. Provides real-time monitoring of deployment operations and access logs
- * through tight VS Code integration.
- *
- * Key Functionalities:
- * - Multi-level logging with UI integration
- * - Tomcat deployment mode management
- * - Access log file monitoring
- * - Status bar interaction system
- * - Configuration synchronization
- *
- * Architecture Highlights:
- * - Singleton service management
- * - Event-driven log file watching
- * - Disposable pattern for resource cleanup
+ * Unified logging facility with Tomcat integration
+ * 
+ * Architectural Role:
+ * - Singleton logging service
  * - Observer pattern for status updates
- * - Asynchronous file system operations
- *
- * Core Operational Components:
- * 1. Logging Subsystem:
- *    - DEBUG: Development diagnostics
- *    - INFO: Operational milestones
- *    - WARN: Non-critical issues
- *    - ERROR: Critical failures
- *    - SUCCESS: Deployment confirmations
- *    - HTTP: Access log processing
- *    - APP: Application-specific messages
- *
- * 2. Deployment Management:
- *    - Status bar mode indicator
- *    - Deployment mode cycling
- *    - Configuration persistence
- *    - Auto-deploy triggers
- *    - Shortcut key binding
- *
- * 3. Log Monitoring:
- *    - Automatic log file detection
- *    - Real-time log rotation handling
- *    - Access log sanitization
- *    - HTTP event extraction
- *    - Change delta processing
- *
- * Advanced Features:
- * - Cross-platform shortcut adaptation
- * - Dynamic status bar animations
- * - Configurable polling intervals
- * - User interaction tracking
- * - Log context preservation
- * - Automated resource cleanup
- *
- * Technical Implementation:
- * - VS Code API integration (OutputChannel, StatusBarItem)
- * - Node.js filesystem watchers
- * - Stream-based log processing
- * - Configuration change listeners
  * - Disposable resource management
- * - Async/Promise error handling
+ * 
+ * Core Responsibilities:
+ * 1. Multi-level Logging: DEBUG to ERROR filtering
+ * 2. Log Monitoring: Real-time access log processing
+ * 3. Status Management: Deployment mode indication
+ * 4. Output Handling: Auto-scroll and channel management
+ * 
+ * Implementation Notes:
+ * - Hybrid log watching (polling + stream-based)
+ * - Tomcat log format normalization
+ * - Status bar animation coordination
+ * - Context-aware log filtering
  */
 
 import * as vscode from 'vscode';
