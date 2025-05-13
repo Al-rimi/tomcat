@@ -1,6 +1,12 @@
 # Change Log
 
 ## [Unreleased]
+### Changed
+- Implemented a precise way to detect Tomcat Server startup and context reload for reloading the browser (Thanks to @zhuxiaodics6)
+
+### Fixed
+- Added Fall back for browsers reload issues
+- Added `tomcat.autoReloadBrowser` configuration option to control browser reload behavior (Temporarily)
 
 ## [2.5.2] - 2025-05-09
 ### Changed

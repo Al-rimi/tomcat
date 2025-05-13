@@ -132,12 +132,14 @@ function updateSettings(event: vscode.ConfigurationChangeEvent) {
         Builder.getInstance().updateConfig();
         Logger.getInstance().updateConfig();
 
-    } else if (event.affectsConfiguration('tomcat.browser')) {
+    } else if (event.affectsConfiguration('tomcat.browser') ||
+        event.affectsConfiguration('tomcat.autoReloadBrowser')) {
         Browser.getInstance().updateConfig();
 
     } else if (event.affectsConfiguration('tomcat.showTimestamp') ||
         event.affectsConfiguration('tomcat.logLevel')) {
         Logger.getInstance().updateConfig();
+        
     } else if (event.affectsConfiguration('tomcat.logEncoding')) {
         const configured = vscode.workspace.getConfiguration().get<string>('tomcat.logEncoding', 'utf8');
         try {

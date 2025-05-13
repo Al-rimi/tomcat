@@ -31,6 +31,8 @@ export class Browser {
     private static instance: Browser;
     private browser: 'Disabled' | 'Google Chrome' | 'Firefox' | 'Microsoft Edge' | 'Brave' | 'Opera' | 'Safari';
     private port: number;
+    private started: boolean;
+    private autoReloadBrowser: boolean;
 
     /**
      * Singleton accessor method
@@ -60,6 +62,8 @@ export class Browser {
     constructor() {
         this.browser = vscode.workspace.getConfiguration().get<string>('tomcat.browser', 'Google Chrome') as 'Disabled' | 'Google Chrome' | 'Firefox' | 'Microsoft Edge' | 'Brave' | 'Opera' | 'Safari';
         this.port = vscode.workspace.getConfiguration().get<number>('tomcat.port', 8080);
+        this.started = false;
+        this.autoReloadBrowser = vscode.workspace.getConfiguration().get<boolean>('tomcat.autoReloadBrowser', true);
     }
 
     /**
@@ -73,6 +77,8 @@ export class Browser {
     public updateConfig(): void {
         this.browser = vscode.workspace.getConfiguration().get<string>('tomcat.browser', 'Google Chrome') as 'Disabled' | 'Google Chrome' | 'Firefox' | 'Microsoft Edge' | 'Brave' | 'Opera' | 'Safari';
         this.port = vscode.workspace.getConfiguration().get<number>('tomcat.port', 8080);
+        this.started = false;
+        this.autoReloadBrowser = vscode.workspace.getConfiguration().get<boolean>('tomcat.autoReloadBrowser', true);
     }
 
     /**
@@ -175,17 +181,32 @@ export class Browser {
      * @log warning on unsupported browsers
      */
     public async run(appName: string): Promise<void> {
+        if (!appName) {
+            logger.error('No application name provided', true, 'Please provide a valid application name');
+            return;
+        }
+
         const appUrl = `http://localhost:${this.port}/${appName.replace(/\s/g, '%20')}`;
         if (this.browser === 'Disabled') { 
             logger.info(`Access your app at: ${appUrl}`);
             return;
         }
-        const debugUrl = `http://localhost:9222/json`;
 
+        const debugUrl = `http://localhost:9222/json`;
         const browserCommand = this.getBrowserCommand(this.browser, appUrl);
         if (!browserCommand) {
             logger.error(`${this.browser} is not supported on this platform. `, true, `Please use a different browser`);
             return;
+        }
+
+        if (!this.autoReloadBrowser) {
+            if (this.started) {
+                logger.info(`Access your app at: ${appUrl}`);
+            } else {
+                this.started = true;
+                logger.info(`Opening new ${this.browser} window`);
+                try { await this.execCommand(browserCommand); } catch {}
+            }      
         }
 
         logger.updateStatusBar(this.browser);
@@ -311,7 +332,10 @@ export class Browser {
     private async handleBrowserError(browser: string, command: string): Promise<void> {
         const isRunning = await this.checkProcess(browser);
         try {
-            if (isRunning) {
+            if (this.started) {
+                logger.warn(`Failed to connect to ${browser} fall back to new launch, Change the browser or disable the browser reload from the settings. For more informations visit: https://github.com/Al-rimi/tomcat?tab=readme-ov-file#known-issues`, false);
+                await this.execCommand(command);
+            } else if (isRunning) {
                 const choice = await vscode.window.showInformationMessage(
                     `${browser} needs restart in debug mode`, 'Restart', 'Cancel'
                 );
@@ -320,11 +344,9 @@ export class Browser {
                     await this.killProcess(browser);
                     await this.execCommand(command);
                 }
-            } else {
-                await this.execCommand(command);
             }
         } catch (err) {
-            logger.error(`Failed to kill ${browser} process:`, true, err as string);
+            logger.error(`Failed to Reload ${browser} process:`, true, err as string);
         }
     }
 
@@ -341,6 +363,8 @@ export class Browser {
      * @throws Error on command failure
      */
     private async execCommand(command: string): Promise<void> {
+        this.started = true;
+
         return new Promise((resolve, reject) => {
             exec(command, (err) => {
                 if (err) {
@@ -445,15 +469,17 @@ export class Browser {
         const platform = process.platform as keyof typeof Browser.PROCESS_NAMES;
         const processes = Browser.PROCESS_NAMES[browser]?.[platform] || [];
 
-        if (process.platform === 'win32') {
-            const command = `Stop-Process -Force -Name '${processes.join("','")}'`;
-            await new Promise<void>((resolve) => {
-                exec(command, { shell: 'powershell.exe' }, () => resolve());
-            });
-        } else {
-            await new Promise<void>((resolve) => {
-                exec(`pkill -f '${processes.join('|')}'`, () => resolve());
-            });
-        }
+        try {
+            if (process.platform === 'win32') {
+                const command = `Stop-Process -Force -Name '${processes.join("','")}'`;
+                await new Promise<void>((resolve) => {
+                    exec(command, { shell: 'powershell.exe' }, () => resolve());
+                });
+            } else {
+                await new Promise<void>((resolve) => {
+                    exec(`pkill -f '${processes.join('|')}'`, () => resolve());
+                });
+            }
+        } catch { }
     }
 }
