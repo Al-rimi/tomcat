@@ -29,7 +29,7 @@ const logger = Logger.getInstance();
 
 export class Browser {
     private static instance: Browser;
-    private browser: 'Disabled' | 'Google Chrome' | 'Firefox' | 'Microsoft Edge' | 'Brave' | 'Opera' | 'Safari';
+    private browser: 'Disable' | 'Google Chrome' | 'Firefox' | 'Microsoft Edge' | 'Brave' | 'Opera' | 'Safari';
     private port: number;
     private started: boolean;
     private autoReloadBrowser: boolean;
@@ -60,7 +60,7 @@ export class Browser {
      * - Prepares debug protocol parameters
      */
     constructor() {
-        this.browser = vscode.workspace.getConfiguration().get<string>('tomcat.browser', 'Google Chrome') as 'Disabled' | 'Google Chrome' | 'Firefox' | 'Microsoft Edge' | 'Brave' | 'Opera' | 'Safari';
+        this.browser = vscode.workspace.getConfiguration().get<string>('tomcat.browser', 'Google Chrome') as 'Disable' | 'Google Chrome' | 'Firefox' | 'Microsoft Edge' | 'Brave' | 'Opera' | 'Safari';
         this.port = vscode.workspace.getConfiguration().get<number>('tomcat.port', 8080);
         this.started = false;
         this.autoReloadBrowser = vscode.workspace.getConfiguration().get<boolean>('tomcat.autoReloadBrowser', true);
@@ -75,7 +75,7 @@ export class Browser {
      * - Updates dependent properties
      */
     public updateConfig(): void {
-        this.browser = vscode.workspace.getConfiguration().get<string>('tomcat.browser', 'Google Chrome') as 'Disabled' | 'Google Chrome' | 'Firefox' | 'Microsoft Edge' | 'Brave' | 'Opera' | 'Safari';
+        this.browser = vscode.workspace.getConfiguration().get<string>('tomcat.browser', 'Google Chrome') as 'Disable' | 'Google Chrome' | 'Firefox' | 'Microsoft Edge' | 'Brave' | 'Opera' | 'Safari';
         this.port = vscode.workspace.getConfiguration().get<number>('tomcat.port', 8080);
         this.started = false;
         this.autoReloadBrowser = vscode.workspace.getConfiguration().get<boolean>('tomcat.autoReloadBrowser', true);
@@ -187,7 +187,7 @@ export class Browser {
         }
 
         const appUrl = `http://localhost:${this.port}/${appName.replace(/\s/g, '%20')}`;
-        if (this.browser === 'Disabled') { 
+        if (this.browser === 'Disable') { 
             logger.info(`Access your app at: ${appUrl}`);
             return;
         }
@@ -332,7 +332,7 @@ export class Browser {
     private async handleBrowserError(browser: string, command: string): Promise<void> {
         const isRunning = await this.checkProcess(browser);
         try {
-            if (this.started) {
+            if (this.started && isRunning) {
                 logger.warn(`Failed to connect to ${browser} fall back to new launch, Change the browser or disable the browser reload from the settings. For more informations visit: https://github.com/Al-rimi/tomcat?tab=readme-ov-file#known-issues`, false);
                 await this.execCommand(command);
             } else if (isRunning) {
@@ -344,6 +344,8 @@ export class Browser {
                     await this.killProcess(browser);
                     await this.execCommand(command);
                 }
+            } else {
+                await this.execCommand(command);
             }
         } catch (err) {
             logger.error(`Failed to Reload ${browser} process:`, true, err as string);

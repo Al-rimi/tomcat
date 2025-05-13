@@ -1,8 +1,11 @@
 # Change Log
 
 ## [Unreleased]
+
+## [2.5.3] - 2025-05-14
 ### Changed
 - Implemented a precise way to detect Tomcat Server startup and context reload for reloading the browser (Thanks to @zhuxiaodics6)
+- update misspelling in setting options and documentation
 
 ### Fixed
 - Added Fall back for browsers reload issues

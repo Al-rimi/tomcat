@@ -7,7 +7,7 @@
  * - Observer pattern for progress monitoring
  * 
  * Core Responsibilities:
- * 1. Multi-strategy Builds: Fast/Maven/Gradle deployment
+ * 1. Multi-strategy Builds: Local/Maven/Gradle deployment
  * 2. Project Validation: Structure analysis and verification
  * 3. Auto-deployment: Save event integration
  * 4. Scaffolding: Project initialization and templating
@@ -33,7 +33,7 @@ const logger = Logger.getInstance();
 
 export class Builder {
     private static instance: Builder;
-    private autoDeployBuildType: 'Fast' | 'Maven' | 'Gradle';
+    private autoDeployBuildType: 'Local' | 'Maven' | 'Gradle';
     private autoDeployMode: 'On Save' | 'On Shortcut' | 'Disabled';
     private isDeploying = false;
     private attempts = 0;
@@ -47,7 +47,7 @@ export class Builder {
      * - Prepares deployment triggers
      */
     private constructor() {
-        this.autoDeployBuildType = vscode.workspace.getConfiguration().get('tomcat.autoDeployBuildType', 'Fast') as 'Fast' | 'Maven' | 'Gradle';
+        this.autoDeployBuildType = vscode.workspace.getConfiguration().get('tomcat.autoDeployBuildType', 'Local') as 'Local' | 'Maven' | 'Gradle';
         this.autoDeployMode = vscode.workspace.getConfiguration().get('tomcat.autoDeployMode', 'Disabled') as 'On Save' | 'On Shortcut' | 'Disabled';
     }
 
@@ -77,7 +77,7 @@ export class Builder {
      * - Updates dependent properties
      */
     public updateConfig(): void {
-        this.autoDeployBuildType = vscode.workspace.getConfiguration().get('tomcat.autoDeployBuildType', 'Fast') as 'Fast' | 'Maven' | 'Gradle';
+        this.autoDeployBuildType = vscode.workspace.getConfiguration().get('tomcat.autoDeployBuildType', 'Local') as 'Local' | 'Maven' | 'Gradle';
         this.autoDeployMode = vscode.workspace.getConfiguration().get('tomcat.autoDeployMode', 'Disabled') as 'On Save' | 'On Shortcut' | 'Disabled';
     }
 
@@ -131,10 +131,10 @@ export class Builder {
      * 4. Build execution
      * 5. Post-deployment actions
      * 
-     * @param type Build strategy ('Fast' | 'Maven' | 'Gradle' | 'Choice')
+     * @param type Build strategy ('Local' | 'Maven' | 'Gradle' | 'Choice')
      * @log Deployment progress and errors
      */
-    public async deploy(type: 'Fast' | 'Maven' | 'Gradle' | 'Choice'): Promise<void> {
+    public async deploy(type: 'Local' | 'Maven' | 'Gradle' | 'Choice'): Promise<void> {
         const projectDir = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
         if (!projectDir || !Builder.isJavaEEProject()) {
             await this.createNewProject();
@@ -144,11 +144,11 @@ export class Builder {
 
         if (type === 'Choice') {
             isChoice = true;
-            const subAction = vscode.window.showQuickPick(['Fast', 'Maven', 'Gradle'], {
+            const subAction = vscode.window.showQuickPick(['Local', 'Maven', 'Gradle'], {
                 placeHolder: 'Select build type'
             });
             await subAction.then((choice) => {
-                type = (choice as 'Fast' | 'Maven' | 'Gradle');
+                type = (choice as 'Local' | 'Maven' | 'Gradle');
             });
             if (!type || type === 'Choice') { return; }
         }
@@ -165,7 +165,7 @@ export class Builder {
 
         try {            
             const action = {
-                'Fast': () => this.fastDeploy(projectDir, targetDir, tomcatHome),
+                'Local': () => this.localDeploy(projectDir, targetDir, tomcatHome),
                 'Maven': () => this.mavenDeploy(projectDir, targetDir),
                 'Gradle': () => this.gradleDeploy(projectDir, targetDir, appName),
             }[type];
@@ -297,7 +297,7 @@ export class Builder {
     }
 
     /**
-     * Fast Deployment Strategy
+     * Local Deployment Strategy
      * 
      * Implements direct file synchronization with:
      * 1. Web application directory validation
@@ -311,7 +311,7 @@ export class Builder {
      * @param tomcatHome Tomcat installation directory
      * @throws Error if build fails or java source compilation fails or if webapp directory not found
      */
-    private async fastDeploy(projectDir: string, targetDir: string, tomcatHome: string) {
+    private async localDeploy(projectDir: string, targetDir: string, tomcatHome: string) {
         const webAppPath = path.join(projectDir, 'src', 'main', 'webapp');
         if (!fs.existsSync(webAppPath)) {
             throw new Error(`WebApp directory not found: ${webAppPath}`);

@@ -81,7 +81,7 @@ export class Logger {
      */
     private constructor() {
         this.tomcatHome = vscode.workspace.getConfiguration().get<string>('tomcat.home', '');
-        this.autoDeployMode = vscode.workspace.getConfiguration().get<string>('tomcat.autoDeployMode', 'Disabled');
+        this.autoDeployMode = vscode.workspace.getConfiguration().get<string>('tomcat.autoDeployMode', 'Disable');
         this.logLevel = vscode.workspace.getConfiguration().get<string>('tomcat.logLevel', 'INFO').toUpperCase();
         if (!Object.keys(this.logLevels).includes(this.logLevel)) {
             this.logLevel = 'INFO';
@@ -127,7 +127,7 @@ export class Logger {
      */
     public updateConfig(): void {
         this.tomcatHome = vscode.workspace.getConfiguration().get<string>('tomcat.home', '');
-        this.autoDeployMode = vscode.workspace.getConfiguration().get<string>('tomcat.autoDeployMode', 'Disabled');
+        this.autoDeployMode = vscode.workspace.getConfiguration().get<string>('tomcat.autoDeployMode', 'Disable');
         this.logLevel = vscode.workspace.getConfiguration().get<string>('tomcat.logLevel', 'INFO').toUpperCase();
         if (!Object.keys(this.logLevels).includes(this.logLevel)) {
             this.logLevel = 'INFO';
@@ -289,17 +289,17 @@ export class Logger {
      * Deployment mode toggler
      * 
      * Cycles through deployment modes:
-     * 1. Disabled → On Shortcut
+     * 1. Disable → On Shortcut
      * 2. On Shortcut → On Save
-     * 3. On Save → Disabled
+     * 3. On Save → Disable
      * 
      * Persists changes to workspace configuration
      */
     public async toggleDeploySetting() {
         switch (this.autoDeployMode) {
-            case 'Disabled': this.autoDeployMode = 'On Shortcut'; break;
+            case 'Disable': this.autoDeployMode = 'On Shortcut'; break;
             case 'On Shortcut': this.autoDeployMode = 'On Save'; break;
-            case 'On Save': this.autoDeployMode = 'Disabled'; break;
+            case 'On Save': this.autoDeployMode = 'Disable'; break;
         }
 
         await vscode.workspace.getConfiguration().update('tomcat.autoDeployMode', this.autoDeployMode, true);

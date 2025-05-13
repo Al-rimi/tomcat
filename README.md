@@ -6,25 +6,19 @@ Advanced Apache Tomcat management. Full server control, smart deployment, browse
 
 ## Features
 
-- **Full Server Logs Monitoring**
+- **Full Server Logs Monitoring**  
   Monitor All+ Tomcat logs in real-time with syntax highlighting
 
-- **HTTP Traffic Monitoring**  
-  Monitor Tomcat access logs dynamically with built-in syntax highlighting
+- **Build Strategies**  
+  Three build strategies Local, Maven and Gradle to choose from
 
-- **Customizable Deployment Strategies**  
-  Three build strategies with memory-optimized fast deployment (4× faster than Maven)
-
-- **On-Save Deployment**  
-  Automatically deploy your project every time you save a file — no manual steps needed.
+- **Save/Ctrl+S Deployment**
+  Automatically deploy your project every time you save a file or press Ctrl+S/Cmd+S
 
 - **Built-in Debugging**  
   Java-specific syntax coloring in output channel with organized error messages
 
-- **Smart Resource Management**  
-  Automatic process cleanup and EBUSY error recovery during deployments
-
-- **Cross-Browser Automation**  
+- **Browser Automation**  
   Automate browser testing across multiple browsers seamlessly.
 
 ## Installation
@@ -141,12 +135,13 @@ Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 | **Setting**                  | **Default**       | **Description**                                                                          |
 |------------------------------|-------------------|------------------------------------------------------------------------------------------|
 | `tomcat.autoDeployBuildType` | `Fast`            | Default build strategy for deployments (`Fast`, `Maven`, `Gradle`)                       |
-| `tomcat.autoDeployMode`      | `Disabled`        | Auto-deploy triggers (`Disabled`, `On Save`, `On Shortcut`)                              |
-| `tomcat.browser`             | `Google Chrome`   | Browser for app launch & debug (`Google Chrome`, `Microsoft Edge`, `Firefox`, `Safari`, `Brave`, `Opera`) |
+| `tomcat.autoDeployMode`      | `Disable`        | Auto-deploy triggers (`Disable`, `On Save`, `On Shortcut`)                              |
+| `tomcat.browser`             | `Google Chrome`   | Browser for app launch & debug (`Disable`, `Google Chrome`, `Microsoft Edge`, `Firefox`, `Safari`, `Brave`, `Opera`) |
 | `tomcat.port`                | `8080`            | Tomcat server listen port (valid range: `1024`-`65535`)                                  |
 | `tomcat.protectedWebApps`    | `["ROOT", "docs", "examples", "manager", "host-manager"]` | List of protected web apps during cleanup operations |
 | `tomcat.logLevel`            | `INFO`            | Minimum log level to display (`DEBUG`, `INFO`, `SUCCESS`, `HTTP`, `APP`, `WARN`, `ERROR`) |
 | `tomcat.showTimestamp`       | `true`            | Whether to include timestamps in log messages                                            |
+| `tomcat.autoReloadBrowser`   | `true`            | Whether to automatically reload the browser after deployment. Disable this option if having issues with the browser reloading. |
 | `tomcat.logEncoding`         | `utf8`            | Encoding for Tomcat logs (`utf8`, `ascii`, `utf-8`, `utf16le`, `utf-16le`, `ucs2`, `ucs-2`, `base64`, `base64url`, `latin1`, `binary`, `hex`) |
 
 > `tomcat.home` and `tomcat.javaHome` are now auto-detected and hidden from user settings.
@@ -167,29 +162,56 @@ For technical implementation details and contribution guidelines, see:
 - [Development Guide](https://github.com/Al-rimi/tomcat/tree/main/docs/DEVELOPMENT.md) 
 - [Testing Strategy](https://github.com/Al-rimi/tomcat/tree/main/docs/TESTING.md)
 
+
 ## Known Issues
 
-- Firefox and Safari will always open a new tab instead of reusing the existing one due to browser limitations.
+- **Browser Compatibility for Auto-Reload**  
+  <details>
+  <summary>Some browsers may not support automatic page reloading (click to expand)</summary>
 
-[![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/issues)
+  The extension uses the Chrome Debug Protocol (CDP) to reload pages after deployment. Currently supported browsers include:
+  - Google Chrome
+  - Microsoft Edge
+  - Brave
+  - Opera
+
+  **Unsupported Browsers**:
+  - Firefox
+  - Safari
+  
+  These lack CDP support and will not auto-reload.
+  </details>
+
+- **Debug Mode Launch Failures**  
+  <details>
+  <summary>Occasional issues launching browsers in debug mode (click to expand)</summary>
+
+  Even supported browsers might fail to launch in debug mode due to system configurations. The extension uses this command template:
+  ```bash
+  start chrome.exe --remote-debugging-port=9222 http://localhost:8080/app-name
+  ```
+  **Common solutions**:
+  1. Verify browser executable path in system PATH
+  2. Ensure no other instances are using port 9222
+  3. Update browser to latest version
+
+  If issues persist, disable `tomcat.autoReloadBrowser` in settings.
+  </details>
+
+[![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/issues/new)  
+[![Suggest Fix](https://img.shields.io/badge/-Suggest_Fix-green?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/pulls)
 
 
-## What's New in 2.5.2
+## What's New in 2.5.3
 
 - **Real-Time Server Insights**  
   Instant full server logging with dual-stream architecture for all server events (Thanks to @zhuxiaodics6)
 
-- **Universal Log Encoding Support**  
-  Added `tomcat.logEncoding` configuration with 15 supported encodings for proper international log handling
-
 - **Granular Log Control**  
   New `tomcat.logLevel` and `tomcat.showTimestamp` settings for customized logging
 
-- **Reliable Log Rotation**  
-  Enhanced date pattern matching for accurate log rotation detection
-
-- **Cross-Platform Stability**  
-  Fixed concurrent access during log rotation and improved multi-OS line ending handling
+- **Fixed Browser Reload Issue**
+  Add fall back to reduce CDP bug damage and `tomcat.autoReloadBrowser` setting to control browser reload behavior
 
 - **Removed Unnecessary Futures**
   Removed help command and associated documentation and `tomcat.autoScrollOutput` configuration setting

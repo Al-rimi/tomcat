@@ -164,28 +164,28 @@
         "tomcat.autoDeployMode": {
           "type": "string",
           "enum": [
-            "Disabled",
+            "Disable",
             "On Save",
             "On Shortcut"
           ],
-          "default": "Disabled",
+          "default": "Disable",
           "scope": "machine",
           "description": "Select the auto deployment mode.'On Save' will deploy the project when you save any file in it. 'On Shortcut' will deploy the project when you press Ctrl+S or Cmd+S."
         },
         "tomcat.autoDeployBuildType": {
           "type": "string",
           "enum": [
-            "Fast",
+            "Local",
             "Maven",
             "Gradle"
           ],
-          "default": "Fast",
+          "default": "Local",
           "description": "Select the default build type for auto deployment."
         },
         "tomcat.browser": {
           "type": "string",
           "enum": [
-            "Disabled",
+            "Disable",
             "Google Chrome",
             "Microsoft Edge",
             "Firefox",
