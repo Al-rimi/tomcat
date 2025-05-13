@@ -240,9 +240,7 @@ export class Browser {
             return this.getBrowserCommand("Google Chrome", url) || null;
         }
 
-        const debugArgs = browser === 'Firefox'
-            ? '--start-debugger-server'
-            : '--remote-debugging-port=9222';
+        const debugArgs = '--remote-debugging-port=9222';
 
         return `${browserCommands.join(' ')} ${debugArgs} ${url}`;
     }
