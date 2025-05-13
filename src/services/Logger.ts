@@ -664,18 +664,24 @@ export class Logger {
         return dateMatch ? Date.parse(dateMatch[1]) : 0;
     }
 
+    private keywordCallbacks: { keyword: string, callback: () => void }[] = [];
+
     /**
-     * Core logging mechanism
+     * Register a callback for detecting a specific keyword in logs.
      * 
-     * Handles log message processing with:
-     * - Level filtering
-     * - Timestamping
-     * - Formatting
-     * - Multi-channel routing
+     * @param keyword The keyword to detect.
+     * @param callback The callback to execute when the keyword is detected.
+     */
+    public onKeyword(keyword: string, callback: () => void): void {
+        this.keywordCallbacks.push({ keyword, callback });
+    }
+
+    /**
+     * Core logging mechanism (modified).
      * 
-     * @param level Log severity level
-     * @param message Log content
-     * @param showUI Optional UI notification callback
+     * @param level The log severity level.
+     * @param message The content of the log.
+     * @param showUI Optional callback to show a UI notification.
      */
     private log(
         level: string,
@@ -689,7 +695,13 @@ export class Logger {
         const timestamp = this.showTimestamp ? `[${new Date().toLocaleString()}] ` : '';
         const formattedMessage = `${timestamp}[${level}] ${message}`;
 
-        // Directly append to channel without recursion
+        // Detect the keyword and trigger the callback
+        for (const { keyword, callback } of this.keywordCallbacks) {
+            if (message.includes(keyword)) {
+                callback(); // Trigger the callback
+            }
+        }
+
         this.outputChannel.appendLine(formattedMessage);
 
         if (showUI) {
