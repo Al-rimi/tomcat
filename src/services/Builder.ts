@@ -186,6 +186,11 @@ export class Builder {
                 await action();
             }
 
+            // Register a keyword callback in the Logger
+            logger.onKeyword('毫秒后服务器启动', () => {
+                Browser.getInstance().run(appName); // Start the browser
+            });
+
             logger.defaultStatusBar();
 
             const endTime = performance.now();
@@ -196,7 +201,6 @@ export class Builder {
                 await new Promise(resolve => setTimeout(resolve, 50));
                 await tomcat.reload();
                 await new Promise(resolve => setTimeout(resolve, 100));
-                Browser.getInstance().run(appName);
             }
 
             this.attempts = 0;
