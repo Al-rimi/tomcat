@@ -187,7 +187,7 @@ export class Builder {
             }
 
             // Register a keyword callback in the Logger
-            logger.onKeyword('Server startup in milliseconds', () => {
+            logger.onKeyword('毫秒后服务器启动', () => {
                 Browser.getInstance().run(appName); // Start the browser
             });
 
