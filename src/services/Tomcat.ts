@@ -40,6 +40,7 @@ export class Tomcat {
     private protectedWebApps: string[];
     private port: number;
     private tomcatProcess: ChildProcess | null = null;
+    private currentAppName: string = '';
 
     private readonly PORT_RANGE = { min: 1024, max: 65535 };
 
@@ -105,6 +106,15 @@ export class Tomcat {
     }
 
     /**
+     * Set the application name for deployment
+     * 
+     * @param appName Name of the application to be deployed
+     */
+    public setAppName(appName: string): void {
+        this.currentAppName = appName;
+    }
+
+    /**
      * Tomcat server startup procedure
      * 
      * Orchestrates complete server startup sequence:
@@ -119,7 +129,7 @@ export class Tomcat {
     public async start(showMessages: boolean = false): Promise<void> {
         const tomcatHome = await this.findTomcatHome();
         const javaHome = await this.findJavaHome();
-        if (!tomcatHome || !javaHome) {return;}
+        if (!tomcatHome || !javaHome) { return; }
 
         if (await this.isTomcatRunning()) {
             logger.info('Tomcat is already running', showMessages);
@@ -148,10 +158,10 @@ export class Tomcat {
      * 
      * @log Error if shutdown sequence fails
      */
-    public async stop(showMessages: boolean = false): Promise<void> {        
+    public async stop(showMessages: boolean = false): Promise<void> {
         const tomcatHome = await this.findTomcatHome();
         const javaHome = await this.findJavaHome();
-        if (!tomcatHome || !javaHome) {return;}
+        if (!tomcatHome || !javaHome) { return; }
 
         if (!await this.isTomcatRunning()) {
             logger.info('Tomcat is not running', showMessages);
@@ -187,12 +197,12 @@ export class Tomcat {
     public async reload(): Promise<void> {
         const tomcatHome = await this.findTomcatHome();
         const javaHome = await this.findJavaHome();
-        
+
         if (!tomcatHome || !javaHome) { return; }
 
         try {
             const appName = path.basename(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '');
-            if (!appName) {return;}
+            if (!appName) { return; }
 
             const response = await fetch(`http://localhost:${this.port}/manager/text/reload?path=/${encodeURIComponent(appName)}`, {
                 headers: {
@@ -225,25 +235,25 @@ export class Tomcat {
      * 4. Resource leak prevention
      * 
      * @log Error if cleanup fails with filesystem details
-     */    
-    public async clean(): Promise<void>{
+     */
+    public async clean(): Promise<void> {
         const tomcatHome = await this.findTomcatHome();
-        if (!tomcatHome) {return;}
+        if (!tomcatHome) { return; }
 
         const webappsDir = path.join(tomcatHome, 'webapps');
-        
+
         if (!fs.existsSync(webappsDir)) {
             logger.warn(`Webapps directory not found: ${webappsDir}`);
             return;
         }
-    
+
         try {
             await this.kill();
             const entries = fs.readdirSync(webappsDir, { withFileTypes: true });
-    
+
             for (const entry of entries) {
                 const entryPath = path.join(webappsDir, entry.name);
-                
+
                 if (!this.protectedWebApps.includes(entry.name)) {
                     try {
                         if (entry.isDirectory()) {
@@ -258,7 +268,7 @@ export class Tomcat {
                     }
                 }
             }
-    
+
             const workDir = path.join(tomcatHome, 'work');
             const tempDir = path.join(tomcatHome, 'temp');
             [workDir, tempDir].forEach(dir => {
@@ -272,7 +282,7 @@ export class Tomcat {
                     }
                 }
             });
-    
+
             logger.success('Tomcat cleaned successfully', true);
         } catch (err) {
             logger.error('Tomcat cleanup failed:', true, err as string);
@@ -298,7 +308,7 @@ export class Tomcat {
                 await execAsync(`pkill -f tomcat`);
                 await execAsync(`pkill -f java`);
             }
-        } catch {}
+        } catch { }
     }
 
     /**
@@ -316,13 +326,13 @@ export class Tomcat {
         if (this.tomcatProcess && !this.tomcatProcess.killed) return true;
         try {
             let command: string;
-    
+
             if (process.platform === 'win32') {
                 command = `netstat -an | findstr ":${this.port}"`;
             } else {
                 command = `netstat -an | grep ":${this.port}"`;
             }
-    
+
             const { stdout } = await execAsync(command);
             return stdout.includes(`0.0.0.0:${this.port}`);
         } catch (error) {
@@ -345,33 +355,33 @@ export class Tomcat {
         if (this.tomcatHome && await this.validateTomcatHome(this.tomcatHome)) {
             return this.tomcatHome;
         }
-    
+
         const candidates = [
             process.env.CATALINA_HOME,
             process.env.TOMCAT_HOME,
             vscode.workspace.getConfiguration().get<string>('tomcat.home')
         ];
-    
+
         const validCandidate = candidates.find(path =>
             typeof path === 'string' && path.trim().length > 0
         );
-    
+
         if (validCandidate && await this.validateTomcatHome(validCandidate)) {
             await vscode.workspace.getConfiguration().update('tomcat.home', validCandidate, true);
             this.tomcatHome = validCandidate;
             return validCandidate;
         }
-    
+
         const selectedFolder = await vscode.window.showOpenDialog({
             canSelectFolders: true,
             canSelectFiles: false,
             canSelectMany: false,
             openLabel: 'Select Tomcat Home Folder'
         });
-    
+
         if (selectedFolder?.[0]?.fsPath) {
             const selectedPath = selectedFolder[0].fsPath;
-    
+
             if (await this.validateTomcatHome(selectedPath)) {
                 await vscode.workspace.getConfiguration().update('tomcat.home', selectedPath, true);
                 this.tomcatHome = selectedPath;
@@ -380,9 +390,9 @@ export class Tomcat {
                 logger.warn(`Invalid Tomcat home: ${selectedPath} not found.`, true);
             }
         }
-    
+
         return null;
-    }    
+    }
 
     /**
      * JAVA_HOME resolution
@@ -396,10 +406,10 @@ export class Tomcat {
      * @returns Valid Java home path or null
      */
     public async findJavaHome(): Promise<string | null> {
-        if (this.javaHome && await this.validateJavaHome(this.javaHome)){
+        if (this.javaHome && await this.validateJavaHome(this.javaHome)) {
             return this.javaHome;
         }
-    
+
         const candidates = [
             vscode.workspace.getConfiguration().get<string>('tomcat.javaHome'),
             vscode.workspace.getConfiguration().get<string>('java.home'),
@@ -408,27 +418,27 @@ export class Tomcat {
             process.env.JDK_HOME,
             process.env.JAVA_JDK_HOME
         ];
-    
+
         const validCandidate = candidates.find(path =>
             typeof path === 'string' && path.trim().length > 0
         );
-    
+
         if (validCandidate && await this.validateJavaHome(validCandidate)) {
             await vscode.workspace.getConfiguration().update('tomcat.javaHome', validCandidate, true);
             this.javaHome = validCandidate;
             return validCandidate;
         }
-    
+
         const selectedFolder = await vscode.window.showOpenDialog({
             canSelectFolders: true,
             canSelectFiles: false,
             canSelectMany: false,
             openLabel: 'Select Java Home Folder'
         });
-    
+
         if (selectedFolder?.[0]?.fsPath) {
             const selectedPath = selectedFolder[0].fsPath;
-    
+
             if (await this.validateJavaHome(selectedPath)) {
                 await vscode.workspace.getConfiguration().update('tomcat.javaHome', selectedPath, true);
                 this.javaHome = selectedPath;
@@ -437,9 +447,9 @@ export class Tomcat {
                 logger.warn(`Invalid Java home: ${selectedPath} not found.`, true);
             }
         }
-    
+
         return null;
-    }    
+    }
 
     /**
      * Validates a Tomcat directory by checking for the startup script.
@@ -489,11 +499,11 @@ export class Tomcat {
         const newPort = config.get<number>('tomcat.port', 8080);
         const oldPort = this.port;
 
-        if (newPort !== oldPort){
+        if (newPort !== oldPort) {
             try {
                 const javaHome = await this.findJavaHome();
                 const tomcatHome = await this.findTomcatHome();
-                if (!javaHome || !tomcatHome) {return;}
+                if (!javaHome || !tomcatHome) { return; }
 
                 await this.validatePort(newPort);
                 await new Promise(resolve => setTimeout(resolve, 200));
@@ -534,25 +544,29 @@ export class Tomcat {
      * @throws Error with validation failure details
      */
     private async validatePort(port: number): Promise<void> {
-        if (port < this.PORT_RANGE.min) {throw new Error(
-            `Ports below ${this.PORT_RANGE.min} require admin privileges`
-        );}
-        
-        if (port > this.PORT_RANGE.max) {throw new Error(
-            `Maximum allowed port is ${this.PORT_RANGE.max}`
-        );}
+        if (port < this.PORT_RANGE.min) {
+            throw new Error(
+                `Ports below ${this.PORT_RANGE.min} require admin privileges`
+            );
+        }
+
+        if (port > this.PORT_RANGE.max) {
+            throw new Error(
+                `Maximum allowed port is ${this.PORT_RANGE.max}`
+            );
+        }
 
         try {
             let command: string;
-    
+
             if (process.platform === 'win32') {
                 command = `netstat -an | findstr ":${port}"`;
             } else {
                 command = `netstat -an | grep ":${port}"`;
             }
-    
+
             const { stdout } = await execAsync(command);
-            if (stdout.includes(`:${port}`)) {throw new Error(`Port ${port} is already in use`);}
+            if (stdout.includes(`:${port}`)) { throw new Error(`Port ${port} is already in use`); }
         } catch (error) {
             return;
         }
@@ -574,14 +588,14 @@ export class Tomcat {
     private async modifyServerXmlPort(tomcatHome: string, newPort: number): Promise<void> {
         const serverXmlPath = path.join(tomcatHome, 'conf', 'server.xml');
         const content = await fsp.readFile(serverXmlPath, 'utf8');
-        
+
         const updatedContent = content.replace(
             /(port=")\d+(".*protocol="HTTP\/1\.1")/,
             `$1${newPort}$2`
         );
-          
+
         if (!updatedContent.includes(`port="${newPort}"`)) {
-            throw(`Failed to update port in server.xml`);
+            throw (`Failed to update port in server.xml`);
         }
 
         await fsp.writeFile(serverXmlPath, updatedContent);
@@ -624,17 +638,19 @@ export class Tomcat {
             let stderrBuffer = '';
 
             child.stdout.on('data', (data) => {
-                stdoutBuffer += data.toString();
+                stdoutBuffer += data;
                 const lines = stdoutBuffer.split(/\r?\n/);
                 stdoutBuffer = lines.pop() || '';
                 lines.forEach(line => logger.appendRawLine(line));
+                this.runBrowserOnKeyword(data);
             });
 
             child.stderr.on('data', (data) => {
-                stderrBuffer += data.toString();
+                stderrBuffer += data;
                 const lines = stderrBuffer.split(/\r?\n/);
                 stderrBuffer = lines.pop() || '';
                 lines.forEach(line => logger.appendRawLine(line));
+                this.runBrowserOnKeyword(data);
             });
 
             return new Promise((resolve, reject) => {
@@ -654,7 +670,42 @@ export class Tomcat {
             await execAsync(stopCommand);
         }
     }
+    
+    /**
+     * Browser launch keywords
+     * 
+     * Defines keywords for triggering browser launches:
+     * - Server startup messages
+     * - Context reload completion
+     * 
+     * @type {Array<string | RegExp>}
+     */
+    private browserCallKeywords: (string | RegExp)[] = [
+        "Server startup in",
+        "毫秒后服务器启动",
+        /Reloading Context with name \[[^\]]+\] is completed/
+    ];
 
+    /**
+     * Browser run on keywords
+     * 
+     * Handles Tomcat Manager API responses:
+     * - Triggers browser launch on specific keywords
+     * - Supports both exact strings and regex patterns
+     * 
+     * @param data Command output data
+     */
+    private runBrowserOnKeyword(data: string): void {
+        for (const pattern of this.browserCallKeywords) {
+            const isMatch = typeof pattern === 'string'
+                ? data.includes(pattern)
+                : pattern.test(data);
+
+            if (isMatch) {
+                Browser.getInstance().run(this.currentAppName);
+            }
+        }
+    }
 
     /**
      * Tomcat command construction
@@ -708,7 +759,7 @@ export class Tomcat {
      */
     private async addTomcatUser(tomcatHome: string): Promise<void> {
         const usersXmlPath = path.join(tomcatHome, 'conf', 'tomcat-users.xml');
-        
+
         try {
             if (await this.isTomcatRunning()) {
                 await this.stop();

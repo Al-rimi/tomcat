@@ -25,7 +25,6 @@ import * as fs from 'fs';
 import { exec } from 'child_process';
 import { env } from 'vscode';
 import { glob } from 'glob';
-import { Browser } from './Browser';
 import { Tomcat } from './Tomcat';
 import { Logger } from './Logger';
 
@@ -156,6 +155,8 @@ export class Builder {
 
         const appName = path.basename(projectDir);
         const tomcatHome = await tomcat.findTomcatHome();
+        
+        tomcat.setAppName(appName);
 
         if (!tomcatHome || !appName || !fs.existsSync(path.join(tomcatHome, 'webapps'))) { return; }
 
@@ -186,11 +187,6 @@ export class Builder {
                 await action();
             }
 
-            // Register a keyword callback in the Logger
-            logger.onKeyword('毫秒后服务器启动', () => {
-                Browser.getInstance().run(appName); // Start the browser
-            });
-
             logger.defaultStatusBar();
 
             const endTime = performance.now();
@@ -198,9 +194,8 @@ export class Builder {
 
             if (fs.existsSync(targetDir)) {
                 logger.success(`${type} Build completed in ${duration}ms`, isChoice);
-                await new Promise(resolve => setTimeout(resolve, 50));
-                await tomcat.reload();
                 await new Promise(resolve => setTimeout(resolve, 100));
+                await tomcat.reload();
             }
 
             this.attempts = 0;

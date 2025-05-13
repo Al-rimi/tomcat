@@ -307,7 +307,7 @@ export class Logger {
     }
 
     /**
-     * Log file watcher initialization (Enhanced)
+     * Log file watcher initialization
      * 
      * Implements hybrid monitoring strategy:
      * - 500ms polling interval for rotation detection
@@ -328,6 +328,13 @@ export class Logger {
         this.watchAccessLogDirectly(this.tomcatHome);
     }
 
+    /**
+     * Append a raw log line to the output channel from Tomcat logs.
+     * - Handles Tomcat's native formatted logs
+     * - Filters out server startup metadata and redundant messages
+     * 
+     * @param message The raw log line to append.
+     */
     public appendRawLine(message: string): void {
         const processed = this.processTomcatLine(message);
         if (processed) {
@@ -664,18 +671,6 @@ export class Logger {
         return dateMatch ? Date.parse(dateMatch[1]) : 0;
     }
 
-    private keywordCallbacks: { keyword: string, callback: () => void }[] = [];
-
-    /**
-     * Register a callback for detecting a specific keyword in logs.
-     * 
-     * @param keyword The keyword to detect.
-     * @param callback The callback to execute when the keyword is detected.
-     */
-    public onKeyword(keyword: string, callback: () => void): void {
-        this.keywordCallbacks.push({ keyword, callback });
-    }
-
     /**
      * Core logging mechanism (modified).
      * 
@@ -694,13 +689,6 @@ export class Logger {
 
         const timestamp = this.showTimestamp ? `[${new Date().toLocaleString()}] ` : '';
         const formattedMessage = `${timestamp}[${level}] ${message}`;
-
-        // Detect the keyword and trigger the callback
-        for (const { keyword, callback } of this.keywordCallbacks) {
-            if (message.includes(keyword)) {
-                callback(); // Trigger the callback
-            }
-        }
 
         this.outputChannel.appendLine(formattedMessage);
 
