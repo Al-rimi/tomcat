@@ -11,7 +11,7 @@
    ```bash
    git clone https://github.com/Al-rimi/tomcat.git
    cd tomcat
-   npm install --legacy-peer-deps
+   npm install
    npm run compile
    ```
 
