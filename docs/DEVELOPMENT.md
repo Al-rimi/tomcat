@@ -19,21 +19,22 @@
 
 ```bash
 src/
-├── extension.ts              # Extension entry point
-├── ui/                       # UI components
-│   ├── help.ts               # Webview documentation
-│   └── syntax.ts             # Syntax coloring rules
-├── utils/
+├── core/
+│   └── extension.ts          # Extension entry point
+├── services/                 # Core services
 │   ├── Tomcat.ts             # Server management core
-│   ├── Builder.ts            # Deployment pipelines
-│   ├── Browser.ts            # Browser integration
-│   └── Logger.ts             # Logging system
-└── test/
-    └── suite/                     # Test cases
-        ├── tomcat.test.ts         # Server tests
-        ├── builder.test.ts        # Deployment tests
-        ├── logger.test.ts         # Logging tests
-        └── browser.test.ts        # Browser tests
+│   ├── Builder.ts            # Deployment pipelines (Local/Maven/Gradle)
+│   ├── Browser.ts            # Browser integration and CDP reloads
+│   └── Logger.ts             # Logging and status bar
+└── utils/
+    └── syntax.ts             # Token color customization rules
+
+test/
+└── suite/                    # Test cases
+    ├── tomcat.test.ts        # Server tests
+    ├── builder.test.ts       # Deployment tests
+    ├── logger.test.ts        # Logging tests
+    └── browser.test.ts       # Browser tests
 ```
 
 ## Key Implementation Patterns
@@ -54,9 +55,9 @@ export class Tomcat {
 
 2. **Strategy Pattern (Deployment)**:
 ```typescript
-// Build type selection with memory optimization
+// Build type selection for deployments
 const action = {
-    'Fast': () => this.fastDeploy(projectDir, targetDir, tomcatHome),
+    'Local': () => this.localDeploy(projectDir, targetDir, tomcatHome),
     'Maven': () => this.mavenDeploy(projectDir, targetDir),
     'Gradle': () => this.gradleDeploy(projectDir, targetDir, appName)
 }[type];
@@ -78,12 +79,24 @@ vscode.workspace.onDidChangeConfiguration(async (event) => {
 
 4. **Factory Pattern (Browser Commands)**:
 ```typescript
-// Platform-specific command generation with improved escaping
+// Platform-specific command generation with debug args
 private getBrowserCommand(browser: string, url: string): string | null {
     const platform = process.platform as 'win32'|'darwin'|'linux';
-    return Browser.COMMANDS[browser]?.[platform]?.join(' ');
+    const browserCommands = Browser.COMMANDS[browser]?.[platform];
+    if (!browserCommands) return null;
+    const debugArgs = '--remote-debugging-port=9222';
+    return `${browserCommands.join(' ')} ${debugArgs} ${url}`;
 }
 ```
+
+5. **Streaming AI Output (Logger + AI)**:
+```typescript
+// AI service emits start/chunk/end events; Logger streams them into the output channel.
+this.logSink?.('AI_STREAM_START:');
+this.logSink?.(`AI_STREAM_CHUNK:${content}`);
+this.logSink?.('AI_STREAM_END');
+```
+Status bar hooks (`showAIStatus`/`clearAIStatus`) are triggered around the streaming lifecycle.
 
 ## Extension Activation
 

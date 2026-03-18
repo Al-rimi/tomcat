@@ -12,6 +12,9 @@ Advanced Apache Tomcat management. Full server control, smart deployment, browse
 - **Build Strategies**  
   Three build strategies Local, Maven and Gradle to choose from
 
+- **AI Explanations (Streaming)**  
+  WARN/ERROR logs are auto-explained via your configured AI provider, with live typing output and automatic navigation to the offending file/line.
+
 - **Save/Ctrl+S Deployment**
   Automatically deploy your project every time you save a file or press Ctrl+S/Cmd+S
 
@@ -97,7 +100,7 @@ public static isJavaEEProject(): boolean {
 }
 ```
 
-[Method location](https://github.com/Al-rimi/tomcat/blob/main/src/utils/Builder.ts#L121-L159), If you notice any false positives/negatives or have better ideas for detection logic, you are more than welcome to contribute:
+[Method location](src/services/Builder.ts#L121-L159), If you notice any false positives/negatives or have better ideas for detection logic, you are more than welcome to contribute:
 
 [![Create an issue](https://img.shields.io/badge/-Create_an_issue-red?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/issues/new?title=Improve+Java+EE+Project+Detection+Logic)
 
@@ -134,7 +137,7 @@ Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 
 | **Setting**                  | **Default**       | **Description**                                                                          |
 |------------------------------|-------------------|------------------------------------------------------------------------------------------|
-| `tomcat.autoDeployBuildType` | `Fast`            | Default build strategy for deployments (`Fast`, `Maven`, `Gradle`)                       |
+| `tomcat.autoDeployBuildType` | `Local`           | Default build strategy for deployments (`Local`, `Maven`, `Gradle`)                      |
 | `tomcat.autoDeployMode`      | `Disable`        | Auto-deploy triggers (`Disable`, `On Save`, `On Shortcut`)                              |
 | `tomcat.browser`             | `Google Chrome`   | Browser for app launch & debug (`Disable`, `Google Chrome`, `Microsoft Edge`, `Firefox`, `Safari`, `Brave`, `Opera`) |
 | `tomcat.port`                | `8080`            | Tomcat server listen port (valid range: `1024`-`65535`)                                  |
@@ -143,8 +146,14 @@ Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 | `tomcat.showTimestamp`       | `true`            | Whether to include timestamps in log messages                                            |
 | `tomcat.autoReloadBrowser`   | `true`            | Whether to automatically reload the browser after deployment. Disable this option if having issues with the browser reloading. |
 | `tomcat.logEncoding`         | `utf8`            | Encoding for Tomcat logs (`utf8`, `ascii`, `utf-8`, `utf16le`, `utf-16le`, `ucs2`, `ucs-2`, `base64`, `base64url`, `latin1`, `binary`, `hex`) |
+| `tomcat.ai.provider`         | `local`           | AI provider for streaming explanations (`none`, `local`, `aliyun-dashscope`, `baichuan`, `zhipu`, `deepseek`, `custom`). |
+| `tomcat.ai.endpoint`         | `http://127.0.0.1:11434/api/chat` | Full HTTP endpoint for AI chat/completions. |
+| `tomcat.ai.model`            | `qwen2.5:7b`      | Model identifier sent to the configured AI endpoint. |
+| `tomcat.ai.apiKey`           | ``                | Optional bearer token for hosted providers. |
+| `tomcat.ai.localStartCommand`| `ollama serve`    | Command to launch the local AI service when the endpoint is unreachable. |
 
 > `tomcat.home` and `tomcat.javaHome` are now auto-detected and hidden from user settings.
+> AI explanations are automatic for WARN/ERROR logs; local AI auto-starts only for localhost endpoints when unreachable.
 
 ## Requirements
 

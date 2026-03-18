@@ -40,21 +40,24 @@ test('Logs detailed port errors', async () => {
 
 ### 2. Deployment Builder
 ```typescript
-// Fast build memory optimization
-test('Uses memory list instead of temp files', async () => {
-    mockGlob.resolves(['file1.java', 'file2.java']);
-    await builder.fastDeploy(projectDir, targetDir, tomcatHome);
-    expect(fs.writeFileSync).not.toHaveBeenCalled();
+// Local build resource sync
+test('Synchronizes webapp resources for local deploy', async () => {
+  await builder['localDeploy'](projectDir, targetDir, tomcatHome);
+  expect(fs.existsSync(path.join(targetDir, 'WEB-INF', 'classes'))).toBe(true);
 });
 
 // Build duration logging
 test('Logs build completion time', async () => {
-    const loggerSpy = jest.spyOn(Logger.getInstance(), 'info');
-    await builder.deploy('Fast');
-    expect(loggerSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Build completed in'));
+  const loggerSpy = jest.spyOn(Logger.getInstance(), 'info');
+  await builder.deploy('Local');
+  expect(loggerSpy).toHaveBeenCalledWith(
+    expect.stringContaining('Build completed in'));
 });
 ```
+
+### 3. AI Streaming (integration)
+- Configure a reachable local endpoint (e.g., Ollama) and trigger a WARN/ERROR log; verify the Tomcat output shows a single `[AI]` line streaming token chunks and the status bar reads "AI typing" during the stream.
+- Verify diagnostics still open the error file/line and clear after a successful build or file save.
 
 ### 3. Logger Component
 ```typescript

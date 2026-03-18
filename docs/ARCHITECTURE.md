@@ -5,24 +5,25 @@
 ```mermaid
 classDiagram
     class Tomcat {
-        +getInstance(): Tomcat
-        +start(): Promise<void>
-        +stop(): Promise<void>
-        +clean(): Promise<void>
-        +reload(): Promise<void>
-        +updatePort(): Promise<void>
-        -validatePort(port: number): Promise<void>
-        -addTomcatUser(tomcatHome: string): Promise<void>
+      +getInstance(): Tomcat
+      +start(showMessages?): Promise<void>
+      +stop(showMessages?): Promise<void>
+      +clean(): Promise<void>
+      +reload(): Promise<void>
+      +updatePort(): Promise<void>
+      +updateConfig(): void
+      +setAppName(appName: string): void
     }
     
     class Builder {
-        +getInstance(): Builder
-        +deploy(type: 'Fast'|'Maven'|'Gradle'|'Choice'): Promise<void>
-        +autoDeploy(reason: vscode.TextDocumentSaveReason): Promise<void>
-        -fastDeploy(): Promise<void>
-        -mavenDeploy(): Promise<void>
-        -gradleDeploy(): Promise<void>
-        +isJavaEEProject(): boolean
+      +getInstance(): Builder
+      +deploy(type: 'Local'|'Maven'|'Gradle'|'Choice'): Promise<void>
+      +autoDeploy(reason: vscode.TextDocumentSaveReason): Promise<void>
+      +updateConfig(): void
+      -localDeploy(): Promise<void>
+      -mavenDeploy(): Promise<void>
+      -gradleDeploy(): Promise<void>
+      +isJavaEEProject(): boolean
     }
     
     class Browser {
@@ -38,15 +39,26 @@ classDiagram
         +error(message: string, error?: Error): void
         +updateStatusBar(text: string): void
         +toggleDeploySetting(): Promise<void>
+        +aiNote(message: string): void
+      }
+
+      class AI {
+        +getInstance(): AI
+        +updateConfig(): void
+        +maybeExplain(level: string, message: string): Promise<void>
+        +setLoggerSink(sink: (message: string) => void): void
+        +setStatusHooks(onStart: () => void, onDone: () => void): void
     }
     
     class Vscode
     
     Tomcat --> Logger : Logging
+      Tomcat --> Browser : Launch on start
     Builder --> Tomcat : Deployment Coordination
     Builder --> Browser : Reload Trigger
     Builder --> Logger : Build Status
     Browser --> Logger : Error Reporting
+      Logger --> AI : Explain WARN/ERROR
     Tomcat --> Vscode : Configuration Management
     Builder --> Vscode : Workspace Interaction
     Logger --> Vscode : Status Bar Integration
@@ -55,19 +67,19 @@ classDiagram
 ## Component Responsibilities
 
 ### 1. Tomcat Manager
-- **Server Lifecycle**: Start/stop using catalina.sh/bat scripts with proper JAVA_HOME and CATALINA_HOME [View Code](https://github.com/Al-rimi/tomcat/blob/main/src/utils/Tomcat.ts#L584-L647)
-- **Port Management**: Validate port range (1024-49151), update server.xml connector with delay handling [View Code](https://github.com/Al-rimi/tomcat/blob/main/src/utils/Tomcat.ts#L470-L582)
-- **Environment Detection**: Locate CATALINA_HOME and JAVA_HOME through config or user input [View Code](https://github.com/Al-rimi/tomcat/blob/main/src/utils/Tomcat.ts#L331-L436)
+- **Server Lifecycle**: Start/stop using catalina scripts with resolved JAVA_HOME and CATALINA_HOME ([src/services/Tomcat.ts](src/services/Tomcat.ts))
+- **Port Management**: Validate port range (1024-49151) and update server.xml connector ([src/services/Tomcat.ts](src/services/Tomcat.ts))
+- **Environment Detection**: Locate CATALINA_HOME and JAVA_HOME via config/env or user prompt ([src/services/Tomcat.ts](src/services/Tomcat.ts))
 - **Clean Operations**: Remove non-essential webapps while preserving ROOT/docs/examples
-- **Health Checks**: Verify running status through port scanning and netstat commands [View Code](https://github.com/Al-rimi/tomcat/blob/main/src/utils/Tomcat.ts#L303-L329)
-- **User Management**: Auto-add admin user to tomcat-users.xml for custom manager access [View Code](https://github.com/Al-rimi/tomcat/blob/main/src/utils/Tomcat.ts#L649-L681)
+- **Health Checks**: Verify running status through port scanning and netstat
+- **User Management**: Auto-add admin user to tomcat-users.xml for manager access when needed
 
 ### 2. Deployment Builder
 - **Build Strategies**:
-  - *Fast*: Uses memory list instead of temp and builds directly into webapps folder [View Code](https://github.com/Al-rimi/tomcat/blob/main/src/utils/Builder.ts#L328-L400)
-  - *Maven*: Execute mvn clean package with enhanced error message parsing [View Code](https://github.com/Al-rimi/tomcat/blob/main/src/utils/Builder.ts#L402-L468)
-  - *Gradle*: Run gradle war task with project-specific configuration [View Code](https://github.com/Al-rimi/tomcat/blob/main/src/utils/Builder.ts#L470-L501)
-- **Project Detection**: Identify JavaEE projects through WEB-INF, Maven POM, or Gradle files [View Code](https://github.com/Al-rimi/tomcat/blob/main/src/utils/Builder.ts#L121-L159)
+  - *Local*: Directly syncs webapp resources and compiles Java sources into `WEB-INF/classes` ([src/services/Builder.ts](src/services/Builder.ts))
+  - *Maven*: Executes `mvn clean package` with parsed errors ([src/services/Builder.ts](src/services/Builder.ts))
+  - *Gradle*: Runs `gradle war` style deployment with project-specific configuration ([src/services/Builder.ts](src/services/Builder.ts))
+- **Project Detection**: Identify Java EE projects via WEB-INF, WAR packaging, Gradle markers, or built artifacts ([src/services/Builder.ts](src/services/Builder.ts))
 - **Auto-Deploy**: Trigger deployments on save (Ctrl+S/Cmd+S) based on configuration [View Code](https://github.com/Al-rimi/tomcat/blob/main/src/utils/Builder.ts#L247-L274)
 - **Project Scaffolding**: Create new Maven webapp projects using archetype-webapp [View Code](https://github.com/Al-rimi/tomcat/blob/main/src/utils/Builder.ts#L276-L326)
 - **Build Duration**: Logs and reports build completion time for performance tracking
@@ -91,9 +103,17 @@ classDiagram
 - **Initializeation**: Editor button and status bar toggle for enabling/disabling auto-deploy [View Code](https://github.com/Al-rimi/tomcat/blob/main/src/utils/Logger.ts#L220-L244)
 - **Multi-Channel Output**: VSCode output channel + status bar + toast notifications
 - **Status Visualization**: Animated icons for active deployments
-- **Error Handling**: Organized error messages for Java debugging and compilation
+- **Error Handling**: Organized error messages for Java debugging and compilation with inline diagnostics and jump-to-file/line
+- **AI Streaming**: Streams WARN/ERROR explanations into the Tomcat channel with "AI typing" status bar feedback
 - **Syntax Coloring**: Enhanced output channel with Java-specific syntax highlighting
 - **Toggle auto deploy**: Enable/disable auto-deploy on button click [View Code](https://github.com/Al-rimi/tomcat/blob/main/src/utils/Logger.ts#L199-L218)
+
+### 5. AI Service
+- **Class**: `AI` ([src/services/AI.ts](src/services/AI.ts))
+- **Streaming Output**: Emits start/chunk/end events that Logger renders as live-typed responses.
+- **Auto Explain**: Always-on for WARN/ERROR logs; capped prompt size and trimmed responses.
+- **Local-First Startup**: Auto-starts local AI (e.g., Ollama) only when provider is `local` and endpoint is localhost, with hidden background spawn.
+- **Resilience**: Falls back to non-streaming requests if streaming is unsupported.
 
 #### Syntax Coloring Implementation
 
