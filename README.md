@@ -214,19 +214,21 @@ For technical implementation details and contribution guidelines, see:
 [![Suggest Fix](https://img.shields.io/badge/-Suggest_Fix-green?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/pulls)
 
 
-## What's New in 2.5.3
+## What's New in 3.0.1
 
-- **Real-Time Server Insights**  
-  Instant full server logging with dual-stream architecture for all server events (Thanks to @zhuxiaodics6)
+### Added
+- Streaming AI explanations for WARN/ERROR logs with live typing output in the Tomcat channel and status bar feedback.
+- Automatic navigation to build error file/line with diagnostics cleared on save and on successful builds.
+- New `tomcat.base` (CATALINA_BASE) setting and runtime support so base and home can differ.
 
-- **Granular Log Control**  
-  New `tomcat.logLevel` and `tomcat.showTimestamp` settings for customized logging
+### Changed
+- Simplified AI settings surface (provider, endpoint, model, API key, start command) while forcing auto-explain on and auto-starting local AI only for localhost endpoints.
+- Status bar now shows "AI typing" while responses stream.
+- Dependency bumps (mocha 11.7.5 with pinned transitive `diff` 8.0.3 and `serialize-javascript` 7.0.4) to align with latest models and tooling.
 
-- **Fixed Browser Reload Issue**
-  Add fall back to reduce CDP bug damage and `tomcat.autoReloadBrowser` setting to control browser reload behavior
-
-- **Removed Unnecessary Futures**
-  Removed help command and associated documentation and `tomcat.autoScrollOutput` configuration setting
+### Fixed
+- Resolved high-severity audit findings by forcing safe transitive versions (`diff`, `serialize-javascript`) and regenerating the lockfile.
+- Windows path parsing for Maven/Gradle errors, eliminating stale error markers and ensuring jump-to-location reliability.
 
 [View Full Changelog](https://github.com/Al-rimi/tomcat/blob/main/CHANGELOG.md)
 

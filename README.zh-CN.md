@@ -206,19 +206,21 @@ public static isJavaEEProject(): boolean {
 [![提交修复](https://img.shields.io/badge/-提交修复-green?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/pulls)
 
 
-## 2.5.3 更新内容
+## 3.0.1 更新内容
 
-- **实时服务器洞察**  
-	全量服务器日志双流架构（Thanks to @zhuxiaodics6）
+### 新增
+- WARN/ERROR 日志的流式 AI 解释，Tomcat 输出通道与状态栏实时显示输入效果。
+- 自动跳转构建错误文件/行，保存及构建成功时自动清理诊断。
+- 新增 `tomcat.base`（CATALINA_BASE）设置和运行时支持，可让 base 与 home 分离。
 
-- **更细粒度的日志控制**  
-	新增 `tomcat.logLevel` 与 `tomcat.showTimestamp` 设置，便于定制日志输出
+### 变更
+- 精简 AI 设置面板（provider、endpoint、model、API key、start command），强制开启自动解释，仅在 localhost 端点时自动启动本地 AI。
+- 状态栏在响应流式输出时显示 “AI typing”。
+- 依赖更新（mocha 11.7.5，并锁定传递依赖 `diff` 8.0.3、`serialize-javascript` 7.0.4）以适配最新模型与工具链。
 
-- **修复浏览器刷新问题**
-	增加回退以降低 CDP Bug 影响，并提供 `tomcat.autoReloadBrowser` 开关
-
-- **移除不必要功能**
-	移除 help 命令及其文档，以及 `tomcat.autoScrollOutput` 配置
+### 修复
+- 通过强制安全的传递依赖（`diff`、`serialize-javascript`）并重新生成 lockfile 解决高危审计问题。
+- 修复 Maven/Gradle 错误的 Windows 路径解析，消除残留错误标记并确保跳转定位可靠。
 
 [查看完整更新日志](https://github.com/Al-rimi/tomcat/blob/main/CHANGELOG.md)
 
