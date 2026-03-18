@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-03-19
+### Added
+- Streaming AI explanations for WARN/ERROR logs with live typing output in the Tomcat channel and status bar feedback.
+- Automatic navigation to build error file/line with diagnostics cleared on save and on successful builds.
+
+### Changed
+- Simplified AI settings surface (provider, endpoint, model, API key, start command) while forcing auto-explain on and auto-starting local AI only for localhost endpoints.
+- Status bar now shows "AI typing" while responses stream.
+
+### Fixed
+- Windows path parsing for Maven/Gradle errors, eliminating stale error markers and ensuring jump-to-location reliability.
+
 ## [2.5.3] - 2025-05-14
 ### Changed
 - Implemented a precise way to detect Tomcat Server startup and context reload for reloading the browser (Thanks to @zhuxiaodics6)

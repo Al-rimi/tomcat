@@ -2,12 +2,12 @@
   "name": "tomcat",
   "displayName": "Tomcat",
   "description": "Fully Automated Support for Apache Tomcat",
-  "version": "2.5.3",
+  "version": "3.0.0",
   "publisher": "Al-rimi",
   "author": {
-    "email": "abdullah@syalux.com",
-    "name": "Abdullah Al raimi",
-    "url": "https://syalux.com"
+    "email": "alrimi@zjnu.edu.cn",
+    "name": "Al raimi Abdullah",
+    "url": "https://github.com/Al-rimi"
   },
   "icon": "resources/tomcat-logo.png",
   "repository": {
@@ -112,6 +112,40 @@
     "configuration": {
       "title": "Tomcat",
       "properties": {
+        "tomcat.ai.provider": {
+          "type": "string",
+          "enum": [
+            "none",
+            "local",
+            "aliyun-dashscope",
+            "baichuan",
+            "zhipu",
+            "deepseek",
+            "custom"
+          ],
+          "default": "local",
+          "description": "AI provider for log explanations. Use 'local' for a self-hosted or on-device endpoint; other values expect a compatible HTTP endpoint you configure."
+        },
+        "tomcat.ai.endpoint": {
+          "type": "string",
+          "default": "http://127.0.0.1:11434/api/chat",
+          "description": "Full HTTP(s) endpoint for chat/completion requests (e.g., http://localhost:11434/api/chat or provider-specific URL)."
+        },
+        "tomcat.ai.model": {
+          "type": "string",
+          "default": "qwen2.5:7b",
+          "description": "Model identifier to send to the configured AI endpoint (e.g., qwen, glm, deepseek-chat, llama3)."
+        },
+        "tomcat.ai.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Optional API key or token sent as Bearer Authorization when calling the AI endpoint. Stored in settings.json."
+        },
+        "tomcat.ai.localStartCommand": {
+          "type": "string",
+          "default": "ollama serve",
+          "description": "Command to launch the local AI service when the endpoint is unreachable."
+        },
         "tomcat.logEncoding": {
           "type": "string",
           "default": "utf8",
