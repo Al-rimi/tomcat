@@ -9,3 +9,4 @@ node_modules
 .nycrc
 tsconfig.json
 package-lock.json
+theses/
