@@ -2,7 +2,7 @@
   "name": "tomcat",
   "displayName": "Tomcat AI Deployer",
   "description": "AI-assisted Tomcat control for VS Code: streaming log explanations, one-click deploys, and browser reloads.",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "publisher": "Al-rimi",
   "author": {
     "email": "alrimi@zjnu.edu.cn",
@@ -243,6 +243,12 @@
           "default": true,
           "description": "Whether to automatically reload the browser after deployment. Disable this option if having issues with the browser reloading."
         },
+        "tomcat.base": {
+          "type": "string",
+          "default": "",
+          "scope": "machine",
+          "description": "Path to CATALINA_BASE (conf/webapps/logs). If not set, falls back to tomcat.home."
+        },
         "tomcat.home": {
           "type": "string",
           "default": "",
@@ -283,12 +289,19 @@
     "@vscode/vsce": "^2.15.0",
     "chai": "^4.5.0",
     "eslint": "^9.23.0",
-    "mocha": "^10.4.0",
+    "mocha": "^11.7.5",
     "sinon": "^17.0.1",
     "ts-loader": "^9.5.2",
     "typescript": "^5.7.3",
     "webpack": "^5.98.0",
     "webpack-cli": "^6.0.1"
+  },
+  "overrides": {
+    "mocha": {
+      "diff": "8.0.3",
+      "serialize-javascript": "7.0.4"
+    },
+    "serialize-javascript": "7.0.4"
   },
   "dependencies": {
     "glob": "^11.0.1",

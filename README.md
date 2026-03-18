@@ -143,6 +143,7 @@ Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 | `tomcat.autoDeployMode`      | `Disable`        | Auto-deploy triggers (`Disable`, `On Save`, `On Shortcut`)                              |
 | `tomcat.browser`             | `Google Chrome`   | Browser for app launch & debug (`Disable`, `Google Chrome`, `Microsoft Edge`, `Firefox`, `Safari`, `Brave`, `Opera`) |
 | `tomcat.port`                | `8080`            | Tomcat server listen port (valid range: `1024`-`65535`)                                  |
+| `tomcat.base`                | ``                | Path to `CATALINA_BASE` (conf/webapps/logs). Defaults to `tomcat.home` if not set.       |
 | `tomcat.protectedWebApps`    | `["ROOT", "docs", "examples", "manager", "host-manager"]` | List of protected web apps during cleanup operations |
 | `tomcat.logLevel`            | `INFO`            | Minimum log level to display (`DEBUG`, `INFO`, `SUCCESS`, `HTTP`, `APP`, `WARN`, `ERROR`) |
 | `tomcat.showTimestamp`       | `true`            | Whether to include timestamps in log messages                                            |

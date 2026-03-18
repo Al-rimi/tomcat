@@ -97,7 +97,7 @@ public static isJavaEEProject(): boolean {
 
 [方法位置](src/services/Builder.ts#L121-L159)。如有误报/漏报或更好的检测思路，欢迎贡献：
 
-[![Create an issue](https://img.shields.io/badge/-Create_an_issue-red?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/issues/new?title=Improve+Java+EE+Project+Detection+Logic)
+[![提交问题](https://img.shields.io/badge/-提交问题-red?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/issues/new?title=Improve+Java+EE+Project+Detection+Logic)
 
 ---
 
@@ -136,6 +136,7 @@ public static isJavaEEProject(): boolean {
 | `tomcat.autoDeployMode`      | `Disable`         | 自动部署触发方式（`Disable`、`On Save`、`On Shortcut`）                                   |
 | `tomcat.browser`             | `Google Chrome`   | 浏览器自动打开/调试（`Disable`、`Google Chrome`、`Microsoft Edge`、`Firefox`、`Safari`、`Brave`、`Opera`） |
 | `tomcat.port`                | `8080`            | Tomcat 监听端口（有效范围：`1024`-`65535`）                                               |
+| `tomcat.base`                | ``                | CATALINA_BASE 路径（conf/webapps/logs）；未设置时默认使用 `tomcat.home`                     |
 | `tomcat.protectedWebApps`    | `['ROOT', 'docs', 'examples', 'manager', 'host-manager']` | 清理时保留的应用列表 |
 | `tomcat.logLevel`            | `INFO`            | 最低日志级别（`DEBUG`、`INFO`、`SUCCESS`、`HTTP`、`APP`、`WARN`、`ERROR`）                 |
 | `tomcat.showTimestamp`       | `true`            | 是否在日志中显示时间戳                                                                   |
@@ -201,8 +202,8 @@ public static isJavaEEProject(): boolean {
 	如问题仍在，可关闭设置 `tomcat.autoReloadBrowser`。
 	</details>
 
-[![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/issues/new)  
-[![Suggest Fix](https://img.shields.io/badge/-Suggest_Fix-green?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/pulls)
+[![反馈问题](https://img.shields.io/badge/-反馈问题-red?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/issues/new)  
+[![提交修复](https://img.shields.io/badge/-提交修复-green?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/pulls)
 
 
 ## 2.5.3 更新内容

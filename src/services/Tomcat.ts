@@ -36,6 +36,7 @@ const logger = Logger.getInstance();
 export class Tomcat {
     private static instance: Tomcat;
     private tomcatHome: string;
+    private tomcatBase: string;
     private javaHome: string;
     private protectedWebApps: string[];
     private port: number;
@@ -55,6 +56,7 @@ export class Tomcat {
      */
     private constructor() {
         this.tomcatHome = vscode.workspace.getConfiguration().get<string>('tomcat.home', '');
+        this.tomcatBase = vscode.workspace.getConfiguration().get<string>('tomcat.base', '');
         this.javaHome = vscode.workspace.getConfiguration().get<string>('tomcat.javaHome', '');
         this.protectedWebApps = vscode.workspace.getConfiguration().get<string[]>('tomcat.protectedWebApps', ['ROOT', 'docs', 'examples', 'manager', 'host-manager']);
         this.port = vscode.workspace.getConfiguration().get<number>('tomcat.port', 8080);
@@ -100,6 +102,7 @@ export class Tomcat {
      */
     public updateConfig(): void {
         this.tomcatHome = vscode.workspace.getConfiguration().get<string>('tomcat.home', '');
+        this.tomcatBase = vscode.workspace.getConfiguration().get<string>('tomcat.base', '');
         this.javaHome = vscode.workspace.getConfiguration().get<string>('tomcat.javaHome', '');
         this.protectedWebApps = vscode.workspace.getConfiguration().get<string[]>('tomcat.protectedWebApps', ['ROOT', 'docs', 'examples', 'manager', 'host-manager']);
         this.port = vscode.workspace.getConfiguration().get<number>('tomcat.port', 8080);
@@ -130,6 +133,7 @@ export class Tomcat {
         const tomcatHome = await this.findTomcatHome();
         const javaHome = await this.findJavaHome();
         if (!tomcatHome || !javaHome) { return; }
+        const tomcatBase = await this.findTomcatBase(tomcatHome);
 
         if (await this.isTomcatRunning()) {
             logger.info('Tomcat is already running', showMessages);
@@ -137,7 +141,7 @@ export class Tomcat {
         }
 
         try {
-            this.executeTomcatCommand('start', tomcatHome, javaHome);
+            this.executeTomcatCommand('start', tomcatHome, tomcatBase, javaHome);
             if (showMessages) {
                 logger.info('Tomcat started successfully', showMessages);
             }
@@ -162,6 +166,7 @@ export class Tomcat {
         const tomcatHome = await this.findTomcatHome();
         const javaHome = await this.findJavaHome();
         if (!tomcatHome || !javaHome) { return; }
+        const tomcatBase = await this.findTomcatBase(tomcatHome);
 
         if (!await this.isTomcatRunning()) {
             logger.info('Tomcat is not running', showMessages);
@@ -174,7 +179,7 @@ export class Tomcat {
                 this.tomcatProcess = null;
                 logger.success('Tomcat stopped (process terminated)', showMessages);
             } else {
-                await this.executeTomcatCommand('stop', tomcatHome, javaHome);
+                await this.executeTomcatCommand('stop', tomcatHome, tomcatBase, javaHome);
                 logger.success('Tomcat stopped successfully', showMessages);
             }
         } catch (err) {
@@ -199,6 +204,7 @@ export class Tomcat {
         const javaHome = await this.findJavaHome();
 
         if (!tomcatHome || !javaHome) { return; }
+        const tomcatBase = await this.findTomcatBase(tomcatHome);
 
         try {
             const appName = path.basename(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '');
@@ -220,7 +226,7 @@ export class Tomcat {
                 return;
             } else {
                 logger.warn('Reload failed, attempting to add admin user...');
-                await this.addTomcatUser(tomcatHome);
+                await this.addTomcatUser(tomcatBase);
             }
         }
     }
@@ -239,8 +245,9 @@ export class Tomcat {
     public async clean(): Promise<void> {
         const tomcatHome = await this.findTomcatHome();
         if (!tomcatHome) { return; }
+        const tomcatBase = await this.findTomcatBase(tomcatHome);
 
-        const webappsDir = path.join(tomcatHome, 'webapps');
+        const webappsDir = path.join(tomcatBase, 'webapps');
 
         if (!fs.existsSync(webappsDir)) {
             logger.warn(`Webapps directory not found: ${webappsDir}`);
@@ -269,8 +276,8 @@ export class Tomcat {
                 }
             }
 
-            const workDir = path.join(tomcatHome, 'work');
-            const tempDir = path.join(tomcatHome, 'temp');
+            const workDir = path.join(tomcatBase, 'work');
+            const tempDir = path.join(tomcatBase, 'temp');
             [workDir, tempDir].forEach(dir => {
                 if (fs.existsSync(dir)) {
                     try {
@@ -452,6 +459,57 @@ export class Tomcat {
     }
 
     /**
+     * CATALINA_BASE resolution
+     *
+     * Follows precedence order:
+     * 1. Explicit tomcat.base setting
+     * 2. CATALINA_BASE environment variable
+     * 3. Fallback to tomcat.home
+     *
+     * @param tomcatHome Resolved Tomcat home
+     * @returns Resolved Tomcat base (defaults to home)
+     */
+    public async findTomcatBase(tomcatHome: string): Promise<string> {
+        if (this.tomcatBase && await this.validateTomcatBase(this.tomcatBase)) {
+            return this.tomcatBase;
+        }
+
+        const candidates = [
+            vscode.workspace.getConfiguration().get<string>('tomcat.base'),
+            process.env.CATALINA_BASE
+        ];
+
+        const validCandidate = candidates.find(basePath =>
+            typeof basePath === 'string' && basePath.trim().length > 0
+        );
+
+        if (validCandidate && await this.validateTomcatBase(validCandidate)) {
+            await vscode.workspace.getConfiguration().update('tomcat.base', validCandidate, true);
+            this.tomcatBase = validCandidate;
+            return validCandidate;
+        }
+
+        this.tomcatBase = tomcatHome;
+        return tomcatHome;
+    }
+
+    /**
+     * Validates a Tomcat base directory by checking for server.xml.
+     *
+     * @param tomcatBase Path to Tomcat base directory
+     * @returns true if valid, false otherwise
+     */
+    private async validateTomcatBase(tomcatBase: string): Promise<boolean> {
+        const serverXml = path.join(tomcatBase, 'conf', 'server.xml');
+        try {
+            await fsp.access(serverXml);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    /**
      * Validates a Tomcat directory by checking for the startup script.
      *
      * @param tomcatHome Path to Tomcat root directory
@@ -504,15 +562,16 @@ export class Tomcat {
                 const javaHome = await this.findJavaHome();
                 const tomcatHome = await this.findTomcatHome();
                 if (!javaHome || !tomcatHome) { return; }
+                const tomcatBase = await this.findTomcatBase(tomcatHome);
 
                 await this.validatePort(newPort);
                 await new Promise(resolve => setTimeout(resolve, 200));
 
                 if (await this.isTomcatRunning()) {
-                    await this.executeTomcatCommand('stop', tomcatHome, javaHome);
+                    await this.executeTomcatCommand('stop', tomcatHome, tomcatBase, javaHome);
                 }
 
-                await this.modifyServerXmlPort(tomcatHome, newPort);
+                await this.modifyServerXmlPort(tomcatBase, newPort);
 
                 this.port = newPort;
                 this.updateConfig();
@@ -522,7 +581,7 @@ export class Tomcat {
                 await vscode.workspace.getConfiguration().update('tomcat.port', newPort, true);
                 logger.success(`Tomcat port updated from ${oldPort} to ${newPort}`, true);
 
-                this.executeTomcatCommand('start', tomcatHome, javaHome);
+                this.executeTomcatCommand('start', tomcatHome, tomcatBase, javaHome);
             } catch (err) {
                 await vscode.workspace.getConfiguration().update('tomcat.port', oldPort, true);
                 logger.error('Failed to update Tomcat port:', true, err as string);
@@ -581,12 +640,12 @@ export class Tomcat {
      * - Change verification
      * - Error recovery
      * 
-     * @param tomcatHome Tomcat installation directory
+     * @param tomcatBase Tomcat base directory
      * @param newPort Port number to configure
      * @throws Error if file operations fail
      */
-    private async modifyServerXmlPort(tomcatHome: string, newPort: number): Promise<void> {
-        const serverXmlPath = path.join(tomcatHome, 'conf', 'server.xml');
+    private async modifyServerXmlPort(tomcatBase: string, newPort: number): Promise<void> {
+        const serverXmlPath = path.join(tomcatBase, 'conf', 'server.xml');
         const content = await fsp.readFile(serverXmlPath, 'utf8');
 
         const updatedContent = content.replace(
@@ -612,6 +671,7 @@ export class Tomcat {
      * 
      * @param action Command to execute (start/stop)
      * @param tomcatHome Tomcat installation directory
+     * @param tomcatBase Tomcat base directory
      * @param javaHome JDK installation directory
      * @throws Error if command execution fails
      * @log Command output if logging level is DEBUG
@@ -619,11 +679,12 @@ export class Tomcat {
     private async executeTomcatCommand(
         action: 'start' | 'stop',
         tomcatHome: string,
+        tomcatBase: string,
         javaHome: string
     ): Promise<void> {
         if (action === 'start') {
             const logEncoding = logger.getLogEncoding();
-            const { command, args } = this.buildCommand(action, tomcatHome, javaHome);
+            const { command, args } = this.buildCommand(action, tomcatHome, tomcatBase, javaHome);
 
             const child = spawn(command, args, {
                 stdio: 'pipe',
@@ -665,12 +726,12 @@ export class Tomcat {
                 });
             });
         } else {
-            const { command, args } = this.buildCommand(action, tomcatHome, javaHome);
+            const { command, args } = this.buildCommand(action, tomcatHome, tomcatBase, javaHome);
             const stopCommand = [command, ...args].join(' ');
             await execAsync(stopCommand);
         }
     }
-    
+
     /**
      * Browser launch keywords
      * 
@@ -718,12 +779,14 @@ export class Tomcat {
      * 
      * @param action Command to build (start/stop)
      * @param tomcatHome Tomcat installation directory
+     * @param tomcatBase Tomcat base directory
      * @param javaHome JDK installation directory
      * @returns Fully constructed command string
      */
     private buildCommand(
         action: 'start' | 'stop',
         tomcatHome: string,
+        tomcatBase: string,
         javaHome: string
     ): { command: string; args: string[] } {
         const javaExecutable = path.join(javaHome, 'bin', `java${process.platform === 'win32' ? '.exe' : ''}`);
@@ -737,9 +800,9 @@ export class Tomcat {
             args: [
                 '-cp',
                 classpath,
-                `-Dcatalina.base=${tomcatHome}`,
+                `-Dcatalina.base=${tomcatBase}`,
                 `-Dcatalina.home=${tomcatHome}`,
-                `-Djava.io.tmpdir=${path.join(tomcatHome, 'temp')}`,
+                `-Djava.io.tmpdir=${path.join(tomcatBase, 'temp')}`,
                 'org.apache.catalina.startup.Bootstrap',
                 action
             ]
@@ -755,10 +818,10 @@ export class Tomcat {
      * - File permission handling
      * - XML structure preservation
      * 
-     * @param tomcatHome Tomcat installation directory
+     * @param tomcatBase Tomcat base directory
      */
-    private async addTomcatUser(tomcatHome: string): Promise<void> {
-        const usersXmlPath = path.join(tomcatHome, 'conf', 'tomcat-users.xml');
+    private async addTomcatUser(tomcatBase: string): Promise<void> {
+        const usersXmlPath = path.join(tomcatBase, 'conf', 'tomcat-users.xml');
 
         try {
             if (await this.isTomcatRunning()) {
