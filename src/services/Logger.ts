@@ -22,6 +22,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import { AI } from './AI';
 
 export class Logger {
     private static instance: Logger;
@@ -29,6 +30,9 @@ export class Logger {
     private autoDeployMode: string;
     private outputChannel: vscode.OutputChannel;
     private statusBarItem?: vscode.StatusBarItem;
+    private statusBarIdleText = '';
+    private statusBarIdleTooltip?: string | vscode.MarkdownString;
+    private aiBusy = false;
     private currentLogFile: string | null = null;
     private fileCheckInterval?: NodeJS.Timeout;
     private logWatchers: { file: string; listener: fs.StatsListener }[] = [];
@@ -37,6 +41,8 @@ export class Logger {
     private logLevel: string;
     private showTimestamp: boolean;
     private logEncoding: string;
+    private diagnostics: vscode.DiagnosticCollection;
+    private aiStreaming = false;
     private logLevels: { [key: string]: number } = {
         DEBUG: 0,
         INFO: 1,
@@ -89,6 +95,14 @@ export class Logger {
         this.showTimestamp = vscode.workspace.getConfiguration().get<boolean>('tomcat.showTimestamp', true);
         this.outputChannel = vscode.window.createOutputChannel('Tomcat', 'tomcat-log');
         this.logEncoding = vscode.workspace.getConfiguration().get<string>('tomcat.logEncoding', 'utf8');
+        this.diagnostics = vscode.languages.createDiagnosticCollection('tomcat-ai');
+
+        const ai = AI.getInstance();
+        ai.setLoggerSink((msg) => this.aiNote(msg));
+        if (ai.setStatusHooks) {
+            ai.setStatusHooks(() => this.showAIStatus(), () => this.clearAIStatus());
+        }
+        ai.updateConfig();
     }
 
     /**
@@ -134,6 +148,7 @@ export class Logger {
         }
         this.showTimestamp = vscode.workspace.getConfiguration().get<boolean>('tomcat.showTimestamp', true);
         this.logEncoding = vscode.workspace.getConfiguration().get<string>('tomcat.logEncoding', 'utf8');
+        AI.getInstance().updateConfig();
     }
 
     /**
@@ -154,6 +169,8 @@ export class Logger {
     public deactivate(): void {
         this.outputChannel.dispose();
         this.statusBarItem?.dispose();
+        this.diagnostics.clear();
+        this.diagnostics.dispose();
         if (this.fileCheckInterval) clearInterval(this.fileCheckInterval);
         this.logWatchers.forEach(watcher => fs.unwatchFile(watcher.file, watcher.listener));
         this.accessLogStream?.destroy();
@@ -180,7 +197,8 @@ export class Logger {
         this.statusBarItem.show();
         context.subscriptions.push(
             this.statusBarItem,
-            vscode.commands.registerCommand('extension.tomcat.toggleDeploySetting', () => this.toggleDeploySetting())
+            vscode.commands.registerCommand('extension.tomcat.toggleDeploySetting', () => this.toggleDeploySetting()),
+            vscode.workspace.onDidSaveTextDocument((doc) => this.diagnostics.delete(doc.uri))
         );
         this.defaultStatusBar();
     }
@@ -197,7 +215,7 @@ export class Logger {
      * @param value Status message to display
      */
     public updateStatusBar(value: string): void {
-        if (this.statusBarItem) {
+        if (this.statusBarItem && !this.aiBusy) {
             this.statusBarItem.text = `$(sync~spin) ${value}`;
             this.statusBarItem.tooltip = `${value} Loading...`;
         }
@@ -213,13 +231,15 @@ export class Logger {
      * - Consistent visual styling
      */
     public defaultStatusBar(): void {
-        if (this.statusBarItem) {
+        if (this.statusBarItem && !this.aiBusy) {
             const displayText = this.autoDeployMode === 'On Shortcut'
                 ? process.platform === 'darwin' ? 'Cmd+S' : 'Ctrl+S'
                 : this.autoDeployMode;
 
             this.statusBarItem.text = `${this.autoDeployMode === 'On Save' ? '$(sync~spin)' : '$(server)'} Tomcat deploy: ${displayText}`;
             this.statusBarItem.tooltip = 'Click to change deploy mode';
+            this.statusBarIdleText = this.statusBarItem.text;
+            this.statusBarIdleTooltip = this.statusBarItem.tooltip;
         }
     }
 
@@ -273,6 +293,67 @@ export class Logger {
     public error(message: string, showToast: boolean = false, error: string): void {
         const fullMessage = error ? `${message}\n${error}` : message;
         this.log('ERROR', fullMessage, showToast ? vscode.window.showErrorMessage : undefined);
+    }
+
+    public aiNote(message: string): void {
+        if (message.startsWith('AI_STREAM_START:')) {
+            this.aiStreaming = true;
+            const body = message.replace('AI_STREAM_START:', '').trim();
+            const timestamp = this.showTimestamp ? `[${new Date().toLocaleString()}] ` : '';
+            this.outputChannel.append(`${timestamp}[AI] ${body}`);
+            return;
+        }
+
+        if (message.startsWith('AI_STREAM_CHUNK:')) {
+            if (this.aiStreaming) {
+                const body = message.replace('AI_STREAM_CHUNK:', '');
+                this.outputChannel.append(body);
+            }
+            return;
+        }
+
+        if (message.startsWith('AI_STREAM_END')) {
+            if (this.aiStreaming) {
+                this.outputChannel.append('\n');
+            }
+            this.aiStreaming = false;
+            return;
+        }
+
+        const isDebug = message.startsWith('AI_DEBUG:');
+        if (isDebug && this.logLevels[this.logLevel] > this.logLevels.DEBUG) {
+            return; // honor current log level for debug noise
+        }
+
+        const body = isDebug ? message.replace('AI_DEBUG:', '').trim() : message;
+        const levelTag = isDebug ? '[AI][debug]' : '[AI]';
+        const timestamp = this.showTimestamp ? `[${new Date().toLocaleString()}] ` : '';
+        this.outputChannel.appendLine(`${timestamp}${levelTag} ${body}`);
+    }
+
+    public showAIStatus(message: string = 'AI typing...'): void {
+        if (!this.statusBarItem) return;
+        this.aiBusy = true;
+        if (!this.statusBarIdleText) {
+            this.statusBarIdleText = this.statusBarItem.text;
+            this.statusBarIdleTooltip = this.statusBarItem.tooltip;
+        }
+        this.statusBarItem.text = `$(sync~spin) ${message}`;
+        this.statusBarItem.tooltip = 'AI is typing a response';
+        this.statusBarItem.show();
+    }
+
+    public clearAIStatus(message: string = 'AI ready'): void {
+        if (!this.statusBarItem) return;
+        this.aiBusy = false;
+        if (this.statusBarIdleText) {
+            this.statusBarItem.text = this.statusBarIdleText;
+            this.statusBarItem.tooltip = this.statusBarIdleTooltip;
+        } else {
+            this.statusBarItem.text = `$(sparkle) ${message}`;
+            this.statusBarItem.tooltip = 'AI idle';
+        }
+        this.statusBarItem.show();
     }
 
     /**
@@ -703,5 +784,123 @@ export class Logger {
         if (level === 'ERROR' || level === 'WARN' || level === 'APP') {
             this.outputChannel.show(true);
         }
+
+        if (messageLevel === 'SUCCESS' || /build completed/i.test(message)) {
+            this.diagnostics.clear();
+        }
+
+        if (messageLevel === 'ERROR') {
+            void this.handleDiagnosticsFromMessage(message);
+        }
+
+        if (messageLevel === 'WARN' || messageLevel === 'ERROR') {
+            AI.getInstance().maybeExplain(messageLevel, message);
+        }
+    }
+
+    private async handleDiagnosticsFromMessage(message: string): Promise<void> {
+        const location = this.parseErrorLocation(message);
+        if (!location) {
+            this.outputChannel.appendLine('[INFO] No error location parsed from build output');
+            return;
+        }
+
+        const diagnostic = new vscode.Diagnostic(
+            location.range,
+            location.message || 'Build error',
+            vscode.DiagnosticSeverity.Error
+        );
+
+        this.diagnostics.clear();
+        this.diagnostics.set(location.uri, [diagnostic]);
+
+        try {
+            const doc = await vscode.workspace.openTextDocument(location.uri);
+            const editor = await vscode.window.showTextDocument(doc, { preview: false });
+            const pos = new vscode.Position(location.range.start.line, location.range.start.character);
+            const highlight = new vscode.Range(pos, pos);
+            editor.selection = new vscode.Selection(pos, pos);
+            editor.revealRange(highlight, vscode.TextEditorRevealType.InCenter);
+        } catch (err) {
+            this.outputChannel.appendLine(`[WARN] Failed to open error location ${location.uri.fsPath}: ${err}`);
+        }
+    }
+
+    private parseErrorLocation(text: string): { uri: vscode.Uri; range: vscode.Range; message: string } | null {
+        const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+        const cleanedText = text
+            .replace(/\x1B\[[0-9;]*m/g, '') // strip ANSI colors
+            .replace(/\t/g, '    ');
+        const lines = cleanedText.split(/\r?\n/);
+
+        const patterns: Array<(line: string) => { file: string; line: number; col: number; msg: string } | null> = [
+            // Maven javac: [ERROR] path:[line,col] message
+            (line) => {
+                const m = line.match(/\[ERROR\]\s+(.+?):\[(\d+),(\d+)\]\s+(.*)/);
+                return m ? { file: m[1], line: parseInt(m[2], 10), col: parseInt(m[3], 10), msg: m[4] } : null;
+            },
+            // Path:[line,col] message (no [ERROR], supports /c:/ prefix)
+            (line) => {
+                const m = line.match(/\s*\/?([A-Za-z]:[\\/].+?)\[(\d+),(\d+)\]\s+(.*)/)
+                    || line.match(/\s*(.+?)\[(\d+),(\d+)\]\s+(.*)/);
+                return m ? { file: m[1], line: parseInt(m[2], 10), col: parseInt(m[3], 10), msg: m[4] } : null;
+            },
+            // javac/gradle: path:line:col message OR path:line: error: message
+            (line) => {
+                const m = line.match(/([A-Za-z]:[\\/].+?\.(?:java|jsp|xml|properties|gradle|groovy|kt|scala|js|ts|tsx|jsx)):(\d+)(?::(\d+))?\s*(?:error:)?\s*(.*)/i)
+                    || line.match(/(.+?\.(?:java|jsp|xml|properties|gradle|groovy|kt|scala|js|ts|tsx|jsx)):(\d+)(?::(\d+))?\s*(?:error:)?\s*(.*)/i);
+                return m ? { file: m[1], line: parseInt(m[2], 10), col: m[3] ? parseInt(m[3], 10) : 1, msg: m[4] } : null;
+            },
+            // Generic: path(line,column): message
+            (line) => {
+                const m = line.match(/(.+?\.(?:java|jsp|xml|properties|gradle|groovy|kt|scala|js|ts|tsx|jsx))\((\d+),(\d+)\):\s*(.*)/i);
+                return m ? { file: m[1], line: parseInt(m[2], 10), col: parseInt(m[3], 10), msg: m[4] } : null;
+            }
+        ];
+
+        for (const rawLine of lines) {
+            const line = rawLine.trim();
+            if (!line) continue;
+
+            for (const pattern of patterns) {
+                const hit = pattern(line);
+                if (!hit) continue;
+                const candidate = this.resolvePath(hit.file, workspaceRoot);
+                if (!candidate) continue;
+                const lineNum = Math.max(hit.line - 1, 0);
+                const colNum = Math.max(hit.col - 1, 0);
+                const range = new vscode.Range(lineNum, colNum, lineNum, colNum + 1);
+                const msg = (hit.msg || 'Build error').trim();
+                return { uri: candidate, range, message: msg };
+            }
+        }
+
+        return null;
+    }
+
+    private resolvePath(candidatePath: string, workspaceRoot?: string): vscode.Uri | null {
+        const cleaned = candidatePath.replace(/^\[ERROR\]\s+/, '').replace(/^"|"$/g, '').trim();
+        const normalized = cleaned.match(/^\/[A-Za-z]:/) ? cleaned.slice(1) : cleaned;
+        const withoutTrailingColon = normalized.replace(/:+$/, '');
+        const absolutePath = path.isAbsolute(withoutTrailingColon)
+            ? withoutTrailingColon
+            : (workspaceRoot ? path.join(workspaceRoot, withoutTrailingColon) : withoutTrailingColon);
+
+        const normalizedFsPath = path.normalize(absolutePath);
+
+        if (fs.existsSync(normalizedFsPath)) {
+            return vscode.Uri.file(normalizedFsPath);
+        }
+
+        // If it looks absolute but fs check failed (e.g., case/drive letter quirks), still return a Uri and let openTextDocument try.
+        if (path.isAbsolute(normalizedFsPath)) {
+            return vscode.Uri.file(normalizedFsPath);
+        }
+
+        return null;
+    }
+
+    public clearDiagnostics(): void {
+        this.diagnostics.clear();
     }
 }

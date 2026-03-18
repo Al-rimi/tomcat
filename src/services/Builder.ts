@@ -99,7 +99,7 @@ export class Builder {
 
         const rootPath = workspaceFolders[0].uri.fsPath;
         const webInfPath = path.join(rootPath, 'src', 'main', 'webapp', 'WEB-INF');
-        
+
         if (fs.existsSync(webInfPath)) { return true; }
         if (fs.existsSync(path.join(webInfPath, 'web.xml'))) { return true; }
 
@@ -155,7 +155,7 @@ export class Builder {
 
         const appName = path.basename(projectDir);
         const tomcatHome = await tomcat.findTomcatHome();
-        
+
         tomcat.setAppName(appName);
 
         if (!tomcatHome || !appName || !fs.existsSync(path.join(tomcatHome, 'webapps'))) { return; }
@@ -163,7 +163,7 @@ export class Builder {
         const targetDir = path.join(tomcatHome, 'webapps', appName);
         await vscode.workspace.saveAll();
 
-        try {            
+        try {
             const action = {
                 'Local': () => this.localDeploy(projectDir, targetDir, tomcatHome),
                 'Maven': () => this.mavenDeploy(projectDir, targetDir),
@@ -171,8 +171,10 @@ export class Builder {
             }[type];
 
             if (!action) {
-                throw(`Invalid deployment type: ${type}`);
+                throw (`Invalid deployment type: ${type}`);
             }
+
+            logger.clearDiagnostics();
 
             const startTime = performance.now();
             logger.updateStatusBar(`${type} Build`);
@@ -230,10 +232,10 @@ export class Builder {
     public async autoDeploy(reason: vscode.TextDocumentSaveReason): Promise<void> {
 
         if (this.isDeploying || !Builder.isJavaEEProject()) { return; }
-    
+
         try {
             this.isDeploying = true;
-            
+
             if (this.autoDeployMode === 'On Save') {
                 await this.deploy(this.autoDeployBuildType);
             } else if (this.autoDeployMode === 'On Shortcut' && reason === vscode.TextDocumentSaveReason.Manual) {
@@ -243,7 +245,7 @@ export class Builder {
             this.isDeploying = false;
         }
     }
-    
+
     /**
      * Project Scaffolding System
      * 
@@ -322,12 +324,12 @@ export class Builder {
         const javacPath = path.join(javaHome, 'bin', 'javac');
         const javaSourcePath = path.join(projectDir, 'src', 'main', 'java');
         const classesDir = path.join(targetDir, 'WEB-INF', 'classes');
-    
+
         this.brutalSync(webAppPath, targetDir, true);
-    
+
         fs.rmSync(classesDir, { force: true, recursive: true });
         fs.mkdirSync(classesDir, { recursive: true });
-    
+
         if (fs.existsSync(javaSourcePath)) {
             const javaFiles = await this.findFiles(path.join(javaSourcePath, '**', '*.java'));
             if (javaFiles.length > 0) {
@@ -336,7 +338,7 @@ export class Builder {
                 await this.executeCommand(cmd, projectDir);
             }
         }
-    
+
         const libDir = path.join(projectDir, 'lib');
         const targetLib = path.join(targetDir, 'WEB-INF', 'lib');
         this.brutalSync(libDir, targetLib);
@@ -358,14 +360,14 @@ export class Builder {
      */
     private async mavenDeploy(projectDir: string, targetDir: string) {
         if (!fs.existsSync(path.join(projectDir, 'pom.xml'))) {
-            throw('pom.xml not found.');
+            throw ('pom.xml not found.');
         }
 
         try {
             await this.executeCommand(`mvn clean package`, projectDir);
         } catch (err) {
             const errorOutput = err?.toString() || '';
-        
+
             const lines = errorOutput
                 .split('\n')
                 .filter(line =>
@@ -377,16 +379,16 @@ export class Builder {
                     !line.includes('http')
                 )
                 .map(line => line.replace('[ERROR]', '\t\t'));
-        
+
             const uniqueLines = [...new Set(lines)];
-                
-            throw(uniqueLines.join('\n'));
+
+            throw (uniqueLines.join('\n'));
         }
 
         const targetPath = path.join(projectDir, 'target');
         const warFiles = fs.readdirSync(targetPath).filter(file => file.toLowerCase().endsWith('.war'));
         if (warFiles.length === 0) {
-            throw('No WAR file found after Maven build.');
+            throw ('No WAR file found after Maven build.');
         }
 
         const warFileName = warFiles[0];
@@ -427,7 +429,7 @@ export class Builder {
      */
     private async gradleDeploy(projectDir: string, targetDir: string, appName: string) {
         if (!fs.existsSync(path.join(projectDir, 'build.gradle'))) {
-            throw('build.gradle not found.');
+            throw ('build.gradle not found.');
         }
 
         const gradleCmd = process.platform === 'win32' ? 'gradlew.bat' : './gradlew';
@@ -435,7 +437,7 @@ export class Builder {
 
         const warFile = path.join(projectDir, 'build', 'libs', `${appName}.war`);
         if (!warFile) {
-            throw('No WAR file found after Gradle build.');
+            throw ('No WAR file found after Gradle build.');
         }
 
         fs.rmSync(targetDir, { recursive: true, force: true });
@@ -506,19 +508,19 @@ export class Builder {
         if (!fs.existsSync(dest)) {
             fs.mkdirSync(dest, { recursive: true });
         }
-    
+
         const entries = fs.readdirSync(src, { withFileTypes: true });
-    
+
         for (const entry of entries) {
             const srcPath = path.join(src, entry.name);
             const destPath = path.join(dest, entry.name);
-    
-            try { fs.rmSync(destPath, { force: true, recursive: true }); } catch(e) {}
-    
+
+            try { fs.rmSync(destPath, { force: true, recursive: true }); } catch (e) { }
+
             if (entry.isDirectory()) {
                 this.copyDirectorySync(srcPath, destPath);
             } else {
-                try { fs.copyFileSync(srcPath, destPath); } catch(e) {}
+                try { fs.copyFileSync(srcPath, destPath); } catch (e) { }
             }
         }
     }
@@ -559,16 +561,16 @@ export class Builder {
             fs.readdirSync(dest).forEach(f => {
                 const fullPath = path.join(dest, f);
                 if (!keepers.has(f) && (!restricted ? true : !restrictedFolders.includes(f))) {
-                    try { fs.rmSync(fullPath, { force: true, recursive: true }); } catch (e) {}
+                    try { fs.rmSync(fullPath, { force: true, recursive: true }); } catch (e) { }
                 }
             });
         }
-    
+
         fs.mkdirSync(dest, { recursive: true });
         fs.readdirSync(src, { withFileTypes: true }).forEach(entry => {
             const srcPath = path.join(src, entry.name);
             const destPath = path.join(dest, entry.name);
-            
+
             if (entry.isDirectory()) {
                 this.brutalSync(srcPath, destPath, restricted);
             } else {

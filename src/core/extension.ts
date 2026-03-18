@@ -123,7 +123,7 @@ function updateSettings(event: vscode.ConfigurationChangeEvent) {
         Tomcat.getInstance().findJavaHome();
         Builder.getInstance().updateConfig();
 
-    } else if (event.affectsConfiguration('tomcat.port') || 
+    } else if (event.affectsConfiguration('tomcat.port') ||
         event.affectsConfiguration('tomcat.protectedWebApps')) {
         Tomcat.getInstance().updatePort();
 
@@ -139,7 +139,7 @@ function updateSettings(event: vscode.ConfigurationChangeEvent) {
     } else if (event.affectsConfiguration('tomcat.showTimestamp') ||
         event.affectsConfiguration('tomcat.logLevel')) {
         Logger.getInstance().updateConfig();
-        
+
     } else if (event.affectsConfiguration('tomcat.logEncoding')) {
         const configured = vscode.workspace.getConfiguration().get<string>('tomcat.logEncoding', 'utf8');
         try {
@@ -149,6 +149,9 @@ function updateSettings(event: vscode.ConfigurationChangeEvent) {
             vscode.workspace.getConfiguration().update('tomcat.logEncoding', 'utf8', true);
         }
         Tomcat.getInstance().kill();
+        Logger.getInstance().updateConfig();
+
+    } else if (event.affectsConfiguration('tomcat.ai')) {
         Logger.getInstance().updateConfig();
     }
 }
