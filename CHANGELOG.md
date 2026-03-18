@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [3.0.1] - 2026-03-19
+### Added
+- New `tomcat.base` (CATALINA_BASE) setting and runtime support so base and home can differ.
+
+### Changed
+- Dependency bumps (mocha 11.7.5 with pinned transitive `diff` 8.0.3 and `serialize-javascript` 7.0.4) to align with latest models and tooling.
+
+### Fixed
+- Resolved high-severity audit findings by forcing safe transitive versions (`diff`, `serialize-javascript`) and regenerating the lockfile.
+
 ## [3.0.0] - 2026-03-19
 ### Added
 - Streaming AI explanations for WARN/ERROR logs with live typing output in the Tomcat channel and status bar feedback.
