@@ -1,31 +1,40 @@
 {
 	"compilerOptions": {
-	  "module": "es6",
-	  "target": "ES2020",
-	  "lib": ["ES2020"],
-	  "outDir": "dist",
-	  "sourceMap": true,
-	  "inlineSources": true,
-	  "rootDir": ".",
-	  "strict": true,
-	  "noUnusedLocals": true,
-	  "noImplicitAny": true,
-	  "moduleResolution": "node",
-	  "esModuleInterop": true,
-	  "skipLibCheck": true,
-	  "forceConsistentCasingInFileNames": true,
-	  "noImplicitReturns": true,
-	  "noFallthroughCasesInSwitch": true,
-	  "noUnusedParameters": true,
-	  "types": ["node", "vscode", "mocha", "chai"]
+		"module": "ES2020",
+		"target": "ES2020",
+		"lib": [
+			"ES2020",
+			"DOM"
+		],
+		"outDir": "dist",
+		"sourceMap": true,
+		"inlineSources": true,
+		"rootDir": ".",
+		"strict": true,
+		"noUnusedLocals": true,
+		"noImplicitAny": true,
+		"moduleResolution": "node",
+		"ignoreDeprecations": "5.0",
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"noImplicitReturns": true,
+		"noFallthroughCasesInSwitch": true,
+		"noUnusedParameters": true,
+		"types": [
+			"node",
+			"vscode",
+			"mocha",
+			"chai"
+		]
 	},
 	"include": [
-	  "src/**/*.ts",
-	  "*.ts"
+		"src/**/*.ts",
+		"*.ts"
 	],
 	"exclude": [
-	  "node_modules",
-	  "test",
-	  "**/*.test.ts"
+		"node_modules",
+		"test",
+		"**/*.test.ts"
 	]
-  }
+}
