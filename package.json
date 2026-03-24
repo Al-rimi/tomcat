@@ -1,8 +1,8 @@
 {
   "name": "tomcat",
-  "displayName": "Tomcat AI Deployer",
-  "description": "AI-assisted Tomcat control for VS Code: streaming log explanations, one-click deploys, and browser reloads.",
-  "version": "3.0.1",
+  "displayName": "Tomcat",
+  "description": "AI-Assisted Java EE Support Extinction for Tomcat",
+  "version": "3.0.2",
   "publisher": "Al-rimi",
   "author": {
     "email": "alrimi@zjnu.edu.cn",

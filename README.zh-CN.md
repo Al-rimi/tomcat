@@ -206,7 +206,7 @@ public static isJavaEEProject(): boolean {
 [![提交修复](https://img.shields.io/badge/-提交修复-green?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/pulls)
 
 
-## 3.0.1 更新内容
+## 3.0.2 更新内容
 
 ### 新增
 - WARN/ERROR 日志的流式 AI 解释，Tomcat 输出通道与状态栏实时显示输入效果。

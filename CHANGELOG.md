@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [3.0.2] - 2026-03-24
+### Added
+- AI debug logs now capture reachability, boot, first-token, stream, and total call timings for troubleshooting slow responses.
+
+### Changed
+- AI debug mode auto-enables when `tomcat.logLevel` is set to `DEBUG`.
+- Compiler settings now include DOM typings and ignore deprecated API noise from TypeScript 5.x.
+- Extension metadata updated for the 3.0.2 release.
+
 ## [3.0.1] - 2026-03-19
 ### Added
 - New `tomcat.base` (CATALINA_BASE) setting and runtime support so base and home can differ.

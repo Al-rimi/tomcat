@@ -214,7 +214,7 @@ For technical implementation details and contribution guidelines, see:
 [![Suggest Fix](https://img.shields.io/badge/-Suggest_Fix-green?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/pulls)
 
 
-## What's New in 3.0.1
+## What's New in 3.0.2
 
 ### Added
 - Streaming AI explanations for WARN/ERROR logs with live typing output in the Tomcat channel and status bar feedback.
