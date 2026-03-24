@@ -98,7 +98,7 @@ export class Logger {
         this.diagnostics = vscode.languages.createDiagnosticCollection('tomcat-ai');
 
         const ai = AI.getInstance();
-        ai.setLoggerSink((msg) => this.aiNote(msg));
+        ai.setLoggerSink((msg: string) => this.aiNote(msg));
         if (ai.setStatusHooks) {
             ai.setStatusHooks(() => this.showAIStatus(), () => this.clearAIStatus());
         }

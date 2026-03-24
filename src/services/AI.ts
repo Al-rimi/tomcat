@@ -28,6 +28,12 @@ export class AI {
     private localStartCommand: string;
     private startAttempted = false;
     private debug: boolean;
+    private logLevelDebug: boolean;
+    private lastReadyMs?: number;
+    private lastBootMs?: number;
+    private lastFirstTokenMs?: number;
+    private lastTotalStreamMs?: number;
+    private lastCallMs?: number;
     private onStart?: () => void;
     private onDone?: () => void;
     private readonly MAX_PROMPT_CHARS = 1500;
@@ -44,7 +50,9 @@ export class AI {
         this.apiKey = vscode.workspace.getConfiguration().get('tomcat.ai.apiKey', '') || undefined;
         this.autoStartLocal = vscode.workspace.getConfiguration().get('tomcat.ai.autoStartLocal', true);
         this.localStartCommand = vscode.workspace.getConfiguration().get('tomcat.ai.localStartCommand', 'ollama serve');
-        this.debug = vscode.workspace.getConfiguration().get('tomcat.ai.debug', false);
+        const logLevel = vscode.workspace.getConfiguration().get('tomcat.logLevel', 'INFO').toUpperCase();
+        this.logLevelDebug = logLevel === 'DEBUG';
+        this.debug = vscode.workspace.getConfiguration().get('tomcat.ai.debug', false) || this.logLevelDebug;
     }
 
     public static getInstance(): AI {
@@ -66,7 +74,9 @@ export class AI {
         this.apiKey = cfg.get('tomcat.ai.apiKey', '') || undefined;
         this.autoStartLocal = cfg.get('tomcat.ai.autoStartLocal', true);
         this.localStartCommand = cfg.get('tomcat.ai.localStartCommand', 'ollama serve');
-        this.debug = cfg.get('tomcat.ai.debug', false);
+        const logLevel = cfg.get('tomcat.logLevel', 'INFO').toUpperCase();
+        this.logLevelDebug = logLevel === 'DEBUG';
+        this.debug = cfg.get('tomcat.ai.debug', false) || this.logLevelDebug;
     }
 
     public setLoggerSink(sink: LogSink): void {
@@ -91,8 +101,14 @@ export class AI {
         this.inFlight = true;
         this.onStart?.();
         try {
+            const explainStart = Date.now();
             this.debugLog(`explain start: level=${sev}`);
             const ready = await this.ensureReady();
+            const readyElapsed = Date.now() - explainStart;
+            if (ready) {
+                this.lastReadyMs = readyElapsed;
+                this.debugLog(`ready in ${readyElapsed}ms (provider=${this.provider}, bootMs=${this.lastBootMs ?? 'n/a'})`);
+            }
             if (!ready) {
                 this.logSink?.('AI endpoint not reachable; skipped explanation.');
                 return;
@@ -121,13 +137,21 @@ export class AI {
             this.logSink?.(`AI explanation failed: ${err}`);
             this.debugLog(`exception: ${err}`);
         } finally {
+            this.debugLog(
+                `timers ready=${this.lastReadyMs ?? 'n/a'}ms boot=${this.lastBootMs ?? 'n/a'}ms firstToken=${this.lastFirstTokenMs ?? 'n/a'}ms totalStream=${this.lastTotalStreamMs ?? 'n/a'}ms call=${this.lastCallMs ?? 'n/a'}ms`
+            );
             this.inFlight = false;
             this.onDone?.();
         }
     }
 
     private async ensureReady(): Promise<boolean> {
-        if (await this.pingEndpoint()) return true;
+        const pingStart = Date.now();
+        if (await this.pingEndpoint()) {
+            const pingElapsed = Date.now() - pingStart;
+            this.debugLog(`reachability ok in ${pingElapsed}ms`);
+            return true;
+        }
 
         if (this.provider !== 'local') return false;
         const endpointUrl = this.parseEndpointUrl();
@@ -135,17 +159,26 @@ export class AI {
         if (!this.autoStartLocal || this.startAttempted) return false;
 
         this.startAttempted = true;
+        const bootStart = Date.now();
         try {
             this.spawnLocalService();
             const attempts = [500, 1000, 1500];
             for (const delay of attempts) {
                 await new Promise(res => setTimeout(res, delay));
-                if (await this.pingEndpoint()) return true;
+                const reachable = await this.pingEndpoint();
+                const elapsed = Date.now() - bootStart;
+                if (reachable) {
+                    this.lastBootMs = elapsed;
+                    this.debugLog(`local AI became reachable in ${elapsed}ms after spawn attempt`);
+                    return true;
+                }
             }
         } catch (err) {
             this.logSink?.(`[AI] failed to start local AI: ${err}`);
             this.debugLog(`spawn failed: ${err}`);
         }
+        const totalBoot = Date.now() - bootStart;
+        this.debugLog(`local AI not reachable after ${totalBoot}ms of retries`);
         return false;
     }
 
@@ -254,6 +287,8 @@ export class AI {
                 return;
             }
 
+            const callStart = Date.now();
+
             const payload = JSON.stringify({
                 model: body.model,
                 messages: body.messages,
@@ -283,6 +318,7 @@ export class AI {
                 let data = '';
                 res.on('data', chunk => data += chunk);
                 res.on('end', () => {
+                    this.lastCallMs = Date.now() - callStart;
                     try {
                         const parsed = JSON.parse(data);
                         // Support OpenAI-style and Ollama chat shapes.
@@ -323,6 +359,9 @@ export class AI {
                 return;
             }
 
+            const streamStart = Date.now();
+            let firstTokenAt: number | undefined;
+
             const payload = JSON.stringify({
                 model: body.model,
                 messages: body.messages,
@@ -361,6 +400,11 @@ export class AI {
                         if (!line) continue;
                         const content = this.extractStreamContent(line);
                         if (content) {
+                            if (!firstTokenAt) {
+                                firstTokenAt = Date.now();
+                                this.lastFirstTokenMs = firstTokenAt - streamStart;
+                                this.debugLog(`first stream token in ${this.lastFirstTokenMs}ms`);
+                            }
                             this.logSink?.(`AI_STREAM_CHUNK:${content}`);
                             gotChunk = true;
                         }
@@ -376,11 +420,18 @@ export class AI {
                     if (buffer.trim()) {
                         const content = this.extractStreamContent(buffer.trim());
                         if (content) {
+                            if (!firstTokenAt) {
+                                firstTokenAt = Date.now();
+                                this.lastFirstTokenMs = firstTokenAt - streamStart;
+                                this.debugLog(`first stream token in ${this.lastFirstTokenMs}ms (end-of-stream)`);
+                            }
                             this.logSink?.(`AI_STREAM_CHUNK:${content}`);
                             gotChunk = true;
                         }
                     }
                     this.logSink?.('AI_STREAM_END');
+                    this.lastTotalStreamMs = Date.now() - streamStart;
+                    this.debugLog(`stream finished in ${this.lastTotalStreamMs}ms`);
                     resolve(gotChunk);
                 });
 
