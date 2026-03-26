@@ -23,11 +23,12 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { AI } from './AI';
+import { DeployMode, t, translateDeployMode } from '../utils/i18n';
 
 export class Logger {
     private static instance: Logger;
     private tomcatHome: string;
-    private autoDeployMode: string;
+    private autoDeployMode: DeployMode;
     private outputChannel: vscode.OutputChannel;
     private statusBarItem?: vscode.StatusBarItem;
     private statusBarIdleText = '';
@@ -87,13 +88,13 @@ export class Logger {
      */
     private constructor() {
         this.tomcatHome = vscode.workspace.getConfiguration().get<string>('tomcat.home', '');
-        this.autoDeployMode = vscode.workspace.getConfiguration().get<string>('tomcat.autoDeployMode', 'Disable');
+        this.autoDeployMode = vscode.workspace.getConfiguration().get<string>('tomcat.autoDeployMode', 'Disable') as DeployMode;
         this.logLevel = vscode.workspace.getConfiguration().get<string>('tomcat.logLevel', 'INFO').toUpperCase();
         if (!Object.keys(this.logLevels).includes(this.logLevel)) {
             this.logLevel = 'INFO';
         }
         this.showTimestamp = vscode.workspace.getConfiguration().get<boolean>('tomcat.showTimestamp', true);
-        this.outputChannel = vscode.window.createOutputChannel('Tomcat', 'tomcat-log');
+        this.outputChannel = vscode.window.createOutputChannel(t('output.channelName'), 'tomcat-log');
         this.logEncoding = vscode.workspace.getConfiguration().get<string>('tomcat.logEncoding', 'utf8');
         this.diagnostics = vscode.languages.createDiagnosticCollection('tomcat-ai');
 
@@ -141,7 +142,7 @@ export class Logger {
      */
     public updateConfig(): void {
         this.tomcatHome = vscode.workspace.getConfiguration().get<string>('tomcat.home', '');
-        this.autoDeployMode = vscode.workspace.getConfiguration().get<string>('tomcat.autoDeployMode', 'Disable');
+        this.autoDeployMode = vscode.workspace.getConfiguration().get<string>('tomcat.autoDeployMode', 'Disable') as DeployMode;
         this.logLevel = vscode.workspace.getConfiguration().get<string>('tomcat.logLevel', 'INFO').toUpperCase();
         if (!Object.keys(this.logLevels).includes(this.logLevel)) {
             this.logLevel = 'INFO';
@@ -217,7 +218,7 @@ export class Logger {
     public updateStatusBar(value: string): void {
         if (this.statusBarItem && !this.aiBusy) {
             this.statusBarItem.text = `$(sync~spin) ${value}`;
-            this.statusBarItem.tooltip = `${value} Loading...`;
+            this.statusBarItem.tooltip = t('status.loadingTooltip', { value });
         }
     }
 
@@ -232,12 +233,13 @@ export class Logger {
      */
     public defaultStatusBar(): void {
         if (this.statusBarItem && !this.aiBusy) {
+            const shortcut = process.platform === 'darwin' ? 'Cmd+S' : 'Ctrl+S';
             const displayText = this.autoDeployMode === 'On Shortcut'
-                ? process.platform === 'darwin' ? 'Cmd+S' : 'Ctrl+S'
-                : this.autoDeployMode;
+                ? `${translateDeployMode(this.autoDeployMode)} (${shortcut})`
+                : translateDeployMode(this.autoDeployMode);
 
-            this.statusBarItem.text = `${this.autoDeployMode === 'On Save' ? '$(sync~spin)' : '$(server)'} Tomcat deploy: ${displayText}`;
-            this.statusBarItem.tooltip = 'Click to change deploy mode';
+            this.statusBarItem.text = `${this.autoDeployMode === 'On Save' ? '$(sync~spin)' : '$(server)'} ${t('status.deployLabel', { mode: displayText })}`;
+            this.statusBarItem.tooltip = t('status.changeModeTooltip');
             this.statusBarIdleText = this.statusBarItem.text;
             this.statusBarIdleTooltip = this.statusBarItem.tooltip;
         }
@@ -331,7 +333,7 @@ export class Logger {
         this.outputChannel.appendLine(`${timestamp}${levelTag} ${body}`);
     }
 
-    public showAIStatus(message: string = 'AI typing...'): void {
+    public showAIStatus(message: string = t('status.aiTyping')): void {
         if (!this.statusBarItem) return;
         this.aiBusy = true;
         if (!this.statusBarIdleText) {
@@ -339,11 +341,11 @@ export class Logger {
             this.statusBarIdleTooltip = this.statusBarItem.tooltip;
         }
         this.statusBarItem.text = `$(sync~spin) ${message}`;
-        this.statusBarItem.tooltip = 'AI is typing a response';
+        this.statusBarItem.tooltip = t('status.aiTooltip');
         this.statusBarItem.show();
     }
 
-    public clearAIStatus(message: string = 'AI ready'): void {
+    public clearAIStatus(message: string = t('status.aiReady')): void {
         if (!this.statusBarItem) return;
         this.aiBusy = false;
         if (this.statusBarIdleText) {
@@ -351,7 +353,7 @@ export class Logger {
             this.statusBarItem.tooltip = this.statusBarIdleTooltip;
         } else {
             this.statusBarItem.text = `$(sparkle) ${message}`;
-            this.statusBarItem.tooltip = 'AI idle';
+            this.statusBarItem.tooltip = t('status.aiIdle');
         }
         this.statusBarItem.show();
     }
@@ -776,7 +778,7 @@ export class Logger {
         if (showUI) {
             showUI(message).then(selection => {
                 if (selection) {
-                    this.outputChannel.appendLine(`User selected: ${selection}`);
+                    this.outputChannel.appendLine(t('logger.userSelected', { selection }));
                 }
             });
         }

@@ -28,6 +28,7 @@ import { Builder } from '../services/Builder';
 import { Tomcat } from '../services/Tomcat';
 import { Logger } from '../services/Logger';
 import { Browser } from '../services/Browser';
+import { initializeLocalization, refreshLocalization, t } from '../utils/i18n';
 
 /**
  * Extension activation hook
@@ -46,6 +47,8 @@ import { Browser } from '../services/Browser';
  *   - Environment information
  */
 export function activate(context: vscode.ExtensionContext) {
+    initializeLocalization(context);
+
     const builder = Builder.getInstance();
     const tomcat = Tomcat.getInstance();
 
@@ -140,12 +143,16 @@ function updateSettings(event: vscode.ConfigurationChangeEvent) {
         event.affectsConfiguration('tomcat.logLevel')) {
         Logger.getInstance().updateConfig();
 
+    } else if (event.affectsConfiguration('tomcat.language')) {
+        refreshLocalization();
+        Logger.getInstance().defaultStatusBar();
+
     } else if (event.affectsConfiguration('tomcat.logEncoding')) {
         const configured = vscode.workspace.getConfiguration().get<string>('tomcat.logEncoding', 'utf8');
         try {
             Buffer.from('test', configured as BufferEncoding);
         } catch (e) {
-            Logger.getInstance().warn(`Unsupported encoding '${configured}' detected. Falling back to utf8.`);
+            Logger.getInstance().warn(t('config.encoding.unsupported', { encoding: configured }));
             vscode.workspace.getConfiguration().update('tomcat.logEncoding', 'utf8', true);
         }
         Tomcat.getInstance().kill();

@@ -29,6 +29,7 @@ import { Logger } from './Logger';
 import { Buffer } from 'buffer';
 import { Browser } from './Browser';
 import { ChildProcess, spawn } from 'child_process';
+import { t } from '../utils/i18n';
 
 const execAsync = promisify(exec);
 const logger = Logger.getInstance();
@@ -136,17 +137,17 @@ export class Tomcat {
         const tomcatBase = await this.findTomcatBase(tomcatHome);
 
         if (await this.isTomcatRunning()) {
-            logger.info('Tomcat is already running', showMessages);
+            logger.info(t('tomcat.alreadyRunning'), showMessages);
             return;
         }
 
         try {
             this.executeTomcatCommand('start', tomcatHome, tomcatBase, javaHome);
             if (showMessages) {
-                logger.info('Tomcat started successfully', showMessages);
+                logger.info(t('tomcat.started'), showMessages);
             }
         } catch (err) {
-            logger.error('Failed to start Tomcat:', showMessages, err as string);
+            logger.error(t('tomcat.startFailed'), showMessages, err as string);
         }
     }
 
@@ -169,7 +170,7 @@ export class Tomcat {
         const tomcatBase = await this.findTomcatBase(tomcatHome);
 
         if (!await this.isTomcatRunning()) {
-            logger.info('Tomcat is not running', showMessages);
+            logger.info(t('tomcat.notRunning'), showMessages);
             return;
         }
 
@@ -177,13 +178,13 @@ export class Tomcat {
             if (this.tomcatProcess) {
                 this.tomcatProcess.kill('SIGTERM');
                 this.tomcatProcess = null;
-                logger.success('Tomcat stopped (process terminated)', showMessages);
+                logger.success(t('tomcat.stoppedProcess'), showMessages);
             } else {
                 await this.executeTomcatCommand('stop', tomcatHome, tomcatBase, javaHome);
-                logger.success('Tomcat stopped successfully', showMessages);
+                logger.success(t('tomcat.stopped'), showMessages);
             }
         } catch (err) {
-            logger.error('Failed to stop Tomcat:', showMessages, err as string);
+            logger.error(t('tomcat.stopFailed'), showMessages, err as string);
         }
     }
 
@@ -219,13 +220,13 @@ export class Tomcat {
             if (!response.ok) {
                 throw new Error(`Reload failed: ${await response.text()}`);
             }
-            logger.success('Tomcat reloaded');
+            logger.success(t('tomcat.reloaded'));
         } catch (err) {
             if (!await this.isTomcatRunning()) {
                 this.start();
                 return;
             } else {
-                logger.warn('Reload failed, attempting to add admin user...');
+                logger.warn(t('tomcat.reloadAddingUser'));
                 await this.addTomcatUser(tomcatBase);
             }
         }
@@ -250,7 +251,7 @@ export class Tomcat {
         const webappsDir = path.join(tomcatBase, 'webapps');
 
         if (!fs.existsSync(webappsDir)) {
-            logger.warn(`Webapps directory not found: ${webappsDir}`);
+            logger.warn(t('tomcat.webappsMissing', { path: webappsDir }));
             return;
         }
 
@@ -265,10 +266,10 @@ export class Tomcat {
                     try {
                         if (entry.isDirectory()) {
                             fs.rmSync(entryPath, { recursive: true, force: true });
-                            logger.info(`Removed directory: ${entryPath}`);
+                            logger.info(t('tomcat.removedDirectory', { path: entryPath }));
                         } else if (entry.isFile() || entry.isSymbolicLink()) {
                             fs.unlinkSync(entryPath);
-                            logger.info(`Removed file: ${entryPath}`);
+                            logger.info(t('tomcat.removedFile', { path: entryPath }));
                         }
                     } catch (err) {
                         throw err;
@@ -283,16 +284,16 @@ export class Tomcat {
                     try {
                         fs.rmSync(dir, { recursive: true, force: true });
                         fs.mkdirSync(dir);
-                        logger.info(`Cleaned and recreated: ${dir}`);
+                        logger.info(t('tomcat.cleanedDirectory', { path: dir }));
                     } catch (err) {
                         throw err;
                     }
                 }
             });
 
-            logger.success('Tomcat cleaned successfully', true);
+            logger.success(t('tomcat.cleaned'), true);
         } catch (err) {
-            logger.error('Tomcat cleanup failed:', true, err as string);
+            logger.error(t('tomcat.cleanupFailed'), true, err as string);
         }
     }
 
@@ -383,7 +384,7 @@ export class Tomcat {
             canSelectFolders: true,
             canSelectFiles: false,
             canSelectMany: false,
-            openLabel: 'Select Tomcat Home Folder'
+            openLabel: t('tomcat.selectTomcatHome')
         });
 
         if (selectedFolder?.[0]?.fsPath) {
@@ -394,7 +395,7 @@ export class Tomcat {
                 this.tomcatHome = selectedPath;
                 return selectedPath;
             } else {
-                logger.warn(`Invalid Tomcat home: ${selectedPath} not found.`, true);
+                logger.warn(t('tomcat.invalidHome', { path: selectedPath }), true);
             }
         }
 
@@ -440,7 +441,7 @@ export class Tomcat {
             canSelectFolders: true,
             canSelectFiles: false,
             canSelectMany: false,
-            openLabel: 'Select Java Home Folder'
+            openLabel: t('tomcat.selectJavaHome')
         });
 
         if (selectedFolder?.[0]?.fsPath) {
@@ -451,7 +452,7 @@ export class Tomcat {
                 this.javaHome = selectedPath;
                 return selectedPath;
             } else {
-                logger.warn(`Invalid Java home: ${selectedPath} not found.`, true);
+                logger.warn(t('tomcat.invalidJavaHome', { path: selectedPath }), true);
             }
         }
 
@@ -579,12 +580,12 @@ export class Tomcat {
                 Browser.getInstance().updateConfig();
 
                 await vscode.workspace.getConfiguration().update('tomcat.port', newPort, true);
-                logger.success(`Tomcat port updated from ${oldPort} to ${newPort}`, true);
+                logger.success(t('tomcat.portUpdated', { oldPort, newPort }), true);
 
                 this.executeTomcatCommand('start', tomcatHome, tomcatBase, javaHome);
             } catch (err) {
                 await vscode.workspace.getConfiguration().update('tomcat.port', oldPort, true);
-                logger.error('Failed to update Tomcat port:', true, err as string);
+                logger.error(t('tomcat.portUpdateFailed'), true, err as string);
             }
         }
 
@@ -604,15 +605,11 @@ export class Tomcat {
      */
     private async validatePort(port: number): Promise<void> {
         if (port < this.PORT_RANGE.min) {
-            throw new Error(
-                `Ports below ${this.PORT_RANGE.min} require admin privileges`
-            );
+            throw new Error(t('tomcat.portBelowMin', { min: this.PORT_RANGE.min }));
         }
 
         if (port > this.PORT_RANGE.max) {
-            throw new Error(
-                `Maximum allowed port is ${this.PORT_RANGE.max}`
-            );
+            throw new Error(t('tomcat.portAboveMax', { max: this.PORT_RANGE.max }));
         }
 
         try {
@@ -625,7 +622,7 @@ export class Tomcat {
             }
 
             const { stdout } = await execAsync(command);
-            if (stdout.includes(`:${port}`)) { throw new Error(`Port ${port} is already in use`); }
+            if (stdout.includes(`:${port}`)) { throw new Error(t('tomcat.portInUse', { port })); }
         } catch (error) {
             return;
         }
@@ -835,7 +832,7 @@ export class Tomcat {
                 .replace(/(<\/tomcat-users>)/, `  ${newUser}\n$1`);
 
             await fsp.writeFile(usersXmlPath, content);
-            logger.info('Added admin user to tomcat-users.xml');
+            logger.info(t('tomcat.addedAdminUser'));
             this.start();
         } catch (err) {
             return;

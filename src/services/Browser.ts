@@ -24,12 +24,13 @@ import * as http from 'http';
 import WebSocket from 'ws';
 import { exec } from 'child_process';
 import { Logger } from './Logger';
+import { BrowserName, t, translateBrowserName } from '../utils/i18n';
 
 const logger = Logger.getInstance();
 
 export class Browser {
     private static instance: Browser;
-    private browser: 'Disable' | 'Google Chrome' | 'Firefox' | 'Microsoft Edge' | 'Brave' | 'Opera' | 'Safari';
+    private browser: BrowserName;
     private port: number;
     private started: boolean;
     private autoReloadBrowser: boolean;
@@ -60,7 +61,7 @@ export class Browser {
      * - Prepares debug protocol parameters
      */
     constructor() {
-        this.browser = vscode.workspace.getConfiguration().get<string>('tomcat.browser', 'Google Chrome') as 'Disable' | 'Google Chrome' | 'Firefox' | 'Microsoft Edge' | 'Brave' | 'Opera' | 'Safari';
+        this.browser = vscode.workspace.getConfiguration().get<string>('tomcat.browser', 'Google Chrome') as BrowserName;
         this.port = vscode.workspace.getConfiguration().get<number>('tomcat.port', 8080);
         this.started = false;
         this.autoReloadBrowser = vscode.workspace.getConfiguration().get<boolean>('tomcat.autoReloadBrowser', true);
@@ -75,7 +76,7 @@ export class Browser {
      * - Updates dependent properties
      */
     public updateConfig(): void {
-        this.browser = vscode.workspace.getConfiguration().get<string>('tomcat.browser', 'Google Chrome') as 'Disable' | 'Google Chrome' | 'Firefox' | 'Microsoft Edge' | 'Brave' | 'Opera' | 'Safari';
+        this.browser = vscode.workspace.getConfiguration().get<string>('tomcat.browser', 'Google Chrome') as BrowserName;
         this.port = vscode.workspace.getConfiguration().get<number>('tomcat.port', 8080);
         this.started = false;
         this.autoReloadBrowser = vscode.workspace.getConfiguration().get<boolean>('tomcat.autoReloadBrowser', true);
@@ -181,35 +182,37 @@ export class Browser {
      * @log warning on unsupported browsers
      */
     public async run(appName: string): Promise<void> {
+        const browserLabel = translateBrowserName(this.browser);
+
         if (!appName) {
-            logger.error('No application name provided', true, 'Please provide a valid application name');
+            logger.error(t('browser.noAppName'), true, t('browser.noAppNameDetails'));
             return;
         }
 
         const appUrl = `http://localhost:${this.port}/${appName.replace(/\s/g, '%20')}`;
-        if (this.browser === 'Disable') { 
-            logger.info(`Access your app at: ${appUrl}`);
+        if (this.browser === 'Disable') {
+            logger.info(t('browser.accessUrl', { url: appUrl }));
             return;
         }
 
         const debugUrl = `http://localhost:9222/json`;
         const browserCommand = this.getBrowserCommand(this.browser, appUrl);
         if (!browserCommand) {
-            logger.error(`${this.browser} is not supported on this platform. `, true, `Please use a different browser`);
+            logger.error(t('browser.unsupportedPlatform', { browser: browserLabel }), true, t('browser.unsupportedPlatformDetails'));
             return;
         }
 
         if (!this.autoReloadBrowser) {
             if (this.started) {
-                logger.info(`Access your app at: ${appUrl}`);
+                logger.info(t('browser.accessUrl', { url: appUrl }));
             } else {
                 this.started = true;
-                logger.info(`Opening new ${this.browser} window`);
-                try { await this.execCommand(browserCommand); } catch {}
-            }      
+                logger.info(t('browser.openNewWindow', { browser: browserLabel }));
+                try { await this.execCommand(browserCommand); } catch { }
+            }
         }
 
-        logger.updateStatusBar(this.browser);
+        logger.updateStatusBar(browserLabel);
 
         try {
             const response = await this.httpGet(debugUrl);
@@ -225,9 +228,9 @@ export class Browser {
 
             if (target?.webSocketDebuggerUrl) {
                 await this.handleWebSocketReload(target);
-                logger.success(`${this.browser} reloaded`);
+                logger.success(t('browser.reloaded', { browser: browserLabel }));
             } else {
-                logger.info(`Opening new ${this.browser} window`);
+                logger.info(t('browser.openNewWindow', { browser: browserLabel }));
                 await this.execCommand(browserCommand);
             }
         } catch (err) {
@@ -329,18 +332,19 @@ export class Browser {
      * @param command Command to execute after recovery
      * @log Error on command execution failure
      */
-    private async handleBrowserError(browser: string, command: string): Promise<void> {
+    private async handleBrowserError(browser: BrowserName, command: string): Promise<void> {
         const isRunning = await this.checkProcess(browser);
+        const browserLabel = translateBrowserName(browser);
         try {
             if (this.started && isRunning) {
-                logger.warn(`Failed to connect to ${browser} fall back to new launch, Change the browser or disable the browser reload from the settings. For more informations visit: https://github.com/Al-rimi/tomcat?tab=readme-ov-file#known-issues`, false);
+                logger.warn(t('browser.reloadFailedFallback', { browser: browserLabel }), false);
                 await this.execCommand(command);
             } else if (isRunning) {
                 const choice = await vscode.window.showInformationMessage(
-                    `${browser} needs restart in debug mode`, 'Restart', 'Cancel'
+                    t('browser.restartPrompt', { browser: browserLabel }), t('browser.restartOption'), t('browser.cancelOption')
                 );
 
-                if (choice === 'Restart') {
+                if (choice === t('browser.restartOption')) {
                     await this.killProcess(browser);
                     await this.execCommand(command);
                 }
@@ -348,7 +352,7 @@ export class Browser {
                 await this.execCommand(command);
             }
         } catch (err) {
-            logger.error(`Failed to Reload ${browser} process:`, true, err as string);
+            logger.error(t('browser.failedReload', { browser: browserLabel }), true, err as string);
         }
     }
 
@@ -451,7 +455,7 @@ export class Browser {
                 });
             }
         } catch (error) {
-            logger.warn(`Process check failed: ${error}`, false);
+            logger.warn(t('browser.processCheckFailed', { error: String(error) }), false);
             return false;
         }
     }

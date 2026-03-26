@@ -1,8 +1,8 @@
 {
   "name": "tomcat",
-  "displayName": "Tomcat",
-  "description": "AI-Assisted Java EE Support Extinction for Tomcat",
-  "version": "3.0.2",
+  "displayName": "%ext.displayName%",
+  "description": "%ext.description%",
+  "version": "3.1.0",
   "publisher": "Al-rimi",
   "author": {
     "email": "alrimi@zjnu.edu.cn",
@@ -50,6 +50,8 @@
     "syntaxes/**/*",
     "resources/**/*",
     "language-configuration.json",
+    "package.nls.json",
+    "package.nls.zh-CN.json",
     "package.json",
     "README.md",
     "CHANGELOG.md",
@@ -79,8 +81,8 @@
     "commands": [
       {
         "command": "tomcat.deploy",
-        "title": "Deploy",
-        "category": "Tomcat",
+        "title": "%command.deploy.title%",
+        "category": "%command.category%",
         "icon": {
           "light": "resources/tomcat-icon-light.svg",
           "dark": "resources/tomcat-icon-dark.svg"
@@ -88,15 +90,15 @@
       },
       {
         "command": "tomcat.start",
-        "title": "Tomcat: Start"
+        "title": "%command.start.title%"
       },
       {
         "command": "tomcat.stop",
-        "title": "Tomcat: Stop"
+        "title": "%command.stop.title%"
       },
       {
         "command": "tomcat.clean",
-        "title": "Tomcat: Clean"
+        "title": "%command.clean.title%"
       }
     ],
     "menus": {
@@ -105,13 +107,28 @@
           "command": "tomcat.deploy",
           "when": "tomcat.showdeployButton",
           "group": "navigation",
-          "tooltip": "Tomcat Deploy"
+          "tooltip": "%menu.deploy.tooltip%"
         }
       ]
     },
     "configuration": {
-      "title": "Tomcat",
+      "title": "%config.title%",
       "properties": {
+        "tomcat.language": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "en",
+            "zh-CN"
+          ],
+          "default": "auto",
+          "enumDescriptions": [
+            "%config.language.enum.auto%",
+            "%config.language.enum.en%",
+            "%config.language.enum.zh%"
+          ],
+          "description": "%config.language.description%"
+        },
         "tomcat.ai.provider": {
           "type": "string",
           "enum": [
@@ -124,27 +141,27 @@
             "custom"
           ],
           "default": "local",
-          "description": "AI provider for log explanations. Use 'local' for a self-hosted or on-device endpoint; other values expect a compatible HTTP endpoint you configure."
+          "description": "%config.ai.provider.description%"
         },
         "tomcat.ai.endpoint": {
           "type": "string",
           "default": "http://127.0.0.1:11434/api/chat",
-          "description": "Full HTTP(s) endpoint for chat/completion requests (e.g., http://localhost:11434/api/chat or provider-specific URL)."
+          "description": "%config.ai.endpoint.description%"
         },
         "tomcat.ai.model": {
           "type": "string",
           "default": "qwen2.5:7b",
-          "description": "Model identifier to send to the configured AI endpoint (e.g., qwen, glm, deepseek-chat, llama3)."
+          "description": "%config.ai.model.description%"
         },
         "tomcat.ai.apiKey": {
           "type": "string",
           "default": "",
-          "description": "Optional API key or token sent as Bearer Authorization when calling the AI endpoint. Stored in settings.json."
+          "description": "%config.ai.apiKey.description%"
         },
         "tomcat.ai.localStartCommand": {
           "type": "string",
           "default": "ollama serve",
-          "description": "Command to launch the local AI service when the endpoint is unreachable."
+          "description": "%config.ai.localStartCommand.description%"
         },
         "tomcat.logEncoding": {
           "type": "string",
@@ -163,7 +180,7 @@
             "binary",
             "hex"
           ],
-          "description": "Encoding for Tomcat logs. This setting is used to read the logs and should match the encoding used by Tomcat. If you are unsure, use 'utf8'."
+          "description": "%config.logEncoding.description%"
         },
         "tomcat.logLevel": {
           "type": "string",
@@ -177,12 +194,12 @@
             "ERROR"
           ],
           "default": "INFO",
-          "description": "Minimum log level to display. Messages at or above this level will be shown."
+          "description": "%config.logLevel.description%"
         },
         "tomcat.showTimestamp": {
           "type": "boolean",
           "default": true,
-          "description": "Whether to include timestamps in log messages."
+          "description": "%config.showTimestamp.description%"
         },
         "tomcat.protectedWebApps": {
           "type": "array",
@@ -193,7 +210,7 @@
             "manager",
             "host-manager"
           ],
-          "description": "List of web applications to keep when cleaning Apache Tomcat."
+          "description": "%config.protectedWebApps.description%"
         },
         "tomcat.autoDeployMode": {
           "type": "string",
@@ -204,7 +221,7 @@
           ],
           "default": "Disable",
           "scope": "machine",
-          "description": "Select the auto deployment mode.'On Save' will deploy the project when you save any file in it. 'On Shortcut' will deploy the project when you press Ctrl+S or Cmd+S."
+          "description": "%config.autoDeployMode.description%"
         },
         "tomcat.autoDeployBuildType": {
           "type": "string",
@@ -214,7 +231,7 @@
             "Gradle"
           ],
           "default": "Local",
-          "description": "Select the default build type for auto deployment."
+          "description": "%config.autoDeployBuildType.description%"
         },
         "tomcat.browser": {
           "type": "string",
@@ -228,38 +245,38 @@
             "Opera"
           ],
           "default": "Google Chrome",
-          "description": "Select your preferred browser to launch the app. Note that Firefox and Safari do not support the Chrome Debug Protocol, and automation is not supported in these browsers."
+          "description": "%config.browser.description%"
         },
         "tomcat.port": {
           "type": "number",
           "default": 8080,
           "minimum": 1024,
           "maximum": 49151,
-          "errorMessage": "Port must be between 1024-49151",
-          "description": "The port number for the Tomcat server, allowed range is 1024-49151."
+          "errorMessage": "%config.port.error%",
+          "description": "%config.port.description%"
         },
         "tomcat.autoReloadBrowser": {
           "type": "boolean",
           "default": true,
-          "description": "Whether to automatically reload the browser after deployment. Disable this option if having issues with the browser reloading."
+          "description": "%config.autoReloadBrowser.description%"
         },
         "tomcat.base": {
           "type": "string",
           "default": "",
           "scope": "machine",
-          "description": "Path to CATALINA_BASE (conf/webapps/logs). If not set, falls back to tomcat.home."
+          "description": "%config.base.description%"
         },
         "tomcat.home": {
           "type": "string",
           "default": "",
           "scope": "machine",
-          "description": "The path to the Apache Tomcat installation. If not set, the extension will try to find the Tomcat installation automatically."
+          "description": "%config.home.description%"
         },
         "tomcat.javaHome": {
           "type": "string",
           "default": "",
           "scope": "machine",
-          "description": "The path to the JDK installation. If not set, the extension will try to find the JDK automatically."
+          "description": "%config.javaHome.description%"
         }
       }
     }

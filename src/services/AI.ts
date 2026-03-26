@@ -11,6 +11,7 @@ import * as vscode from 'vscode';
 import * as https from 'https';
 import * as http from 'http';
 import { spawn } from 'child_process';
+import { t } from '../utils/i18n';
 type LogSink = (message: string) => void;
 
 export class AI {
@@ -92,11 +93,19 @@ export class AI {
      * Optionally explain a log line if autoExplain is enabled and provider is configured.
      */
     public async maybeExplain(level: string, message: string): Promise<void> {
-        if (!this.autoExplain) return;
+        if (!this.autoExplain) {
+            return;
+        }
         const sev = level.toUpperCase();
-        if (sev !== 'WARN' && sev !== 'ERROR') return;
-        if (!this.endpoint || this.provider === 'none') return;
-        if (this.inFlight) return; // avoid flooding
+        if (sev !== 'WARN' && sev !== 'ERROR') {
+            return;
+        }
+        if (!this.endpoint || this.provider === 'none') {
+            return;
+        }
+        if (this.inFlight) {
+            return; // avoid flooding
+        }
 
         this.inFlight = true;
         this.onStart?.();
@@ -110,7 +119,7 @@ export class AI {
                 this.debugLog(`ready in ${readyElapsed}ms (provider=${this.provider}, bootMs=${this.lastBootMs ?? 'n/a'})`);
             }
             if (!ready) {
-                this.logSink?.('AI endpoint not reachable; skipped explanation.');
+                this.logSink?.(t('ai.endpointUnreachable'));
                 return;
             }
             const clipped = message.length > this.MAX_PROMPT_CHARS
@@ -130,11 +139,11 @@ export class AI {
                 if (response) {
                     this.logSink?.(`${this.formatResponse(response)}`);
                 } else {
-                    this.logSink?.('AI returned no content');
+                    this.logSink?.(t('ai.noContent'));
                 }
             }
         } catch (err) {
-            this.logSink?.(`AI explanation failed: ${err}`);
+            this.logSink?.(t('ai.explainFailed', { error: String(err) }));
             this.debugLog(`exception: ${err}`);
         } finally {
             this.debugLog(
@@ -153,10 +162,16 @@ export class AI {
             return true;
         }
 
-        if (this.provider !== 'local') return false;
+        if (this.provider !== 'local') {
+            return false;
+        }
         const endpointUrl = this.parseEndpointUrl();
-        if (!endpointUrl || !this.isLocalEndpoint(endpointUrl)) return false;
-        if (!this.autoStartLocal || this.startAttempted) return false;
+        if (!endpointUrl || !this.isLocalEndpoint(endpointUrl)) {
+            return false;
+        }
+        if (!this.autoStartLocal || this.startAttempted) {
+            return false;
+        }
 
         this.startAttempted = true;
         const bootStart = Date.now();
@@ -174,7 +189,7 @@ export class AI {
                 }
             }
         } catch (err) {
-            this.logSink?.(`[AI] failed to start local AI: ${err}`);
+            this.logSink?.(t('ai.failedLocalStart', { error: String(err) }));
             this.debugLog(`spawn failed: ${err}`);
         }
         const totalBoot = Date.now() - bootStart;
@@ -197,12 +212,16 @@ export class AI {
 
     private spawnLocalService(): void {
         const cmd = this.localStartCommand;
-        if (!cmd.trim()) return;
+        if (!cmd.trim()) {
+            return;
+        }
 
         // Prefer no-shell spawn to avoid any popup window; fall back to shell only if parsing fails.
         const parts = cmd.match(/"[^"]+"|\S+/g)?.map(p => p.replace(/^"|"$/g, '')) || [];
         const executable = parts.shift();
-        if (!executable) return;
+        if (!executable) {
+            return;
+        }
 
         this.debugLog(`spawning local AI: ${cmd}`);
         try {
@@ -265,8 +284,8 @@ export class AI {
     }
 
     private buildPrompt(level: string, message: string): { messages: any[]; max_tokens: number; model?: string; } {
-        const system = 'You are a concise Tomcat build/server log assistant. Explain the probable cause and a short fix in under 120 words. If the log is incomplete, say what to check next.';
-        const user = `Log level: ${level}\nLog: ${message}`;
+        const system = t('ai.systemPrompt');
+        const user = t('ai.userPrompt', { level, log: message });
         return {
             messages: [
                 { role: 'system', content: system },
@@ -455,8 +474,12 @@ export class AI {
     }
 
     private extractStreamContent(line: string): string | null {
-        if (!line) return null;
-        if (line === '[DONE]' || line === 'data: [DONE]') return null;
+        if (!line) {
+            return null;
+        }
+        if (line === '[DONE]' || line === 'data: [DONE]') {
+            return null;
+        }
 
         const trimmed = line.startsWith('data:') ? line.slice(5).trim() : line.trim();
         try {
@@ -467,7 +490,9 @@ export class AI {
                 || parsed?.response
                 || parsed?.text
                 || '';
-            if (piece) return piece;
+            if (piece) {
+                return piece;
+            }
             return null;
         } catch (err) {
             return null;
@@ -482,11 +507,13 @@ export class AI {
 
     private formatResponse(text: string): string {
         const trimmed = (text || '').trim();
-        if (!trimmed) return 'no content';
+        if (!trimmed) {
+            return t('ai.noContent');
+        }
         const lines = trimmed.split(/\r?\n/).filter(l => l.trim().length > 0);
         const limited = lines.slice(0, this.MAX_RESPONSE_LINES);
         const suffix = lines.length > this.MAX_RESPONSE_LINES
-            ? `\n... (+${lines.length - this.MAX_RESPONSE_LINES} more lines)`
+            ? `\n${t('ai.moreLines', { count: lines.length - this.MAX_RESPONSE_LINES })}`
             : '';
         return `${limited.join('\n')}${suffix}`;
     }

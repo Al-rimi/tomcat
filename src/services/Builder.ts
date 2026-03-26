@@ -27,6 +27,7 @@ import { env } from 'vscode';
 import { glob } from 'glob';
 import { Tomcat } from './Tomcat';
 import { Logger } from './Logger';
+import { BuildType, t, translateBuildType } from '../utils/i18n';
 
 const tomcat = Tomcat.getInstance();
 const logger = Logger.getInstance();
@@ -34,7 +35,7 @@ const logger = Logger.getInstance();
 export class Builder {
     private static instance: Builder;
     private autoDeployBuildType: 'Local' | 'Maven' | 'Gradle';
-    private autoDeployMode: 'On Save' | 'On Shortcut' | 'Disabled';
+    private autoDeployMode: 'On Save' | 'On Shortcut' | 'Disable';
     private isDeploying = false;
     private attempts = 0;
 
@@ -48,7 +49,7 @@ export class Builder {
      */
     private constructor() {
         this.autoDeployBuildType = vscode.workspace.getConfiguration().get('tomcat.autoDeployBuildType', 'Local') as 'Local' | 'Maven' | 'Gradle';
-        this.autoDeployMode = vscode.workspace.getConfiguration().get('tomcat.autoDeployMode', 'Disabled') as 'On Save' | 'On Shortcut' | 'Disabled';
+        this.autoDeployMode = vscode.workspace.getConfiguration().get('tomcat.autoDeployMode', 'Disable') as 'On Save' | 'On Shortcut' | 'Disable';
     }
 
     /**
@@ -78,7 +79,7 @@ export class Builder {
      */
     public updateConfig(): void {
         this.autoDeployBuildType = vscode.workspace.getConfiguration().get('tomcat.autoDeployBuildType', 'Local') as 'Local' | 'Maven' | 'Gradle';
-        this.autoDeployMode = vscode.workspace.getConfiguration().get('tomcat.autoDeployMode', 'Disabled') as 'On Save' | 'On Shortcut' | 'Disabled';
+        this.autoDeployMode = vscode.workspace.getConfiguration().get('tomcat.autoDeployMode', 'Disable') as 'On Save' | 'On Shortcut' | 'Disable';
     }
 
     /**
@@ -145,7 +146,7 @@ export class Builder {
         if (type === 'Choice') {
             isChoice = true;
             const subAction = vscode.window.showQuickPick(['Local', 'Maven', 'Gradle'], {
-                placeHolder: 'Select build type'
+                placeHolder: t('builder.selectBuildType')
             });
             await subAction.then((choice) => {
                 type = (choice as 'Local' | 'Maven' | 'Gradle');
@@ -171,18 +172,20 @@ export class Builder {
             }[type];
 
             if (!action) {
-                throw (`Invalid deployment type: ${type}`);
+                throw (t('builder.invalidDeployType', { type }));
             }
 
             logger.clearDiagnostics();
 
             const startTime = performance.now();
-            logger.updateStatusBar(`${type} Build`);
+            const typeLabel = translateBuildType(type as BuildType);
+            const buildLabel = t('builder.buildProgressTitle', { type: typeLabel });
+            logger.updateStatusBar(buildLabel);
 
             if (isChoice) {
                 await vscode.window.withProgress({
                     location: vscode.ProgressLocation.Notification,
-                    title: `${type} Build`,
+                    title: buildLabel,
                     cancellable: false
                 }, action);
             } else {
@@ -195,7 +198,7 @@ export class Builder {
             const duration = Math.round(endTime - startTime);
 
             if (fs.existsSync(targetDir)) {
-                logger.success(`${type} Build completed in ${duration}ms`, isChoice);
+                logger.success(t('builder.buildCompleted', { type: typeLabel, duration }), isChoice);
                 await new Promise(resolve => setTimeout(resolve, 100));
                 await tomcat.reload();
             }
@@ -209,7 +212,10 @@ export class Builder {
                 await tomcat.kill();
                 this.deploy(type);
             } else {
-                logger.error(`${type} Build failed:`, isChoice, err as string);
+                const typeLabel = ['Local', 'Maven', 'Gradle'].includes(type as string)
+                    ? translateBuildType(type as BuildType)
+                    : translateBuildType(this.autoDeployBuildType as BuildType);
+                logger.error(t('builder.buildFailed', { type: typeLabel }), isChoice, err as string);
             }
             logger.defaultStatusBar();
         } finally {
@@ -259,17 +265,17 @@ export class Builder {
      */
     private async createNewProject(): Promise<void> {
         const answer = await vscode.window.showInformationMessage(
-            'No Java EE project found. Do you want to create a new one?',
-            'Yes', 'No'
+            t('builder.newProjectPrompt'),
+            t('builder.newProjectYes'), t('builder.newProjectNo')
         );
 
-        if (answer === 'Yes') {
+        if (answer === t('builder.newProjectYes')) {
             try {
                 const commands = await vscode.commands.getCommands();
                 if (!commands.includes('java.project.create')) {
-                    const installMessage = 'Java Extension Pack required for project creation';
-                    vscode.window.showErrorMessage(installMessage, 'Install Extension').then(async choice => {
-                        if (choice === 'Install Extension') {
+                    const installMessage = t('builder.installJavaPack');
+                    vscode.window.showErrorMessage(installMessage, t('builder.installExtension')).then(async choice => {
+                        if (choice === t('builder.installExtension')) {
                             await env.openExternal(vscode.Uri.parse(
                                 'vscode:extension/vscjava.vscode-java-pack'
                             ));
@@ -282,19 +288,19 @@ export class Builder {
                     type: 'maven',
                     archetype: 'maven-archetype-webapp'
                 });
-                logger.info('New Maven web app project created');
+                logger.info(t('builder.newProjectCreated'));
             } catch (err) {
                 vscode.window.showErrorMessage(
-                    'Project creation failed. Ensure Java Extension Pack is installed and configured.',
-                    'Open Extensions'
+                    t('builder.projectCreationFailed'),
+                    t('builder.openExtensions')
                 ).then(choice => {
-                    if (choice === 'Open Extensions') {
+                    if (choice === t('builder.openExtensions')) {
                         vscode.commands.executeCommand('workbench.extensions.action.showExtensions');
                     }
                 });
             }
         } else {
-            logger.success('Tomcat deploy canceled', true);
+            logger.success(t('builder.deployCanceled'), true);
         }
     }
 
@@ -316,7 +322,7 @@ export class Builder {
     private async localDeploy(projectDir: string, targetDir: string, tomcatHome: string) {
         const webAppPath = path.join(projectDir, 'src', 'main', 'webapp');
         if (!fs.existsSync(webAppPath)) {
-            throw new Error(`WebApp directory not found: ${webAppPath}`);
+            throw new Error(t('builder.webAppMissing', { path: webAppPath }));
         }
         const javaHome = await tomcat.findJavaHome();
         if (!javaHome) return;
@@ -360,7 +366,7 @@ export class Builder {
      */
     private async mavenDeploy(projectDir: string, targetDir: string) {
         if (!fs.existsSync(path.join(projectDir, 'pom.xml'))) {
-            throw ('pom.xml not found.');
+            throw (t('builder.pomMissing'));
         }
 
         try {
@@ -388,7 +394,7 @@ export class Builder {
         const targetPath = path.join(projectDir, 'target');
         const warFiles = fs.readdirSync(targetPath).filter(file => file.toLowerCase().endsWith('.war'));
         if (warFiles.length === 0) {
-            throw ('No WAR file found after Maven build.');
+            throw (t('builder.noWarAfterMaven'));
         }
 
         const warFileName = warFiles[0];
@@ -429,15 +435,15 @@ export class Builder {
      */
     private async gradleDeploy(projectDir: string, targetDir: string, appName: string) {
         if (!fs.existsSync(path.join(projectDir, 'build.gradle'))) {
-            throw ('build.gradle not found.');
+            throw (t('builder.gradleMissing'));
         }
 
         const gradleCmd = process.platform === 'win32' ? 'gradlew.bat' : './gradlew';
         await this.executeCommand(`${gradleCmd} war -PfinalName=${appName}`, projectDir);
 
         const warFile = path.join(projectDir, 'build', 'libs', `${appName}.war`);
-        if (!warFile) {
-            throw ('No WAR file found after Gradle build.');
+        if (!fs.existsSync(warFile)) {
+            throw (t('builder.noWarAfterGradle'));
         }
 
         fs.rmSync(targetDir, { recursive: true, force: true });
@@ -484,7 +490,7 @@ export class Builder {
         return new Promise((resolve, reject) => {
             exec(command, { cwd }, (err, stdout, stderr) => {
                 if (err) {
-                    reject(stdout || stderr || err.message || 'Unknown error.');
+                    reject(stdout || stderr || err.message || t('builder.unknownError'));
                 }
                 resolve();
             });
