@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-03-26
+### Added
+- New `tomcat.language` setting (`auto`/`en`/`zh-CN`) with first-run detection that follows VS Code's display language.
+- Localized UI strings for commands/menus/status bar plus runtime logs, browser/build messages, and AI prompts (package.nls + i18n utilities).
+
+### Changed
+- Command titles/tooltips now use VS Code NLS tokens so Marketplace surfaces localize automatically.
+- Browser names, deploy mode labels, and build status text now render in the selected language across status bar and notifications.
+
+### Fixed
+- Port validation errors, AI failure messages, and browser reload warnings now respect the chosen language and present clearer guidance.
+
 ## [3.0.2] - 2026-03-24
 ### Added
 - AI debug logs now capture reachability, boot, first-token, stream, and total call timings for troubleshooting slow responses.

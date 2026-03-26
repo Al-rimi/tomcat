@@ -26,6 +26,9 @@
 - **浏览器自动化**  
 	多浏览器自动打开/刷新。
 
+- **本地化 UI（中英双语）**  
+	命令、状态栏文案和提示已本地化，新增语言切换并在首次运行时自动跟随 VS Code 语言。
+
 ## 安装
 
 1. 打开 VS Code  
@@ -132,10 +135,11 @@ public static isJavaEEProject(): boolean {
 
 | **设置项**                    | **默认值**        | **说明**                                                                                |
 |------------------------------|-------------------|------------------------------------------------------------------------------------------|
+| `tomcat.language`            | `auto`            | 扩展界面语言（`auto`、`en`、`zh-CN`），首次运行 `auto` 将跟随 VS Code 显示语言。            |
 | `tomcat.autoDeployBuildType` | `Local`           | 默认部署策略（`Local`、`Maven`、`Gradle`）                                                |
 | `tomcat.autoDeployMode`      | `Disable`         | 自动部署触发方式（`Disable`、`On Save`、`On Shortcut`）                                   |
 | `tomcat.browser`             | `Google Chrome`   | 浏览器自动打开/调试（`Disable`、`Google Chrome`、`Microsoft Edge`、`Firefox`、`Safari`、`Brave`、`Opera`） |
-| `tomcat.port`                | `8080`            | Tomcat 监听端口（有效范围：`1024`-`65535`）                                               |
+| `tomcat.port`                | `8080`            | Tomcat 监听端口（有效范围：`1024`-`49151`）                                               |
 | `tomcat.base`                | ``                | CATALINA_BASE 路径（conf/webapps/logs）；未设置时默认使用 `tomcat.home`                     |
 | `tomcat.protectedWebApps`    | `['ROOT', 'docs', 'examples', 'manager', 'host-manager']` | 清理时保留的应用列表 |
 | `tomcat.logLevel`            | `INFO`            | 最低日志级别（`DEBUG`、`INFO`、`SUCCESS`、`HTTP`、`APP`、`WARN`、`ERROR`）                 |
@@ -206,21 +210,18 @@ public static isJavaEEProject(): boolean {
 [![提交修复](https://img.shields.io/badge/-提交修复-green?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/pulls)
 
 
-## 3.0.2 更新内容
+## 3.1.0 更新内容
 
 ### 新增
-- WARN/ERROR 日志的流式 AI 解释，Tomcat 输出通道与状态栏实时显示输入效果。
-- 自动跳转构建错误文件/行，保存及构建成功时自动清理诊断。
-- 新增 `tomcat.base`（CATALINA_BASE）设置和运行时支持，可让 base 与 home 分离。
+- 新增 `tomcat.language` 设置（`auto`/`en`/`zh-CN`），首次运行自动跟随 VS Code 的显示语言。
+- 命令、菜单、状态栏、浏览器/构建提示与 AI 提示词均已本地化（package.nls + 运行时 i18n）。
 
 ### 变更
-- 精简 AI 设置面板（provider、endpoint、model、API key、start command），强制开启自动解释，仅在 localhost 端点时自动启动本地 AI。
-- 状态栏在响应流式输出时显示 “AI typing”。
-- 依赖更新（mocha 11.7.5，并锁定传递依赖 `diff` 8.0.3、`serialize-javascript` 7.0.4）以适配最新模型与工具链。
+- 命令标题与工具提示改用 VS Code NLS，占位符在市场页可自动本地化。
+- 浏览器名称、部署模式标签、构建状态在状态栏和通知里都会翻译成所选语言。
 
 ### 修复
-- 通过强制安全的传递依赖（`diff`、`serialize-javascript`）并重新生成 lockfile 解决高危审计问题。
-- 修复 Maven/Gradle 错误的 Windows 路径解析，消除残留错误标记并确保跳转定位可靠。
+- 端口校验、AI 错误提示、浏览器重载警告现已遵循所选语言并给出更清晰的引导。
 
 [查看完整更新日志](https://github.com/Al-rimi/tomcat/blob/main/CHANGELOG.md)
 

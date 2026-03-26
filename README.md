@@ -26,6 +26,9 @@ AI-assisted Tomcat control for VS Code: streaming log explanations, one-click de
 - **Browser Automation**  
   Automate browser testing across multiple browsers seamlessly.
 
+- **Localized UI (English/Chinese)**  
+  Extension commands, status bar text, and prompts are localized with a new language switch that follows VS Code on first run.
+
 ## Installation
 
 1. Open VS Code  
@@ -139,10 +142,11 @@ Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 
 | **Setting**                  | **Default**       | **Description**                                                                          |
 |------------------------------|-------------------|------------------------------------------------------------------------------------------|
+| `tomcat.language`            | `auto`           | Extension UI language (`auto`, `en`, `zh-CN`). On first run, `auto` follows VS Code's display language. |
 | `tomcat.autoDeployBuildType` | `Local`           | Default build strategy for deployments (`Local`, `Maven`, `Gradle`)                      |
 | `tomcat.autoDeployMode`      | `Disable`        | Auto-deploy triggers (`Disable`, `On Save`, `On Shortcut`)                              |
 | `tomcat.browser`             | `Google Chrome`   | Browser for app launch & debug (`Disable`, `Google Chrome`, `Microsoft Edge`, `Firefox`, `Safari`, `Brave`, `Opera`) |
-| `tomcat.port`                | `8080`            | Tomcat server listen port (valid range: `1024`-`65535`)                                  |
+| `tomcat.port`                | `8080`            | Tomcat server listen port (valid range: `1024`-`49151`)                                  |
 | `tomcat.base`                | ``                | Path to `CATALINA_BASE` (conf/webapps/logs). Defaults to `tomcat.home` if not set.       |
 | `tomcat.protectedWebApps`    | `["ROOT", "docs", "examples", "manager", "host-manager"]` | List of protected web apps during cleanup operations |
 | `tomcat.logLevel`            | `INFO`            | Minimum log level to display (`DEBUG`, `INFO`, `SUCCESS`, `HTTP`, `APP`, `WARN`, `ERROR`) |
@@ -214,21 +218,18 @@ For technical implementation details and contribution guidelines, see:
 [![Suggest Fix](https://img.shields.io/badge/-Suggest_Fix-green?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/pulls)
 
 
-## What's New in 3.0.2
+## What's New in 3.1.0
 
 ### Added
-- Streaming AI explanations for WARN/ERROR logs with live typing output in the Tomcat channel and status bar feedback.
-- Automatic navigation to build error file/line with diagnostics cleared on save and on successful builds.
-- New `tomcat.base` (CATALINA_BASE) setting and runtime support so base and home can differ.
+- New `tomcat.language` setting (`auto`/`en`/`zh-CN`) with first-run auto-detection that mirrors VS Code's display language.
+- Localized UI strings for commands, menus, status bar, browser/build messages, and AI prompts (package.nls + runtime i18n).
 
 ### Changed
-- Simplified AI settings surface (provider, endpoint, model, API key, start command) while forcing auto-explain on and auto-starting local AI only for localhost endpoints.
-- Status bar now shows "AI typing" while responses stream.
-- Dependency bumps (mocha 11.7.5 with pinned transitive `diff` 8.0.3 and `serialize-javascript` 7.0.4) to align with latest models and tooling.
+- Command titles/tooltips now use VS Code NLS tokens so Marketplace pages localize correctly.
+- Browser names, deploy mode labels, and build statuses are now translated before showing in the status bar and notifications.
 
 ### Fixed
-- Resolved high-severity audit findings by forcing safe transitive versions (`diff`, `serialize-javascript`) and regenerating the lockfile.
-- Windows path parsing for Maven/Gradle errors, eliminating stale error markers and ensuring jump-to-location reliability.
+- Port validation, AI error messages, and browser reload warnings now respect localization and show clearer guidance.
 
 [View Full Changelog](https://github.com/Al-rimi/tomcat/blob/main/CHANGELOG.md)
 
