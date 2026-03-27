@@ -57,6 +57,7 @@ export class Tomcat {
     private versionCache: Map<string, string> = new Map();
     private currentAppName: string = '';
     private persistedByPort: Map<number, { app?: string; workspace?: string; home?: string; version?: string }> = new Map();
+    private storagePath: string | null = null;
 
     private readonly PORT_RANGE = { min: 1024, max: 65535 };
 
@@ -135,16 +136,61 @@ export class Tomcat {
     }
 
     /**
-     * Tomcat server startup procedure
+     * Process liveness check
+     *
+     * Validates whether a PID is still alive:
+     * 1. Sends a no-op signal to the process
+     * 2. Interprets OS errors for existence vs permission
+     * 3. Returns `true` for running and accessible processes
+     * 4. Returns `false` when process is gone
+     *
+     * @param pid Process ID to validate
+     * @returns boolean alive status
+     */
+    private isProcessRunning(pid: number): boolean {
+        try {
+            process.kill(pid, 0);
+            return true;
+        } catch (error: any) {
+            return error?.code === 'EPERM';
+        }
+    }
+
+    /**
+     * Cleanup stale managed instances
+     *
+     * Synchronizes in-memory managed instances with actual OS processes:
+     * 1. Iterates child process map
+     * 2. Removes entries for dead PIDs
+     * 3. Cleans persisted port metadata
+     * 4. Persists updated instance map when dirty
+     */
+    public async cleanupStaleManagedInstances(): Promise<void> {
+        let dirty = false;
+        for (const [pid, meta] of Array.from(this.managedPids.entries())) {
+            if (!this.isProcessRunning(pid)) {
+                this.managedPids.delete(pid);
+                this.persistedByPort.delete(meta.port);
+                dirty = true;
+            }
+        }
+        if (dirty) {
+            await this.persistInstances();
+        }
+    }
+
+    /**
+     * Tomcat server start flow
      * 
-     * Orchestrates complete server startup sequence:
-     * 1. Validates environment prerequisites
-     * 2. Checks for existing running instances
-     * 3. Constructs platform-specific launch command
-     * 4. Executes startup process
-     * 5. Handles startup errors and recovery
-     * 
-     * @log Error if critical startup failure occurs
+     * Orchestrates startup including:
+     * 1. Resolving Tomcat and Java homes
+     * 2. Loading persisted instance metadata
+     * 3. Allocating a non-conflicting port
+     * 4. Starting Tomcat process and tracking PID
+     * 5. Persisting state for recovery
+     *
+     * @param showMessages Show user-facing notifications
+     * @param appNameOverride Override deployed app name
      */
     public async start(showMessages: boolean = false, appNameOverride?: string): Promise<void> {
         const tomcatHome = await this.findTomcatHome();
@@ -193,6 +239,20 @@ export class Tomcat {
         }
     }
 
+    /**
+     * Tomcat startup with explicit home path
+     *
+     * Similar to start(), but uses provided tomcatHome argument:
+     * 1. Bypasses global/home lookup as source of truth
+     * 2. Loads persisted state
+     * 3. Allocates port and adjusts server.xml
+     * 4. Starts and tracks process
+     * 5. Persists state
+     *
+     * @param tomcatHome Explicit Tomcat installation directory
+     * @param showMessages Whether to show user messages
+     * @param appNameOverride App name to bind to this instance
+     */
     public async startWithHome(tomcatHome: string, showMessages: boolean = false, appNameOverride?: string): Promise<void> {
         const javaHome = await this.findJavaHome();
         if (!tomcatHome || !javaHome) { return; }
@@ -396,6 +456,40 @@ export class Tomcat {
     }
 
     /**
+     * Undeploys a specific web application from Tomcat's webapps directory.
+     *
+     * Removes both exploded folder and war file (if present), and reloads Tomcat to apply.
+     */
+    public async undeployApp(appName: string): Promise<void> {
+        const tomcatHome = await this.findTomcatHome();
+        if (!tomcatHome) { return; }
+        const tomcatBase = await this.findTomcatBase(tomcatHome);
+        const webappsDir = path.join(tomcatBase, 'webapps');
+
+        try {
+            const appDir = path.join(webappsDir, appName);
+            const warFile = path.join(webappsDir, `${appName}.war`);
+
+            if (fs.existsSync(appDir)) {
+                fs.rmSync(appDir, { recursive: true, force: true });
+                logger.info(t('tomcat.appUndeployed', { app: appName }));
+            }
+
+            if (fs.existsSync(warFile)) {
+                fs.rmSync(warFile, { force: true });
+                logger.info(t('tomcat.appWarRemoved', { app: appName }));
+            }
+
+            if (await this.isTomcatRunning()) {
+                await this.reload();
+            }
+            logger.success(t('tomcat.appUndeploySuccess', { app: appName }));
+        } catch (err) {
+            logger.error(t('tomcat.appUndeployFailed', { app: appName }), true, err as string);
+        }
+    }
+
+    /**
      * Terminates Java-related processes to release locked Tomcat resources
      * 
      * Handles platform-specific process termination:
@@ -433,6 +527,14 @@ export class Tomcat {
         return this.managedPids.size > 0 || await this.isPortInUse(this.port);
     }
 
+    /**
+     * Check whether a TCP port is currently in use
+     *
+     * Uses platform-specific netstat commands to determine port occupancy.
+     *
+     * @param port Port number to check
+     * @returns true if in use, false otherwise
+     */
     private async isPortInUse(port: number): Promise<boolean> {
         try {
             const command = process.platform === 'win32'
@@ -445,12 +547,45 @@ export class Tomcat {
         }
     }
 
+    /**
+     * Set persistent storage folder
+     *
+     * Moves instance persistence from workspace hidden folder to extension global storage:
+     * 1. New path is used by `getPersistenceFile`
+     * 2. Enables global, per-user state
+     * 3. Reduces workspace clutter
+     *
+     * @param storagePath Global extension storage path
+     */
+    public setStoragePath(storagePath: string): void {
+        this.storagePath = storagePath;
+    }
+
+    /**
+     * Resolve persistence file location
+     *
+     * Behavior:
+     * - global extension storage if set
+     * - legacy workspace `.tomcat/instances.json` fallback if no global path
+     *
+     * @returns absolute path or null if workspace is unavailable
+     */
     private getPersistenceFile(): string | null {
+        if (this.storagePath) {
+            return path.join(this.storagePath, 'instances.json');
+        }
+
         const folder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
         if (!folder) { return null; }
         return path.join(folder, '.tomcat', 'instances.json');
     }
 
+    /**
+     * Load persisted instance mappings from disk
+     *
+     * Reads the persistence file and reconstructs `persistedByPort` map.
+     * If file is missing or invalid, it silently ignores and continues.
+     */
     private async loadPersistedInstances(): Promise<void> {
         const file = this.getPersistenceFile();
         if (!file) { return; }
@@ -461,6 +596,12 @@ export class Tomcat {
         } catch { }
     }
 
+    /**
+     * Persist instance metadata to disk
+     *
+     * Writes `persistedByPort` map to JSON file at persisted path.
+     * Creates directories as needed.
+     */
     private async persistInstances(): Promise<void> {
         const file = this.getPersistenceFile();
         if (!file) { return; }
@@ -471,12 +612,24 @@ export class Tomcat {
         } catch { }
     }
 
+    /**
+     * Synchronize persisted state from managed instances
+     *
+     * Copies entries from in-memory managed PID metadata into persisted map.
+     */
     private syncPersistedFromManaged(): void {
         for (const [, meta] of this.managedPids.entries()) {
             this.persistedByPort.set(meta.port, { app: meta.appName, workspace: meta.workspace, home: meta.home, version: meta.version });
         }
     }
 
+    /**
+     * Lookup persisted port by app or workspace
+     *
+     * Returns previously allocated port for matching app name or workspace.
+     * @param appName Application name filter
+     * @param workspace Workspace folder path filter
+     */
     private getPersistedPort(appName: string, workspace: string): number | undefined {
         for (const [port, meta] of this.persistedByPort.entries()) {
             if (appName && meta.app === appName) {
@@ -489,6 +642,13 @@ export class Tomcat {
         return undefined;
     }
 
+    /**
+     * Find an available port starting from a candidate
+     *
+     * Scans a range from startPort to avoid clashes with managed and system ports.
+     * @param startPort Candidate starting port
+     * @returns The first available port found (falling back to startPort)
+     */
     private async findAvailablePort(startPort: number): Promise<number> {
         const maxScan = 50;
         // collect ports already in use by managed instances to avoid collisions
@@ -931,7 +1091,8 @@ export class Tomcat {
             });
 
         const snapshot = [...managed, ...filteredExternal];
-        this.updateInstanceStatusBar(snapshot);
+        // status updates for instance counts are intentionally disabled for clean toolbar UX
+        // this.updateInstanceStatusBar(snapshot);
         await this.persistInstances();
         return snapshot;
     }
@@ -978,6 +1139,15 @@ export class Tomcat {
         return { home: meta.home, port: meta.port, base };
     }
 
+    /**
+     * Stop a specific managed instance by PID
+     *
+     * Supports graceful and forced termination with retries for permission errors.
+     * Cleans state on process termination.
+     *
+     * @param pid Process ID to stop
+     * @param force Force kill option
+     */
     public async stopInstanceByPid(pid: number, force: boolean = false): Promise<void> {
         const isWindows = process.platform === 'win32';
         const meta = this.managedPids.get(pid);
@@ -1040,6 +1210,13 @@ export class Tomcat {
         this.updateInstanceStatusBar(snapshot);
     }
 
+    /**
+     * Discover external HTTP/Tomcat processes running on the system
+     *
+     * Scans netstat for listening ports and filters out currently managed instances.
+     * 
+     * @returns Array of external instance metadata
+     */
     private async detectExternalInstances(): Promise<Array<{ pid: number; port?: number; app?: string; workspace?: string; command?: string; source: 'external' }>> {
         try {
             const cmd = process.platform === 'win32'
@@ -1076,6 +1253,17 @@ export class Tomcat {
         }
     }
 
+    /**
+     * Detect Tomcat version for a given installation path
+     *
+     * Attempts in order:
+     * 1. catalina version command
+     * 2. RELEASE-NOTES / RUNNING.txt parse
+     * 3. Directory name heuristics
+     *
+     * @param tomcatHome Tomcat installation path
+     * @returns Version string or 'unknown'
+     */
     public async getTomcatVersion(tomcatHome: string): Promise<string> {
         if (this.versionCache.has(tomcatHome)) {
             return this.versionCache.get(tomcatHome)!;
@@ -1130,6 +1318,13 @@ export class Tomcat {
         return 'unknown';
     }
 
+    /**
+     * Update status bar display with managed/external instance counts
+     *
+     * Provides a brief runtime snapshot in the VS Code status bar.
+     *
+     * @param snapshot Instance snapshot array
+     */
     private updateInstanceStatusBar(snapshot: Array<{ source: 'managed' | 'external' }>): void {
         const managedCount = snapshot.filter(i => i.source === 'managed').length;
         const externalCount = snapshot.filter(i => i.source === 'external').length;
