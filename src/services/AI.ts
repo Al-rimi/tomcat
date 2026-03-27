@@ -40,6 +40,13 @@ export class AI {
     private readonly MAX_PROMPT_CHARS = 1500;
     private readonly MAX_RESPONSE_LINES = 8;
 
+    /**
+     * Private singleton constructor
+     *
+     * Initializes AI configuration from workspace settings.
+     *
+     * No external inputs; sets internal fields.
+     */
     private constructor() {
         this.provider = vscode.workspace.getConfiguration().get('tomcat.ai.provider', 'none');
         this.endpoint = vscode.workspace.getConfiguration().get('tomcat.ai.endpoint', '');
@@ -56,6 +63,11 @@ export class AI {
         this.debug = vscode.workspace.getConfiguration().get('tomcat.ai.debug', false) || this.logLevelDebug;
     }
 
+    /**
+     * Singleton accessor
+     *
+     * @returns {AI} Shared AI instance
+     */
     public static getInstance(): AI {
         if (!AI.instance) {
             AI.instance = new AI();
@@ -63,6 +75,11 @@ export class AI {
         return AI.instance;
     }
 
+    /**
+     * Reload AI configuration from user settings
+     *
+     * @returns void
+     */
     public updateConfig(): void {
         const cfg = vscode.workspace.getConfiguration();
         this.provider = cfg.get('tomcat.ai.provider', 'none');
@@ -80,10 +97,23 @@ export class AI {
         this.debug = cfg.get('tomcat.ai.debug', false) || this.logLevelDebug;
     }
 
+    /**
+     * Set custom logging sink
+     *
+     * @param {LogSink} sink Callback for log output
+     * @returns void
+     */
     public setLoggerSink(sink: LogSink): void {
         this.logSink = sink;
     }
 
+    /**
+     * Set hooks for AI in-flight status
+     *
+     * @param onStart Called when AI request starts
+     * @param onDone Called when AI request completes
+     * @returns void
+     */
     public setStatusHooks(onStart: () => void, onDone: () => void): void {
         this.onStart = onStart;
         this.onDone = onDone;
@@ -91,6 +121,10 @@ export class AI {
 
     /**
      * Optionally explain a log line if autoExplain is enabled and provider is configured.
+     *
+     * @param level Severity label (e.g. WARN/ERROR)
+     * @param message Log message to explain
+     * @returns Promise<void>
      */
     public async maybeExplain(level: string, message: string): Promise<void> {
         if (!this.autoExplain) {
@@ -154,6 +188,14 @@ export class AI {
         }
     }
 
+    /**
+     * Ensure the AI endpoint is ready to accept requests
+     *
+     * - Ping configured endpoint
+     * - When local provider, attempt automatic local startup
+     *
+     * @returns Promise<boolean> true when endpoint is reachable
+     */
     private async ensureReady(): Promise<boolean> {
         const pingStart = Date.now();
         if (await this.pingEndpoint()) {
@@ -197,6 +239,11 @@ export class AI {
         return false;
     }
 
+    /**
+     * Parse endpoint URL string into URL object
+     *
+     * @returns URL or null when invalid
+     */
     private parseEndpointUrl(): URL | null {
         try {
             return new URL(this.endpoint);
@@ -205,11 +252,24 @@ export class AI {
         }
     }
 
+    /**
+     * Check if endpoint URL is local
+     *
+     * @param url Endpoint URL to inspect
+     * @returns boolean
+     */
     private isLocalEndpoint(url: URL): boolean {
         const host = (url.hostname || '').toLowerCase();
         return host === 'localhost' || host === '127.0.0.1' || host === '::1';
     }
 
+    /**
+     * Spawn local AI service process
+     *
+     * Uses configured `localStartCommand`, with non-shell first and shell fallback.
+     *
+     * @returns void
+     */
     private spawnLocalService(): void {
         const cmd = this.localStartCommand;
         if (!cmd.trim()) {
@@ -242,6 +302,13 @@ export class AI {
         }
     }
 
+    /**
+     * Ping AI endpoint for reachability
+     *
+     * Returns true for 2xx/3xx/4xx responses (including 401/404/405), false otherwise.
+     *
+     * @returns Promise<boolean>
+     */
     private pingEndpoint(): Promise<boolean> {
         return new Promise((resolve) => {
             let url: URL;
@@ -283,6 +350,13 @@ export class AI {
         });
     }
 
+    /**
+     * Build request body for AI chat API
+     *
+     * @param level Log severity level
+     * @param message Truncated log text
+     * @returns Request body object for AI provider
+     */
     private buildPrompt(level: string, message: string): { messages: any[]; max_tokens: number; model?: string; } {
         const system = t('ai.systemPrompt');
         const user = t('ai.userPrompt', { level, log: message });
@@ -296,6 +370,12 @@ export class AI {
         };
     }
 
+    /**
+     * Call AI endpoint with non-streaming request
+     *
+     * @param body Request body object
+     * @returns Promise<string | null> Extracted text or null
+     */
     private callAI(body: any): Promise<string | null> {
         return new Promise((resolve, reject) => {
             let url: URL;
@@ -368,6 +448,14 @@ export class AI {
         });
     }
 
+    /**
+     * Call AI endpoint with streaming mode
+     *
+     * Streams content chunks via logSink.  Returns true if any content was received.
+     *
+     * @param body Request body object
+     * @returns Promise<boolean>
+     */
     private streamAI(body: any): Promise<boolean> {
         return new Promise((resolve, reject) => {
             let url: URL;
@@ -473,6 +561,14 @@ export class AI {
         });
     }
 
+    /**
+     * Extract text chunk from stream line content
+     *
+     * Supports OpenAI and Ollama stream event payloads.
+     *
+     * @param line Raw stream line
+     * @returns extracted content or null
+     */
     private extractStreamContent(line: string): string | null {
         if (!line) {
             return null;
@@ -499,12 +595,26 @@ export class AI {
         }
     }
 
+    /**
+     * Write debug message to log sink if debug is enabled
+     *
+     * @param message Debug message text
+     * @returns void
+     */
     private debugLog(message: string): void {
         if (this.debug) {
             this.logSink?.(`AI_DEBUG: ${message}`);
         }
     }
 
+    /**
+     * Format AI response text for display
+     *
+     * Trims whitespace, limits to `MAX_RESPONSE_LINES`, and appends a tail message.
+     *
+     * @param text Raw AI response text
+     * @returns Formatted response string
+     */
     private formatResponse(text: string): string {
         const trimmed = (text || '').trim();
         if (!trimmed) {

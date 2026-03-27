@@ -53,5 +53,9 @@
         "command.instances.addPort.title": "Tomcat: Add HTTP Port",
         "command.instances.removePort.title": "Tomcat: Remove HTTP Port",
         "command.instances.setBuildType.title": "Tomcat: Set Build Type",
-        "command.instances.setLogLevel.title": "Tomcat: Set Log Level"
+        "command.instances.setLogLevel.title": "Tomcat: Set Log Level",
+        "command.apps.deploy.title": "Deploy App",
+        "command.apps.openInBrowser.title": "Open App in Browser",
+        "command.apps.create.title": "Create New App",
+        "command.apps.undeploy.title": "Undeploy App"
     }

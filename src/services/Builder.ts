@@ -37,7 +37,9 @@ export class Builder {
     private buildType: 'Local' | 'Maven' | 'Gradle';
     private autoDeployMode: 'On Save' | 'On Shortcut' | 'Disable';
     private isDeploying = false;
+    private currentDeployingApp: string | null = null;
     private attempts = 0;
+    private stateChangeListeners: Array<() => void> = [];
 
     /**
      * Private constructor for Singleton pattern
@@ -54,6 +56,32 @@ export class Builder {
 
     public getBuildType(): 'Local' | 'Maven' | 'Gradle' {
         return this.buildType;
+    }
+
+    public isDeployingInProgress(): boolean {
+        return this.isDeploying;
+    }
+
+    public getCurrentDeployingApp(): string | null {
+        return this.currentDeployingApp;
+    }
+
+    public onStateChange(listener: () => void): void {
+        this.stateChangeListeners.push(listener);
+    }
+
+    public offStateChange(listener: () => void): void {
+        this.stateChangeListeners = this.stateChangeListeners.filter((cb) => cb !== listener);
+    }
+
+    private emitStateChange(): void {
+        for (const cb of this.stateChangeListeners) {
+            try {
+                cb();
+            } catch (err) {
+                console.error('Builder stateChange listener failed', err);
+            }
+        }
     }
 
     /**
@@ -98,13 +126,8 @@ export class Builder {
      * 
      * @returns Boolean indicating Java EE project validity
      */
-    public static isJavaEEProject(): boolean {
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (!workspaceFolders) { return false; }
-
-        const rootPath = workspaceFolders[0].uri.fsPath;
+    private static isJavaEEProjectRoot(rootPath: string): boolean {
         const webInfPath = path.join(rootPath, 'src', 'main', 'webapp', 'WEB-INF');
-
         if (fs.existsSync(webInfPath)) { return true; }
         if (fs.existsSync(path.join(webInfPath, 'web.xml'))) { return true; }
 
@@ -126,6 +149,98 @@ export class Builder {
         return false;
     }
 
+    public static findJavaEEProjects(baseDir?: string): string[] {
+        const roots = new Set<string>();
+        const toScan = new Set<string>();
+
+        const workspaceFolders = vscode.workspace.workspaceFolders?.map(f => f.uri.fsPath) || [];
+        if (baseDir) toScan.add(baseDir);
+        workspaceFolders.forEach(folder => toScan.add(folder));
+
+        const walk = (dir: string, depth = 0) => {
+            if (depth > 5 || roots.has(dir)) return;
+            if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) return;
+            if (Builder.isJavaEEProjectRoot(dir)) {
+                roots.add(dir);
+                return;
+            }
+            for (const child of fs.readdirSync(dir)) {
+                const childPath = path.join(dir, child);
+                if (fs.existsSync(childPath) && fs.statSync(childPath).isDirectory()) {
+                    walk(childPath, depth + 1);
+                }
+            }
+        };
+
+        toScan.forEach(folder => walk(folder));
+        return Array.from(roots);
+    }
+
+    public static isJavaEEProject(): boolean {
+        const projects = Builder.findJavaEEProjects();
+        return projects.length > 0;
+    }
+
+    public static findProjectForFile(filePath: string): string | undefined {
+        let dir = path.dirname(filePath);
+        while (dir && dir !== path.dirname(dir)) {
+            if (Builder.isJavaEEProjectRoot(dir)) {
+                return dir;
+            }
+            dir = path.dirname(dir);
+        }
+
+        const projects = Builder.findJavaEEProjects();
+        return projects.length ? projects[0] : undefined;
+    }
+
+    /**
+     * Chooses a JavaEE project path for deployment.
+     *
+     * Behavior:
+     * - active editor file's parent project wins
+     * - workspace root wins if valid
+     * - if none found, searches nested projects
+     * - if exactly one found, choose it automatically
+     * - if many found, prompt user to pick by name
+     * - if none found, ask to create new project
+     */
+    private async selectProjectDirectory(projectDir?: string, preferActiveProject: boolean = false): Promise<string | undefined> {
+        const projects = Builder.findJavaEEProjects();
+
+        if (projectDir && Builder.isJavaEEProjectRoot(projectDir)) {
+            return projectDir;
+        }
+
+        const activePath = vscode.window.activeTextEditor?.document.uri.fsPath;
+        const activeProject = activePath ? Builder.findProjectForFile(activePath) : undefined;
+
+        if (projects.length === 0) {
+            await this.createNewProject();
+            return undefined;
+        }
+
+        if (projects.length === 1) {
+            return projects[0];
+        }
+
+        if (preferActiveProject && activeProject && projects.includes(activeProject)) {
+            return activeProject;
+        }
+
+        const selectOptions = projects
+            .map(p => ({
+                label: path.basename(p),
+                description: p
+            }));
+
+        const picked = await vscode.window.showQuickPick(selectOptions, {
+            placeHolder: t('builder.selectProject')
+        });
+
+        return picked?.description;
+    }
+
     /**
      * Build and Deployment Orchestrator
      * 
@@ -139,12 +254,15 @@ export class Builder {
      * @param type Build strategy ('Local' | 'Maven' | 'Gradle' | 'Choice')
      * @log Deployment progress and errors
      */
-    public async deploy(type: 'Local' | 'Maven' | 'Gradle' | 'Choice'): Promise<void> {
-        const projectDir = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-        if (!projectDir || !Builder.isJavaEEProject()) {
-            await this.createNewProject();
+    public async deploy(type: 'Local' | 'Maven' | 'Gradle' | 'Choice', projectDir?: string, preferActiveProject: boolean = false): Promise<void> {
+        if (this.isDeploying) {
+            Logger.getInstance().debug(t('builder.deployInProgress'));
             return;
         }
+
+        projectDir = await this.selectProjectDirectory(projectDir, preferActiveProject);
+        if (!projectDir) { return; }
+
         let isChoice;
 
         if (type === 'Choice') {
@@ -169,6 +287,10 @@ export class Builder {
 
         const targetDir = path.join(tomcatHome, 'webapps', appName);
         await vscode.workspace.saveAll();
+
+        this.isDeploying = true;
+        this.currentDeployingApp = appName;
+        this.emitStateChange();
 
         try {
             const action = {
@@ -225,6 +347,9 @@ export class Builder {
             }
             logger.defaultStatusBar();
         } finally {
+            this.currentDeployingApp = null;
+            this.isDeploying = false;
+            this.emitStateChange();
             logger.defaultStatusBar();
         }
     }
@@ -241,20 +366,20 @@ export class Builder {
      * 
      * @param reason Document save reason triggering deployment
      */
-    public async autoDeploy(reason: vscode.TextDocumentSaveReason): Promise<void> {
+    public async autoDeploy(reason?: vscode.TextDocumentSaveReason): Promise<void> {
 
-        if (this.isDeploying || !Builder.isJavaEEProject()) { return; }
+        if (!Builder.isJavaEEProject()) { return; }
+
+        if (this.isDeployingInProgress()) { return; }
 
         try {
-            this.isDeploying = true;
-
             if (this.autoDeployMode === 'On Save') {
-                await this.deploy(this.buildType);
+                await this.deploy(this.buildType, undefined, true);
             } else if (this.autoDeployMode === 'On Shortcut' && reason === vscode.TextDocumentSaveReason.Manual) {
-                await this.deploy(this.buildType);
+                await this.deploy(this.buildType, undefined, true);
             }
-        } finally {
-            this.isDeploying = false;
+        } catch (err) {
+            Logger.getInstance().debug(t('builder.autoDeployError', { error: String(err) }));
         }
     }
 

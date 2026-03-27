@@ -2,22 +2,50 @@
 
 ## [Unreleased]
 
-## [4.0.0] - 2026-03-27
+## [4.1.0] - 2026-03-27
 ### Added
-- Instance Window to manage all Tomcat instances from a single view start, stop, kill, refresh servers, open apps in your browser, and configure Tomcat/Java homes and ports. The new settings window streamlines multi-instance setup and configuration.
-- Persist Tomcat instance metadata across VS Code restarts (workspace `.tomcat/instances.json`).
-- Running Instances TreeView and instance lifecycle commands (start new, refresh, stop, kill, open in browser).
-- Saved Tomcat homes / Java homes management and saved HTTP ports with add/remove UI flows.
+- Advanced app generation: template + frontend choice (JSP/Thymeleaf/React/Vue/Angular), detailed scaffolding, MIT license, and multi-suite docs output.
+- AI deploy view enhancements: per-app deploy animation, per-tree refresh button, create-app button placed in App group.
+- Extended localization for app creation strings and new UX path.
+- Platform-aware environment detection for Java/Tomcat/Node/NPM versions during scaffolding.
 
 ### Changed
-- Do not forcibly close external Tomcat processes on extension deactivate; track and persist managed instances instead.
-- Deployment target selection improved: reuse running instance for same app, prefer unused instances, otherwise start new.
-- Browser handling: availability checks, preferred-browser fallback, safer launch and request timeout handling.
-- Large i18n migration: move user-facing strings to runtime NLS and add Chinese translations.
+- Upgrade extension version and feature set in documentation, readme, and changelog.
+- Removed unreliable location URL from generated README and docs directory from sample output.
 
 ### Fixed
-- Resolved JSON / TypeScript issues surfaced during the i18n sweep.
-- Improved port allocation and update logic to reduce conflicts and accidental restarts.
+- Resolve frontend starter path ENOENT by ensuring recursive folder creation for public/src.
+
+## [4.0.1] - 2026-03-27
+### Added
+- Default instance metadata persistence to extension global storage (`context.globalStorageUri`) instead of workspace `.tomcat/instances.json`, avoiding per-project files in user projects.
+- Added `Tomcat#setStoragePath()` to support hidden storage path in installed extension state.
+- README/README.zh-CN documentation updated to reflect new hidden persistence behavior.
+
+### Changed
+- 4.0.0 view-centric instance management flow remains; updated persistence behavior to avoid leaking extension state into opened projects.
+- Refactored instance tree view code to move UI node classes into `src/components`, types into `src/types`, and renamed `InstanceView` to `View` in `src/services`.
+
+### Fixed
+- Avoided writing managed instance metadata under `project/.tomcat` when extension is used; data now stored in extension internal data folder.
+
+## [4.0.0] - 2026-03-27
+### Added
+- Dynamic Tomcat instance management view: enables multiple managed app instances, per-instance controls (start, stop, kill, refresh), per-instance browser open, and per-instance status.
+- Application instance metadata and persistence across VS Code restarts (`.tomcat/instances.json`), allowing restart-resume of instance state.
+- New configuration paths: Tomcat homes, Java homes, HTTP ports with add/remove UI and validation.
+- Running Instances TreeView shows grouped instances, workspace linkage, and quick action commands.
+
+### Changed
+- The view-centric management model is now the central workflow; the previous release timeline is now represented in UI navigation and quick action flows.
+- Deployment target selection improved: if app is already running on a managed instance, reuse it; otherwise provision a new managed instance.
+- Separated instance and app lifecycle management from workspace deploy logic; enhanced multi-instance safety and traceability.
+- Browser reload path now includes CDP detection, fallback guidance, and explicit status cues in view and output channel.
+
+### Fixed
+- Track and persist managed instances instead of forcibly terminating external Tomcat processes on extension deactivate.
+- Cleaned instance lifecycle in tree view to avoid zombie entries, and fixed related port allocation logic.
+- Addressed UI responsiveness issues when many instances are open and a global rebuild is triggered.
 
 
 ## [3.1.0] - 2026-03-26

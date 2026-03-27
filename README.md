@@ -11,6 +11,9 @@ AI-assisted Tomcat control for VS Code: streaming log explanations, one-click de
 - **Full Server Logs Monitoring**  
   Monitor All+ Tomcat logs in real-time with syntax highlighting
 
+- **Java Web Apps Support**  
+  Detect and manage Java EE/Tomcat webapp projects, including multi-root workspace app discovery and deployment.
+
 - **Build Strategies**  
   Three build strategies Local, Maven and Gradle to choose from
 
@@ -29,6 +32,9 @@ AI-assisted Tomcat control for VS Code: streaming log explanations, one-click de
 - **Localized UI (English/Chinese)**  
   Extension commands, status bar text, and prompts are localized with a new language switch that follows VS Code on first run.
 
+- **Multi-Project Workspace Awareness**  
+  Detects multiple projects in the same workspace and handles per-folder webapp deployment and workspace-specific settings smartly.
+
 - **Instance Management UI and Settings Window**  
   Manage all Tomcat instances in one place: start, stop, kill, refresh, open in browser, and configure Tomcat/Java homes and HTTP ports from a unified view.
 
@@ -46,7 +52,11 @@ code --install-extension Al-rimi.tomcat
 
 ## Usage
 
-> The `Editor Button` and `Status Bar` are only visible when the current project is detected as a Java EE project, following VScode [Editor Actions](https://code.visualstudio.com/api/ux-guidelines/editor-actions) and [Status Bar](https://code.visualstudio.com/api/ux-guidelines/status-bar) Guidelines.
+> The `Editor Button` and `Status Bar` are only visible when the selected workspace folder contains a detected Java EE project (multi-root workspace support included).
+> - In multi-project workspaces, each folder is detected independently, and app commands are scoped to the active project.
+> - View UI convention now reflects the shared tree + per-project snippets in the same panel.
+> 
+> See the following detection criteria below for details.
 
 <details>
 <summary>When is a project considered a Java EE project? click to expand</summary>
@@ -116,9 +126,19 @@ public static isJavaEEProject(): boolean {
 
 </details>
 
-### ![](resources/tomcat-icon-dark.png) Instances View
+### ![](resources/tomcat-icon-dark.png) Instances & Apps View
 
-The Instances View provides a real-time tree of all running and saved Tomcat instances. You can start, stop, or kill servers, manage Tomcat/Java homes and HTTP ports, and open deployed apps in your browser, all from one place. Each instance shows its PID, port, version, and workspace, with quick actions for configuration and browser launch.
+The Instances View is now a full management center for instances and apps. It provides a real-time tree of running and saved Tomcat instances, plus app entries for deploy, run, refresh, and delete.
+
+You can:
+- start/stop/kill Tomcat instances
+- manage Tomcat/Java homes, HTTP ports, and per-instance settings
+- create new apps and scaffold templates from the `+` action
+- deploy and run apps with one click
+- delete deployed apps and clean project artifacts
+- open deployed apps in browser and track PID/port/version/workspace
+
+All controls are accessible from one place, with quick actions in the tree and context menu commands to keep workflow fast.
 
 ![](resources/tomcat-view-showcase.png)
 
@@ -159,6 +179,8 @@ Use the Command Palette (`Ctrl+Shift+P`) to quickly access core commands:
 | `Tomcat: Set HTTP Port`     | Change the HTTP port for an instance                   |
 | `Tomcat: Add HTTP Port`     | Add a new HTTP port to the quick selection list        |
 | `Tomcat: Remove HTTP Port`  | Remove a saved HTTP port                               |
+| `Tomcat: Create App`        | Scaffold a new web app from templates                  |
+| `Tomcat: Refresh Apps`      | Reload the apps list in the tree view                  |
 | `Tomcat: Set Build Type`    | Change the build strategy for an instance              |
 | `Tomcat: Set Log Level`     | Change the log level for an instance                   |
 
@@ -247,13 +269,16 @@ For technical implementation details and contribution guidelines, see:
 [![Suggest Fix](https://img.shields.io/badge/-Suggest_Fix-green?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/pulls)
 
 
-## What's New in 4.0.0
+## What's New in 4.1.0
 
 ### Added
-- Instance Management UI and Settings Window: Manage all Tomcat instances from a single view—start, stop, kill, refresh servers, open apps in your browser, and configure Tomcat/Java homes and ports. The new settings window streamlines multi-instance setup and configuration.
-- Persist Tomcat instance metadata across VS Code restarts (saved instances file under workspace `.tomcat/instances.json`).
-- New Instances management UI: Running Instances tree, start/stop/kill per PID, saved Tomcat homes and Java homes, and saved HTTP ports with add/remove.
-- Commands and TreeView integration for instance lifecycle and configuration (start new, refresh, add/remove homes/ports, set active home/java, set browser, set log level).
+- Workspace-wide multi-project detection and smart project switching for multi-root workspaces.
+- Advanced project scaffolding UI: `+` in apps with template + frontend options (JSP/Thymeleaf/React/Vue/Angular/None).
+- Per-instance deploy animation (`sync~spin`) and global refresh command button.
+- Create App + refresh actions in app tree toolbar with one-click scaffold behavior.
+- Localization for new create-app flow and expanded Chinese/English strings.
+- MIT license, README scaffolding, and environment-aware versions (Java/Tomcat/Node/NPM/platform) in generated projects.
+- Fix: frontend starter `public/index.html` path creation (ENOENT resolved).
 
 ### Changed
 - Avoid forcibly closing external Tomcat processes on extension deactivate; managed instances are tracked and persisted instead.

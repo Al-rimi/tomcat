@@ -2,7 +2,7 @@
   "name": "tomcat",
   "displayName": "%ext.displayName%",
   "description": "%ext.description%",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "publisher": "Al-rimi",
   "author": {
     "email": "alrimi@zjnu.edu.cn",
@@ -119,6 +119,25 @@
         "title": "%command.instances.openInBrowser.title%"
       },
       {
+        "command": "tomcat.apps.deploy",
+        "title": "%command.apps.deploy.title%",
+        "icon": "$(play)"
+      },
+      {
+        "command": "tomcat.apps.openInBrowser",
+        "title": "%command.apps.openInBrowser.title%"
+      },
+      {
+        "command": "tomcat.apps.create",
+        "title": "%command.apps.create.title%",
+        "icon": "$(add)"
+      },
+      {
+        "command": "tomcat.apps.undeploy",
+        "title": "%command.apps.undeploy.title%",
+        "icon": "$(debug-stop)"
+      },
+      {
         "command": "tomcat.instances.startNew",
         "title": "%command.instances.startNew.title%",
         "icon": "$(add)"
@@ -213,7 +232,14 @@
           "tooltip": "%menu.deploy.tooltip%"
         }
       ],
-      "view/title": [],
+      "view/title": [
+        {
+          "command": "tomcat.instances.refresh",
+          "when": "view == tomcat.instancesView",
+          "group": "navigation",
+          "icon": "$(sync)"
+        }
+      ],
       "view/item/context": [
         {
           "command": "tomcat.instances.kill",
@@ -222,10 +248,10 @@
           "icon": "$(trash)"
         },
         {
-          "command": "tomcat.instances.refresh",
-          "when": "view == tomcat.instancesView && viewItem == tomcatInstancesGroup",
+          "command": "tomcat.apps.create",
+          "when": "view == tomcat.instancesView && viewItem == tomcatAppsGroup",
           "group": "inline",
-          "icon": "$(sync)"
+          "icon": "$(add)"
         },
         {
           "command": "tomcat.instances.startNew",
@@ -280,6 +306,18 @@
           "when": "view == tomcat.instancesView && viewItem == tomcatPortEntry",
           "group": "inline",
           "icon": "$(trash)"
+        },
+        {
+          "command": "tomcat.apps.deploy",
+          "when": "view == tomcat.instancesView && viewItem == tomcatApp.stopped",
+          "group": "inline",
+          "icon": "$(play)"
+        },
+        {
+          "command": "tomcat.apps.undeploy",
+          "when": "view == tomcat.instancesView && viewItem == tomcatApp.running",
+          "group": "inline",
+          "icon": "$(debug-stop)"
         }
       ]
     },
