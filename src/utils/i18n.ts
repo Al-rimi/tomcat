@@ -1,5 +1,20 @@
+/**
+ * Internationalization utilities for the Tomcat extension.
+ *
+ * Provides:
+ * - Translations for both English and Chinese (simplified)
+ * - Locale detection and user preference resolution
+ * - Runtime lookup of translation keys with variable interpolation
+ * - Convenience mapping for deploy mode/build type/browser names
+ *
+ * Input: user/workspace language settings, translation key + vars
+ * Output: localized string messages for UI and logs
+ */
 import * as vscode from 'vscode';
 
+/**
+ * Supported locale identifiers.
+ */
 export type Locale = 'en' | 'zh-CN';
 export type LanguageSetting = 'auto' | Locale;
 export type DeployMode = 'Disable' | 'On Save' | 'On Shortcut';
@@ -38,6 +53,10 @@ const translations = {
         'tomcat.removedFile': 'Removed file: {path}',
         'tomcat.cleanedDirectory': 'Cleaned and recreated: {path}',
         'tomcat.cleaned': 'Tomcat cleaned successfully',
+        'tomcat.appUndeployed': 'Removed app directory from webapps: {app}',
+        'tomcat.appWarRemoved': 'Removed WAR from webapps: {app}',
+        'tomcat.appUndeploySuccess': 'App {app} undeployed successfully',
+        'tomcat.appUndeployFailed': 'Undeploy failed for {app}',
         'tomcat.cleanupFailed': 'Tomcat cleanup failed:',
         'tomcat.invalidHome': 'Invalid Tomcat home: {path} not found.',
         'tomcat.invalidJavaHome': 'Invalid Java home: {path} not found.',
@@ -72,11 +91,14 @@ const translations = {
         'builder.newProjectYes': 'Yes',
         'builder.newProjectNo': 'No',
         'builder.installJavaPack': 'Java Extension Pack required for project creation',
+        'builder.selectProject': 'Select Java EE project to deploy',
         'builder.installExtension': 'Install Extension',
         'builder.projectCreationFailed': 'Project creation failed. Ensure Java Extension Pack is installed and configured.',
         'builder.openExtensions': 'Open Extensions',
         'builder.newProjectCreated': 'New Maven web app project created',
         'builder.deployCanceled': 'Tomcat deploy canceled',
+        'builder.deployInProgress': 'Deployment already in progress. Please wait until it completes.',
+        'builder.autoDeployError': 'Auto deploy failed: {error}',
         'builder.selectBuildType': 'Select build type',
         'builder.webAppMissing': 'WebApp directory not found: {path}',
         'builder.invalidDeployType': 'Invalid deployment type: {type}',
@@ -114,6 +136,56 @@ const translations = {
         'browser.name.opera': 'Opera',
         'instance.noTomcatHomes': 'No Tomcat homes configured',
         'instance.noTomcatInstances': 'No Tomcat instances',
+        'group.instances': 'Instances',
+        'group.apps': 'Apps',
+        'app.noAppsFound': 'No Java EE apps found',
+        'app.status.running': 'Running',
+        'app.status.stopped': 'Stopped',
+        'app.create.template.javaee': 'Java EE Web App',
+        'app.create.template.javaee.desc': 'Standard Java EE web application (servlet, JSP).',
+        'app.create.template.springboot': 'Spring Boot Web App',
+        'app.create.template.springboot.desc': 'Spring Boot starter application with embedded Tomcat.',
+        'app.create.template.struts2': 'Struts 2 Web App',
+        'app.create.template.struts2.desc': 'Struts2 sample including action and web.xml setup.',
+        'app.create.template.jakartaee': 'Jakarta EE Web App',
+        'app.create.template.jakartaee.desc': 'Java EE successor Jakarta EE sample web app.',
+        'app.create.nameRequired': 'App name is required.',
+        'app.create.pathExists': 'Path already exists: {path}',
+        'app.create.noValidJdk': 'No valid JAVA_HOME found. Generated app may not compile.',
+        'app.create.noValidTomcat': 'No valid Tomcat home found. Please configure Tomcat.',
+        'app.create.selectType': 'Select Java EE application template',
+        'app.create.maven': 'Maven Web App',
+        'app.create.gradle': 'Gradle Web App',
+        'app.create.springBoot': 'Spring Boot Web App',
+        'app.create.custom': 'Custom Java EE App',
+        'app.create.enterName': 'Enter app name',
+        'app.create.selectLocation': 'Select location folder for new app',
+        'app.create.selectFrontend': 'Select frontend framework',
+        'app.create.frontend.jsp': 'JSP',
+        'app.create.frontend.thymeleaf': 'Thymeleaf',
+        'app.create.frontend.react': 'React',
+        'app.create.frontend.vue': 'Vue',
+        'app.create.frontend.angular': 'Angular',
+        'app.create.frontend.none': 'No frontend',
+        'app.create.projectOverview': 'Project Overview',
+        'app.create.templateLabel': 'Template',
+        'app.create.frontendLabel': 'Frontend',
+        'app.create.javaVersion': 'Java version',
+        'app.create.tomcatVersion': 'Tomcat version',
+        'app.create.nodeVersion': 'Node version',
+        'app.create.npmVersion': 'NPM version',
+        'app.create.platform': 'Platform',
+        'app.create.quickStart': 'Quick Setup',
+        'app.create.quickStep1': 'Build the project with Maven/Gradle',
+        'app.create.quickStep2': 'Run the app with mvn spring-boot:run or Tomcat workflow',
+        'app.create.quickStep3': 'Open browser at http://localhost:8080',
+        'app.create.layout': 'Project layout',
+        'app.create.moreInfo': 'More information',
+        'app.create.informationLine1': 'This template includes best-practice directories and initial code snippets.',
+        'app.create.success': 'Created app {name} at {path}',
+        'app.tooltip': 'Java EE app path',
+        'app.deploy': 'Deploy app',
+        'app.openInBrowser': 'Open app in Browser',
         'instance.runningInstances': 'Running Instances ({count})',
         'instance.addPort.prompt': 'Add HTTP port (1024-49151)',
         'instance.addPort.validation': 'Enter a port between 1024 and 49151',
@@ -208,6 +280,10 @@ const translations = {
         'tomcat.removedFile': '已删除文件：{path}',
         'tomcat.cleanedDirectory': '已清理并重新创建：{path}',
         'tomcat.cleaned': 'Tomcat 清理成功',
+        'tomcat.appUndeployed': '已从 webapps 中删除应用目录：{app}',
+        'tomcat.appWarRemoved': '已从 webapps 中删除 WAR：{app}',
+        'tomcat.appUndeploySuccess': '应用 {app} 卸载成功',
+        'tomcat.appUndeployFailed': '应用 {app} 卸载失败',
         'tomcat.cleanupFailed': 'Tomcat 清理失败：',
         'tomcat.invalidHome': 'Tomcat 安装目录无效：未找到 {path}。',
         'tomcat.invalidJavaHome': 'Java 安装目录无效：未找到 {path}。',
@@ -249,6 +325,9 @@ const translations = {
         'builder.openExtensions': '打开扩展视图',
         'builder.newProjectCreated': '已创建新的 Maven Web 应用项目',
         'builder.deployCanceled': '已取消 Tomcat 部署',
+        'builder.deployInProgress': '部署正在进行中。请稍候。',
+        'builder.autoDeployError': '自动部署失败：{error}',
+        'builder.selectProject': '选择要部署的 Java EE 项目',
         'builder.selectBuildType': '选择构建类型',
         'builder.webAppMissing': '未找到 WebApp 目录：{path}',
         'builder.invalidDeployType': '无效的部署类型：{type}',
@@ -284,6 +363,26 @@ const translations = {
         'browser.name.opera': 'Opera 浏览器',
         'instance.noTomcatHomes': '未配置 Tomcat 路径',
         'instance.noTomcatInstances': '未检测到 Tomcat 实例',
+        'group.instances': '实例',
+        'group.apps': '应用',
+        'app.noAppsFound': '未找到 Java EE 应用',
+        'app.status.running': '正在运行',
+        'app.status.stopped': '已停止',
+        'app.create.template.javaee': 'Java EE Web 应用',
+        'app.create.template.javaee.desc': '标准 Java EE Web 应用（servlet，JSP）。',
+        'app.create.template.springboot': 'Spring Boot Web 应用',
+        'app.create.template.springboot.desc': 'Spring Boot 入门应用，内嵌 Tomcat。',
+        'app.create.template.struts2': 'Struts 2 Web 应用',
+        'app.create.template.struts2.desc': 'Struts2 示例，包含 action 与 web.xml。',
+        'app.create.template.jakartaee': 'Jakarta EE Web 应用',
+        'app.create.template.jakartaee.desc': 'Jakarta EE Web 应用示例。',
+        'app.create.nameRequired': '应用名称为必填项。',
+        'app.create.pathExists': '路径已存在：{path}',
+        'app.create.noValidJdk': '未找到有效 JAVA_HOME，生成应用可能无法编译。',
+        'app.create.noValidTomcat': '未找到有效 Tomcat Home，请配置 Tomcat。',
+        'app.tooltip': 'Java EE 应用路径',
+        'app.deploy': '部署应用',
+        'app.openInBrowser': '在浏览器中打开应用',
         'instance.runningInstances': '运行中的实例（{count}）',
         'instance.addPort.prompt': '添加 HTTP 端口（1024-49151）',
         'instance.addPort.validation': '请输入 1024 到 49151 之间的端口号',
@@ -356,6 +455,12 @@ const translations = {
 let currentLocale: Locale = 'en';
 let initialized = false;
 
+/**
+ * Initialize localization state once per extension activation.
+ *
+ * Input: extension context for persistent global state.
+ * Output: sets `currentLocale` and `initialized`.
+ */
 export function initializeLocalization(context: vscode.ExtensionContext): void {
     if (initialized) return;
 
@@ -376,12 +481,25 @@ export function initializeLocalization(context: vscode.ExtensionContext): void {
     initialized = true;
 }
 
+/**
+ * Refresh locale setting from configuration without extension reload.
+ *
+ * Input: current workspace language setting
+ * Output: updates `currentLocale`.
+ */
 export function refreshLocalization(): void {
     const cfg = vscode.workspace.getConfiguration('tomcat');
     const configured = cfg.get<LanguageSetting>('language', 'auto');
     currentLocale = resolveLocale(configured, detectLocale());
 }
 
+/**
+ * Get current locale in use by the extension.
+ *
+ * If not initialized, resolves from configuration/default and detects environment.
+ *
+ * @returns {Locale}
+ */
 export function getCurrentLocale(): Locale {
     if (!initialized) {
         currentLocale = resolveLocale(
@@ -392,12 +510,26 @@ export function getCurrentLocale(): Locale {
     return currentLocale;
 }
 
+/**
+ * Translate a key into a localized string with optional replacements.
+ *
+ * @param key Translation key
+ * @param vars Optional replacement variables
+ * @returns Localized string
+ */
 export function t(key: TranslationKey, vars?: Record<string, string | number>): string {
     const locale = getCurrentLocale();
-    const template = translations[locale]?.[key] ?? translations.en[key] ?? key;
+    const localeStrings = (translations as Record<string, any>)[locale] || {};
+    const template = localeStrings[key as string] ?? translations.en[key] ?? key;
     return format(template, vars);
 }
 
+/**
+ * Convert deploy mode to localized deploy label.
+ *
+ * @param mode DeployMode (Disable/On Save/On Shortcut)
+ * @returns Localized string for UI
+ */
 export function translateDeployMode(mode: DeployMode): string {
     switch (mode) {
         case 'On Save':
@@ -409,6 +541,12 @@ export function translateDeployMode(mode: DeployMode): string {
     }
 }
 
+/**
+ * Convert build type to localized label.
+ *
+ * @param type BuildType (Local/Maven/Gradle)
+ * @returns Localized build type name
+ */
 export function translateBuildType(type: BuildType): string {
     const keyMap: Record<BuildType, TranslationKey> = {
         'Local': 'buildType.local',
@@ -418,6 +556,12 @@ export function translateBuildType(type: BuildType): string {
     return t(keyMap[type]);
 }
 
+/**
+ * Convert internal browser name to localized display name.
+ *
+ * @param browser BrowserName
+ * @returns Localized browser name
+ */
 export function translateBrowserName(browser: BrowserName): string {
     const keyMap: Record<BrowserName, TranslationKey> = {
         'Disable': 'browser.name.disable',
@@ -431,12 +575,24 @@ export function translateBrowserName(browser: BrowserName): string {
     return t(keyMap[browser]);
 }
 
+/**
+ * Resolve configured language setting to supported locale, with fallback.
+ *
+ * @param setting The configured tomcat.language setting
+ * @param fallback Detected locale fallback
+ * @returns Locale ('en' or 'zh-CN')
+ */
 function resolveLocale(setting: LanguageSetting | undefined, fallback: Locale): Locale {
     if (setting === 'zh-CN') return 'zh-CN';
     if (setting === 'en') return 'en';
     return fallback;
 }
 
+/**
+ * Detect locale from VS Code environment language.
+ *
+ * @returns Locale (defaults to 'en' unless zh- prefix)
+ */
 function detectLocale(): Locale {
     const language = (vscode.env.language || '').toLowerCase();
     if (language.startsWith('zh')) {
@@ -445,6 +601,15 @@ function detectLocale(): Locale {
     return 'en';
 }
 
+/**
+ * Interpolate variables into template placeholders.
+ *
+ * e.g. template 'Hello {name}' with vars {name:'Tom'} returns 'Hello Tom'.
+ *
+ * @param template String with placeholders {var}
+ * @param vars Optional object map of replacements
+ * @returns Interpolated string
+ */
 function format(template: string, vars?: Record<string, string | number>): string {
     if (!vars) return template;
     return Object.keys(vars).reduce((acc, key) => {
