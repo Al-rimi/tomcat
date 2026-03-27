@@ -254,7 +254,7 @@ export class Logger {
      * @param showToast Whether to show user notification
      */
     public info(message: string, showToast: boolean = false): void {
-        this.log('logger.infoLabel', message, showToast ? vscode.window.showInformationMessage : undefined);
+        this.log(t('logger.infoLabel'), message, showToast ? vscode.window.showInformationMessage : undefined);
     }
 
     /**
@@ -264,7 +264,7 @@ export class Logger {
      * @param showToast Whether to show user notification
      */
     public success(message: string, showToast: boolean = false): void {
-        this.log('logger.successLabel', message, showToast ? vscode.window.showInformationMessage : undefined);
+        this.log(t('logger.successLabel'), message, showToast ? vscode.window.showInformationMessage : undefined);
     }
 
     /**
@@ -274,7 +274,7 @@ export class Logger {
      * @param showToast Whether to show user notification
      */
     public debug(message: string, showToast: boolean = false): void {
-        this.log('logger.debugLabel', message, showToast ? vscode.window.showInformationMessage : undefined);
+        this.log(t('logger.debugLabel'), message, showToast ? vscode.window.showInformationMessage : undefined);
     }
 
     /**
@@ -284,7 +284,7 @@ export class Logger {
      * @param showToast Whether to show user notification
      */
     public warn(message: string, showToast: boolean = false): void {
-        this.log('logger.warnLabel', message, showToast ? vscode.window.showWarningMessage : undefined);
+        this.log(t('logger.warnLabel'), message, showToast ? vscode.window.showWarningMessage : undefined);
     }
 
     /**
@@ -296,7 +296,7 @@ export class Logger {
      */
     public error(message: string, showToast: boolean = false, error: string): void {
         const fullMessage = error ? `${message}\n${error}` : message;
-        this.log('logger.errorLabel', fullMessage, showToast ? vscode.window.showErrorMessage : undefined);
+        this.log(t('logger.errorLabel'), fullMessage, showToast ? vscode.window.showErrorMessage : undefined);
     }
 
     public aiNote(message: string): void {
