@@ -503,8 +503,9 @@
     "@vscode/test-electron": "^2.4.1",
     "@vscode/vsce": "^2.15.0",
     "chai": "^4.5.0",
-    "eslint": "^9.23.0",
+    "eslint": "^10.1.0",
     "mocha": "^11.7.5",
+    "npm-force-resolutions": "^0.0.10",
     "sinon": "^17.0.1",
     "ts-loader": "^9.5.2",
     "typescript": "^5.7.3",
@@ -516,7 +517,9 @@
       "diff": "8.0.3",
       "serialize-javascript": "7.0.4"
     },
-    "serialize-javascript": "7.0.4"
+    "serialize-javascript": "7.0.4",
+    "brace-expansion": "^5.0.5",
+    "minimist": "^1.2.7"
   },
   "dependencies": {
     "glob": "^11.0.1",
