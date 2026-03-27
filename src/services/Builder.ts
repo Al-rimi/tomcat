@@ -353,6 +353,16 @@ export class Builder {
 
         const libDir = path.join(projectDir, 'lib');
         const targetLib = path.join(targetDir, 'WEB-INF', 'lib');
+
+        if (!fs.existsSync(libDir)) {
+            logger.info(t('builder.libDirCreated', { path: libDir }));
+            fs.mkdirSync(libDir, { recursive: true });
+        }
+
+        if (!fs.existsSync(targetLib)) {
+            fs.mkdirSync(targetLib, { recursive: true });
+        }
+
         this.brutalSync(libDir, targetLib);
     }
 
