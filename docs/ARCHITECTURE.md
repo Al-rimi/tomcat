@@ -51,12 +51,37 @@ classDiagram
     }
     
     class Vscode
-    
+    class View {
+      +getInstance(): View
+      +refresh(): void
+      +deployApp(payload): Promise<void>
+      +openApp(payload, port?): Promise<void>
+      +createApp(): Promise<void>
+      +stopInstance(item, force?): Promise<void>
+      +startNew(): Promise<void>
+      +addHome(): Promise<void>
+      +addJavaHome(): Promise<void>
+      +setBuildType(choice): Promise<void>
+      +setLogLevel(choice): Promise<void>
+    }
+    class "Tree Node Components" as TreeNodes {
+      +InstanceItem
+      +AppItem
+      +HomeItem
+      +PortItem
+      +ConfigItem
+      +...others
+    }
+
     Tomcat --> Logger : Logging
-      Tomcat --> Browser : Launch on start
+    Tomcat --> Browser : Launch on start
+    Tomcat --> View : Instance snapshot + persistence
+      Tomcat --> View : Cleanup stale instances
     Builder --> Tomcat : Deployment Coordination
     Builder --> Browser : Reload Trigger
     Builder --> Logger : Build Status
+    Builder --> View : App deploy/refresh events
+    View --> TreeNodes : render management tree
     Browser --> Logger : Error Reporting
       Logger --> AI : Explain WARN/ERROR
     Tomcat --> Vscode : Configuration Management

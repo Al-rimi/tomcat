@@ -25,9 +25,16 @@ src/
 │   ├── Tomcat.ts             # Server management core
 │   ├── Builder.ts            # Deployment pipelines (Local/Maven/Gradle)
 │   ├── Browser.ts            # Browser integration and CDP reloads
-│   └── Logger.ts             # Logging and status bar
+│   ├── Logger.ts             # Logging and status bar
+│   ├── AI.ts                 # AI explain service (streaming, pinging, fallback)
+│   └── View.ts               # Tree data provider + instance/app management
+├── components/              # TreeView node classes
+│   ├── InstanceItem.ts
+│   ├── AppItem.ts
+│   ├── ... (other node components)
 └── utils/
-    └── syntax.ts             # Token color customization rules
+    ├── i18n.ts              # Localized UI strings and translation helpers
+    └── syntax.ts            # Token color customization rules
 
 test/
 └── suite/                    # Test cases
