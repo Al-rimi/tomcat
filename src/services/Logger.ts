@@ -217,9 +217,9 @@ export class Logger {
      */
     public updateStatusBar(value: string): void {
         if (this.statusBarItem && !this.aiBusy) {
-            this.statusBarItem.text = `$(circle-outline) ${value}`;
+            this.statusBarItem.text = `$(sync~spin) ${value}`;
             this.statusBarItem.tooltip = undefined; // muted: no hover tooltip
-            this.statusBarItem.color = new vscode.ThemeColor('disabledForeground');
+            this.statusBarItem.color = undefined; // use theme default foreground color
         }
     }
 
