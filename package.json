@@ -2,7 +2,7 @@
   "name": "tomcat",
   "displayName": "%ext.displayName%",
   "description": "%ext.description%",
-  "version": "3.1.0",
+  "version": "4.0.0",
   "publisher": "Al-rimi",
   "author": {
     "email": "alrimi@zjnu.edu.cn",
@@ -66,7 +66,7 @@
           "Tomcat Log"
         ],
         "extensions": [
-          ".tlog"
+          ".log"
         ],
         "configuration": "./language-configuration.json"
       }
@@ -99,8 +99,111 @@
       {
         "command": "tomcat.clean",
         "title": "%command.clean.title%"
+      },
+      {
+        "command": "tomcat.manageInstances",
+        "title": "%command.manageInstances.title%"
+      },
+      {
+        "command": "tomcat.instances.refresh",
+        "title": "%command.instances.refresh.title%",
+        "icon": "$(sync)"
+      },
+      {
+        "command": "tomcat.instances.kill",
+        "title": "%command.instances.kill.title%",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "tomcat.instances.openInBrowser",
+        "title": "%command.instances.openInBrowser.title%"
+      },
+      {
+        "command": "tomcat.instances.startNew",
+        "title": "%command.instances.startNew.title%",
+        "icon": "$(add)"
+      },
+      {
+        "command": "tomcat.instances.configureField",
+        "title": "%command.instances.configureField.title%",
+        "icon": "$(gear)"
+      },
+      {
+        "command": "tomcat.instances.addHome",
+        "title": "%command.instances.addHome.title%",
+        "icon": "$(add)"
+      },
+      {
+        "command": "tomcat.instances.removeHome",
+        "title": "%command.instances.removeHome.title%",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "tomcat.instances.refreshVersions",
+        "title": "%command.instances.refreshVersions.title%",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "tomcat.instances.setActiveHome",
+        "title": "%command.instances.setActiveHome.title%",
+        "icon": "$(check)"
+      },
+      {
+        "command": "tomcat.instances.addJavaHome",
+        "title": "%command.instances.addJavaHome.title%",
+        "icon": "$(add)"
+      },
+      {
+        "command": "tomcat.instances.removeJavaHome",
+        "title": "%command.instances.removeJavaHome.title%",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "tomcat.instances.setActiveJavaHome",
+        "title": "%command.instances.setActiveJavaHome.title%",
+        "icon": "$(check)"
+      },
+      {
+        "command": "tomcat.instances.setPort",
+        "title": "%command.instances.setPort.title%"
+      },
+      {
+        "command": "tomcat.instances.addPort",
+        "title": "%command.instances.addPort.title%",
+        "icon": "$(add)"
+      },
+      {
+        "command": "tomcat.instances.removePort",
+        "title": "%command.instances.removePort.title%",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "tomcat.instances.setBuildType",
+        "title": "%command.instances.setBuildType.title%"
+      },
+      {
+        "command": "tomcat.instances.setLogLevel",
+        "title": "%command.instances.setLogLevel.title%"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "tomcat",
+          "title": "%view.tomcat.title%",
+          "icon": "resources/tomcat-icon-dark.svg"
+        }
+      ]
+    },
+    "views": {
+      "tomcat": [
+        {
+          "id": "tomcat.instancesView",
+          "name": "%view.tomcat.name%",
+          "icon": "resources/tomcat-icon-dark.svg"
+        }
+      ]
+    },
     "menus": {
       "editor/title": [
         {
@@ -108,6 +211,75 @@
           "when": "tomcat.showdeployButton",
           "group": "navigation",
           "tooltip": "%menu.deploy.tooltip%"
+        }
+      ],
+      "view/title": [],
+      "view/item/context": [
+        {
+          "command": "tomcat.instances.kill",
+          "when": "view == tomcat.instancesView && viewItem == tomcatInstance",
+          "group": "inline",
+          "icon": "$(trash)"
+        },
+        {
+          "command": "tomcat.instances.refresh",
+          "when": "view == tomcat.instancesView && viewItem == tomcatInstancesGroup",
+          "group": "inline",
+          "icon": "$(sync)"
+        },
+        {
+          "command": "tomcat.instances.startNew",
+          "when": "view == tomcat.instancesView && viewItem == tomcatInstancesGroup",
+          "group": "inline",
+          "icon": "$(add)"
+        },
+        {
+          "command": "tomcat.instances.removeHome",
+          "when": "view == tomcat.instancesView && viewItem == tomcatHomeEntry",
+          "group": "inline",
+          "icon": "$(trash)"
+        },
+        {
+          "command": "tomcat.instances.addHome",
+          "when": "view == tomcat.instancesView && viewItem == tomcatHomeGroup",
+          "group": "inline",
+          "icon": "$(add)"
+        },
+        {
+          "command": "tomcat.instances.setActiveHome",
+          "when": "view == tomcat.instancesView && viewItem == tomcatHomeEntry",
+          "group": "inline",
+          "icon": "$(check)"
+        },
+        {
+          "command": "tomcat.instances.removeJavaHome",
+          "when": "view == tomcat.instancesView && viewItem == tomcatJavaHomeEntry",
+          "group": "inline",
+          "icon": "$(trash)"
+        },
+        {
+          "command": "tomcat.instances.addJavaHome",
+          "when": "view == tomcat.instancesView && viewItem == tomcatJavaHomeGroup",
+          "group": "inline",
+          "icon": "$(add)"
+        },
+        {
+          "command": "tomcat.instances.setActiveJavaHome",
+          "when": "view == tomcat.instancesView && viewItem == tomcatJavaHomeEntry",
+          "group": "inline",
+          "icon": "$(check)"
+        },
+        {
+          "command": "tomcat.instances.addPort",
+          "when": "view == tomcat.instancesView && viewItem == tomcatPortGroup",
+          "group": "inline",
+          "icon": "$(add)"
+        },
+        {
+          "command": "tomcat.instances.removePort",
+          "when": "view == tomcat.instancesView && viewItem == tomcatPortEntry",
+          "group": "inline",
+          "icon": "$(trash)"
         }
       ]
     },
@@ -140,7 +312,7 @@
             "deepseek",
             "custom"
           ],
-          "default": "local",
+          "default": "none",
           "description": "%config.ai.provider.description%"
         },
         "tomcat.ai.endpoint": {
@@ -223,7 +395,7 @@
           "scope": "machine",
           "description": "%config.autoDeployMode.description%"
         },
-        "tomcat.autoDeployBuildType": {
+        "tomcat.buildType": {
           "type": "string",
           "enum": [
             "Local",
@@ -231,7 +403,7 @@
             "Gradle"
           ],
           "default": "Local",
-          "description": "%config.autoDeployBuildType.description%"
+          "description": "%config.buildType.description%"
         },
         "tomcat.browser": {
           "type": "string",
@@ -248,12 +420,23 @@
           "description": "%config.browser.description%"
         },
         "tomcat.port": {
+          "scope": "machine",
           "type": "number",
           "default": 8080,
           "minimum": 1024,
           "maximum": 49151,
           "errorMessage": "%config.port.error%",
           "description": "%config.port.description%"
+        },
+        "tomcat.ports": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": 1024,
+            "maximum": 49151
+          },
+          "default": [],
+          "description": "%config.ports.description%"
         },
         "tomcat.autoReloadBrowser": {
           "type": "boolean",
@@ -266,6 +449,12 @@
           "scope": "machine",
           "description": "%config.base.description%"
         },
+        "tomcat.homes": {
+          "type": "array",
+          "default": [],
+          "scope": "machine",
+          "description": "%config.homes.description%"
+        },
         "tomcat.home": {
           "type": "string",
           "default": "",
@@ -277,6 +466,15 @@
           "default": "",
           "scope": "machine",
           "description": "%config.javaHome.description%"
+        },
+        "tomcat.javaHomes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "scope": "machine",
+          "description": "%config.javaHomes.description%"
         }
       }
     }

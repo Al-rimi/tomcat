@@ -15,7 +15,7 @@
 	提供 Local、Maven、Gradle 三种部署方式。
 
 - **AI 解释（流式）**  
-	WARN/ERROR 日志自动送至已配置的 AI 提供商，流式“打字”输出并自动跳转到出错文件/行。
+	WARN/ERROR 日志自动送至已配置的 AI 提供商，支持流式输出、在本地端点不可达时的回退策略，并自动跳转到出错文件/行。
 
 - **保存/Ctrl+S 部署**
 	每次保存（或 Ctrl+S/Cmd+S）自动部署项目。
@@ -28,6 +28,10 @@
 
 - **本地化 UI（中英双语）**  
 	命令、状态栏文案和提示已本地化，新增语言切换并在首次运行时自动跟随 VS Code 语言。
+
+- **实例管理 UI 和设置窗口**  
+	在一个地方管理所有 Tomcat 实例：启动、停止、终止、刷新、在浏览器中打开，并从统一视图配置 Tomcat/Java 路径和 HTTP 端口。
+
 
 ## 安装
 
@@ -106,6 +110,12 @@ public static isJavaEEProject(): boolean {
 
 </details>
 
+### ![](resources/tomcat-icon-dark.png) 实例视图
+
+实例视图实时展示所有运行中和已保存的 Tomcat 实例。你可以在此统一启动、停止、终止服务器，管理 Tomcat/Java 路径和 HTTP 端口，并一键在浏览器中打开已部署应用。每个实例显示 PID、端口、版本和工作区，并支持快捷配置和浏览器操作。
+
+![](resources/tomcat-view-showcase.png)
+
 ### ![](resources/tomcat-icon-dark.png) 编辑器按钮
 
 点击编辑器标题栏中的 Tomcat 图标即可部署项目。
@@ -124,10 +134,27 @@ public static isJavaEEProject(): boolean {
 
 | 命令                    | 描述                                               |
 |------------------------|----------------------------------------------------|
-| `Tomcat: Start`        | 启动 Tomcat 服务器                                  |
-| `Tomcat: Stop`         | 停止正在运行的服务器                                |
-| `Tomcat: Clean`        | 清理 Tomcat `webapps`、`temp`、`work` 目录          |
-| `Tomcat: Deploy`       | 部署当前 Java EE 项目                               |
+| `Tomcat: 启动`        | 启动 Tomcat 服务器                                  |
+| `Tomcat: 停止`         | 停止正在运行的服务器                                |
+| `Tomcat: 清理`        | 清理 Tomcat `webapps`、`temp`、`work` 目录          |
+| `Tomcat: 部署`       | 部署当前 Java EE 项目                               |
+| `Tomcat: 刷新实例列表` | 刷新所有运行和已保存 Tomcat 实例的列表 |
+| `Tomcat: 终止实例`     | 强制终止选中的 Tomcat 实例            |
+| `Tomcat: 在浏览器中打开`   | 在浏览器中打开实例已部署的应用         |
+| `Tomcat: 新建实例`      | 启动一个新的 Tomcat 实例               |
+| `Tomcat: 配置字段`   | 编辑实例的 Tomcat Home、Java Home、端口或浏览器 |
+| `Tomcat: 添加 Tomcat 路径`   | 添加新的 Tomcat 安装路径               |
+| `Tomcat: 移除 Tomcat 路径`| 移除已保存的 Tomcat 安装路径           |
+| `Tomcat: 刷新版本`  | 刷新可用的 Tomcat 版本                 |
+| `Tomcat: 设为当前 Tomcat`   | 设为当前激活的 Tomcat Home             |
+| `Tomcat: 添加 Java 路径`     | 添加新的 Java 安装路径                 |
+| `Tomcat: 移除 Java 路径`  | 移除已保存的 Java 安装路径             |
+| `Tomcat: 设为当前 Java`     | 设为当前激活的 Java Home               |
+| `Tomcat: 设置 HTTP 端口`     | 更改实例的 HTTP 端口                   |
+| `Tomcat: 添加 HTTP 端口`     | 向快捷选择列表添加新的 HTTP 端口        |
+| `Tomcat: 移除 HTTP 端口`  | 移除已保存的 HTTP 端口                 |
+| `Tomcat: 设置构建类型`    | 更改实例的构建策略                     |
+| `Tomcat: 设置日志级别`     | 更改实例的日志级别                     |
 
 ## 配置
 
@@ -136,17 +163,20 @@ public static isJavaEEProject(): boolean {
 | **设置项**                    | **默认值**        | **说明**                                                                                |
 |------------------------------|-------------------|------------------------------------------------------------------------------------------|
 | `tomcat.language`            | `auto`            | 扩展界面语言（`auto`、`en`、`zh-CN`），首次运行 `auto` 将跟随 VS Code 显示语言。            |
-| `tomcat.autoDeployBuildType` | `Local`           | 默认部署策略（`Local`、`Maven`、`Gradle`）                                                |
+| `tomcat.buildType`           | `Local`           | 默认部署策略（`Local`、`Maven`、`Gradle`）                                                |
 | `tomcat.autoDeployMode`      | `Disable`         | 自动部署触发方式（`Disable`、`On Save`、`On Shortcut`）                                   |
 | `tomcat.browser`             | `Google Chrome`   | 浏览器自动打开/调试（`Disable`、`Google Chrome`、`Microsoft Edge`、`Firefox`、`Safari`、`Brave`、`Opera`） |
 | `tomcat.port`                | `8080`            | Tomcat 监听端口（有效范围：`1024`-`49151`）                                               |
+| `tomcat.ports`               | `[]`              | 常用 HTTP 端口列表，便于快速选择（数字数组，按工作区保存）                                 |
+| `tomcat.homes`               | `[]`              | 多版本 Tomcat 安装路径列表，用于管理多个 Tomcat 版本                                      |
+| `tomcat.javaHomes`           | `[]`              | 已配置的 Java Home 列表（字符串数组）；`tomcat.javaHome` 为当前激活项                        |
 | `tomcat.base`                | ``                | CATALINA_BASE 路径（conf/webapps/logs）；未设置时默认使用 `tomcat.home`                     |
 | `tomcat.protectedWebApps`    | `['ROOT', 'docs', 'examples', 'manager', 'host-manager']` | 清理时保留的应用列表 |
 | `tomcat.logLevel`            | `INFO`            | 最低日志级别（`DEBUG`、`INFO`、`SUCCESS`、`HTTP`、`APP`、`WARN`、`ERROR`）                 |
 | `tomcat.showTimestamp`       | `true`            | 是否在日志中显示时间戳                                                                   |
 | `tomcat.autoReloadBrowser`   | `true`            | 部署后自动刷新浏览器；如遇问题可关闭                                                     |
 | `tomcat.logEncoding`         | `utf8`            | 日志编码（`utf8`、`ascii`、`utf-8`、`utf16le`、`utf-16le`、`ucs2`、`ucs-2`、`base64`、`base64url`、`latin1`、`binary`、`hex`） |
-| `tomcat.ai.provider`         | `local`           | AI 提供商（`none`、`local`、`aliyun-dashscope`、`baichuan`、`zhipu`、`deepseek`、`custom`） |
+| `tomcat.ai.provider`         | `none`           | AI 提供商（`none`、`local`、`aliyun-dashscope`、`baichuan`、`zhipu`、`deepseek`、`custom`） |
 | `tomcat.ai.endpoint`         | `http://127.0.0.1:11434/api/chat` | AI 聊天/补全接口地址 |
 | `tomcat.ai.model`            | `qwen2.5:7b`      | 发送给 AI 的模型标识                                                                      |
 | `tomcat.ai.apiKey`           | ``                | 托管提供商的可选 Bearer Token                                                             |
@@ -210,20 +240,34 @@ public static isJavaEEProject(): boolean {
 [![提交修复](https://img.shields.io/badge/-提交修复-green?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/pulls)
 
 
-## 3.1.0 更新内容
+## 4.0.0 更新内容
 
 ### 新增
-- 新增 `tomcat.language` 设置（`auto`/`en`/`zh-CN`），首次运行自动跟随 VS Code 的显示语言。
-- 命令、菜单、状态栏、浏览器/构建提示与 AI 提示词均已本地化（package.nls + 运行时 i18n）。
+实例管理 UI 与设置窗口：在一个视图中统一管理所有 Tomcat 实例，支持启动、停止、终止、刷新服务器，一键打开应用，配置 Tomcat/Java Home 和端口。全新设置窗口让多实例管理与配置更高效直观。
+- 将 Tomcat 实例元数据持久化至工作区（`.tomcat/instances.json`），在 VS Code 重启后恢复运行/已管理实例信息。
+- 新的实例管理 UI：运行实例树视图（按 PID 管理启动/停止/终止），支持保存 Tomcat Home、Java Home 和常用 HTTP 端口（添加/删除）。
+- 增加用于实例生命周期与配置的命令与 TreeView 操作（新建实例、刷新、添加/删除 home/port、设为活动、设置浏览器、设置日志级别）。
 
 ### 变更
-- 命令标题与工具提示改用 VS Code NLS，占位符在市场页可自动本地化。
-- 浏览器名称、部署模式标签、构建状态在状态栏和通知里都会翻译成所选语言。
+- 在扩展停用时不再强制关闭非托管的 Tomcat 进程；新增托管实例跟踪与持久化。
+- 部署策略改进：优先复用合适的运行实例（同应用复用 → 空闲实例 → 新建实例）。
+- 浏览器支持增强：可用性检测、回退到上一次可用浏览器、以及更稳健的启动/超时处理。
+- 大规模本地化改造：所有用户可见文案迁移至运行时 i18n，提供中英文翻译。
 
 ### 修复
-- 端口校验、AI 错误提示、浏览器重载警告现已遵循所选语言并给出更清晰的引导。
+- 修复 i18n 扫描过程中引入的若干 JSON/TypeScript 问题。
+- 优化端口分配与更新行为，避免不必要的重启并增强端口占用检测。
 
 [查看完整更新日志](https://github.com/Al-rimi/tomcat/blob/main/CHANGELOG.md)
+
+## 路线图与未来工作
+
+- 为每个实例提供独立日志面板与过滤视图，提升排查效率。
+- 支持远程/SSH 的 Tomcat 实例管理与跨工作区的实例持久化同步。
+- 改进实例树视图：分组、筛选与内联操作增强。
+- 加强 AI 能力：多提供商编排、更丰富的建议与可定制的解释模板。
+
+如需将某项规划提前到 v4.x，请告诉我优先级，我可为其准备 PR 或问题清单。
 
 ---
 

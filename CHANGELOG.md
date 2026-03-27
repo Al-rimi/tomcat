@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+## [4.0.0] - 2026-03-27
+### Added
+- Instance Window to manage all Tomcat instances from a single view start, stop, kill, refresh servers, open apps in your browser, and configure Tomcat/Java homes and ports. The new settings window streamlines multi-instance setup and configuration.
+- Persist Tomcat instance metadata across VS Code restarts (workspace `.tomcat/instances.json`).
+- Running Instances TreeView and instance lifecycle commands (start new, refresh, stop, kill, open in browser).
+- Saved Tomcat homes / Java homes management and saved HTTP ports with add/remove UI flows.
+
+### Changed
+- Do not forcibly close external Tomcat processes on extension deactivate; track and persist managed instances instead.
+- Deployment target selection improved: reuse running instance for same app, prefer unused instances, otherwise start new.
+- Browser handling: availability checks, preferred-browser fallback, safer launch and request timeout handling.
+- Large i18n migration: move user-facing strings to runtime NLS and add Chinese translations.
+
+### Fixed
+- Resolved JSON / TypeScript issues surfaced during the i18n sweep.
+- Improved port allocation and update logic to reduce conflicts and accidental restarts.
+
+
 ## [3.1.0] - 2026-03-26
 ### Added
 - New `tomcat.language` setting (`auto`/`en`/`zh-CN`) with first-run detection that follows VS Code's display language.

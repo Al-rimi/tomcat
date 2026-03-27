@@ -15,7 +15,7 @@ AI-assisted Tomcat control for VS Code: streaming log explanations, one-click de
   Three build strategies Local, Maven and Gradle to choose from
 
 - **AI Explanations (Streaming)**  
-  WARN/ERROR logs are auto-explained via your configured AI provider, with live typing output and automatic navigation to the offending file/line.
+  WARN/ERROR logs are auto-explained via your configured AI provider, with live streaming output, local-endpoint fallback, and automatic navigation to the offending file/line.
 
 - **Save/Ctrl+S Deployment**
   Automatically deploy your project every time you save a file or press Ctrl+S/Cmd+S
@@ -28,6 +28,9 @@ AI-assisted Tomcat control for VS Code: streaming log explanations, one-click de
 
 - **Localized UI (English/Chinese)**  
   Extension commands, status bar text, and prompts are localized with a new language switch that follows VS Code on first run.
+
+- **Instance Management UI and Settings Window**  
+  Manage all Tomcat instances in one place: start, stop, kill, refresh, open in browser, and configure Tomcat/Java homes and HTTP ports from a unified view.
 
 ## Installation
 
@@ -113,6 +116,12 @@ public static isJavaEEProject(): boolean {
 
 </details>
 
+### ![](resources/tomcat-icon-dark.png) Instances View
+
+The Instances View provides a real-time tree of all running and saved Tomcat instances. You can start, stop, or kill servers, manage Tomcat/Java homes and HTTP ports, and open deployed apps in your browser, all from one place. Each instance shows its PID, port, version, and workspace, with quick actions for configuration and browser launch.
+
+![](resources/tomcat-view-showcase.png)
+
 ### ![](resources/tomcat-icon-dark.png) Editor Button
 
 Click the Tomcat icon in the editor title bar to deploy your project.
@@ -121,7 +130,7 @@ Click the Tomcat icon in the editor title bar to deploy your project.
 
 ### ![](resources/server.png) Status Bar
 
-Click the Tomcat status in the bottom bar to toggle auto-deploy modes.
+Click the Tomcat status in the bottom bar to toggle auto deploy modes.
 
 ![](resources/tomcat-status-showcase.png)
 
@@ -135,6 +144,23 @@ Use the Command Palette (`Ctrl+Shift+P`) to quickly access core commands:
 | `Tomcat: Stop`         | Stop the running server                             |
 | `Tomcat: Clean`        | Clean Tomcat `webapps`, `temp`, and `work` folders |
 | `Tomcat: Deploy`       | Deploy the current Java EE project                 |
+| `Tomcat: Refresh Instances` | Refresh the list of running and saved Tomcat instances |
+| `Tomcat: Kill Instance`     | Force-stop a selected Tomcat instance                  |
+| `Tomcat: Open in Browser`   | Open the deployed app for an instance in your browser  |
+| `Tomcat: New Instance`      | Start a new Tomcat instance                            |
+| `Tomcat: Configure Field`   | Edit Tomcat Home, Java Home, Port, or Browser for an instance |
+| `Tomcat: Add Tomcat Home`   | Add a new Tomcat installation path                     |
+| `Tomcat: Remove Tomcat Home`| Remove a saved Tomcat installation path                |
+| `Tomcat: Refresh Versions`  | Refresh available Tomcat versions                      |
+| `Tomcat: Use This Tomcat`   | Set a Tomcat home as the active one                    |
+| `Tomcat: Add Java Home`     | Add a new Java installation path                       |
+| `Tomcat: Remove Java Home`  | Remove a saved Java installation path                  |
+| `Tomcat: Use This Java`     | Set a Java home as the active one                      |
+| `Tomcat: Set HTTP Port`     | Change the HTTP port for an instance                   |
+| `Tomcat: Add HTTP Port`     | Add a new HTTP port to the quick selection list        |
+| `Tomcat: Remove HTTP Port`  | Remove a saved HTTP port                               |
+| `Tomcat: Set Build Type`    | Change the build strategy for an instance              |
+| `Tomcat: Set Log Level`     | Change the log level for an instance                   |
 
 ## Configuration
 
@@ -143,17 +169,20 @@ Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 | **Setting**                  | **Default**       | **Description**                                                                          |
 |------------------------------|-------------------|------------------------------------------------------------------------------------------|
 | `tomcat.language`            | `auto`           | Extension UI language (`auto`, `en`, `zh-CN`). On first run, `auto` follows VS Code's display language. |
-| `tomcat.autoDeployBuildType` | `Local`           | Default build strategy for deployments (`Local`, `Maven`, `Gradle`)                      |
+| `tomcat.buildType`           | `Local`           | Default build strategy for deployments (`Local`, `Maven`, `Gradle`)                      |
 | `tomcat.autoDeployMode`      | `Disable`        | Auto-deploy triggers (`Disable`, `On Save`, `On Shortcut`)                              |
 | `tomcat.browser`             | `Google Chrome`   | Browser for app launch & debug (`Disable`, `Google Chrome`, `Microsoft Edge`, `Firefox`, `Safari`, `Brave`, `Opera`) |
 | `tomcat.port`                | `8080`            | Tomcat server listen port (valid range: `1024`-`49151`)                                  |
+| `tomcat.ports`               | `[]`              | Saved HTTP ports for quick selection (array of numbers, preserved per workspace)         |
+| `tomcat.homes`               | `[]`              | List of available Tomcat installation paths for multi-version management               |
+| `tomcat.javaHomes`           | `[]`              | List of configured Java homes (array of strings); `tomcat.javaHome` is the active entry |
 | `tomcat.base`                | ``                | Path to `CATALINA_BASE` (conf/webapps/logs). Defaults to `tomcat.home` if not set.       |
 | `tomcat.protectedWebApps`    | `["ROOT", "docs", "examples", "manager", "host-manager"]` | List of protected web apps during cleanup operations |
 | `tomcat.logLevel`            | `INFO`            | Minimum log level to display (`DEBUG`, `INFO`, `SUCCESS`, `HTTP`, `APP`, `WARN`, `ERROR`) |
 | `tomcat.showTimestamp`       | `true`            | Whether to include timestamps in log messages                                            |
 | `tomcat.autoReloadBrowser`   | `true`            | Whether to automatically reload the browser after deployment. Disable this option if having issues with the browser reloading. |
 | `tomcat.logEncoding`         | `utf8`            | Encoding for Tomcat logs (`utf8`, `ascii`, `utf-8`, `utf16le`, `utf-16le`, `ucs2`, `ucs-2`, `base64`, `base64url`, `latin1`, `binary`, `hex`) |
-| `tomcat.ai.provider`         | `local`           | AI provider for streaming explanations (`none`, `local`, `aliyun-dashscope`, `baichuan`, `zhipu`, `deepseek`, `custom`). |
+| `tomcat.ai.provider`         | `none`           | AI provider for streaming explanations (`none`, `local`, `aliyun-dashscope`, `baichuan`, `zhipu`, `deepseek`, `custom`). |
 | `tomcat.ai.endpoint`         | `http://127.0.0.1:11434/api/chat` | Full HTTP endpoint for AI chat/completions. |
 | `tomcat.ai.model`            | `qwen2.5:7b`      | Model identifier sent to the configured AI endpoint. |
 | `tomcat.ai.apiKey`           | ``                | Optional bearer token for hosted providers. |
@@ -218,20 +247,34 @@ For technical implementation details and contribution guidelines, see:
 [![Suggest Fix](https://img.shields.io/badge/-Suggest_Fix-green?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/pulls)
 
 
-## What's New in 3.1.0
+## What's New in 4.0.0
 
 ### Added
-- New `tomcat.language` setting (`auto`/`en`/`zh-CN`) with first-run auto-detection that mirrors VS Code's display language.
-- Localized UI strings for commands, menus, status bar, browser/build messages, and AI prompts (package.nls + runtime i18n).
+- Instance Management UI and Settings Window: Manage all Tomcat instances from a single view—start, stop, kill, refresh servers, open apps in your browser, and configure Tomcat/Java homes and ports. The new settings window streamlines multi-instance setup and configuration.
+- Persist Tomcat instance metadata across VS Code restarts (saved instances file under workspace `.tomcat/instances.json`).
+- New Instances management UI: Running Instances tree, start/stop/kill per PID, saved Tomcat homes and Java homes, and saved HTTP ports with add/remove.
+- Commands and TreeView integration for instance lifecycle and configuration (start new, refresh, add/remove homes/ports, set active home/java, set browser, set log level).
 
 ### Changed
-- Command titles/tooltips now use VS Code NLS tokens so Marketplace pages localize correctly.
-- Browser names, deploy mode labels, and build statuses are now translated before showing in the status bar and notifications.
+- Avoid forcibly closing external Tomcat processes on extension deactivate; managed instances are tracked and persisted instead.
+- Improved deployment logic to reuse running instances when possible (reuse same app instance, pick unused instance, or start a new one).
+- Browser handling improved: availability checks, preferred-browser fallback, and safer launch/timeout handling.
+- Large i18n sweep: all user-facing strings moved to runtime NLS with English and Chinese translations.
 
 ### Fixed
-- Port validation, AI error messages, and browser reload warnings now respect localization and show clearer guidance.
+- Various localization and JSON/TypeScript issues introduced during the i18n sweep have been resolved.
+- Port allocation and update behavior improved to avoid accidental restarts; better port-in-use detection.
 
 [View Full Changelog](https://github.com/Al-rimi/tomcat/blob/main/CHANGELOG.md)
+
+## Roadmap & Future Work
+
+- Per-instance log panels and filtered views for easier troubleshooting.
+- Remote/SSH Tomcat instance management and cross-workspace syncing of persisted instances.
+- Visual improvements to the Instances Tree (grouping, filtering, and inline actions).
+- Enhanced AI features: multi-provider orchestration, richer suggestions, and custom explanation templates.
+
+If you'd like any roadmap items prioritized for v4.x, tell me which ones and I can prepare a focused PR or issue list.
 
 ---
 
