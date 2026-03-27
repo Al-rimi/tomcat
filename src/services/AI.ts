@@ -302,7 +302,7 @@ export class AI {
             try {
                 url = new URL(this.endpoint);
             } catch (err) {
-                reject('Invalid AI endpoint');
+                reject(new Error(t('ai.endpointUnreachable')));
                 return;
             }
 
@@ -360,7 +360,7 @@ export class AI {
             req.on('error', (err) => reject(err.message || err.toString()));
             req.on('timeout', () => {
                 req.destroy();
-                reject('Request timed out');
+                reject(new Error(t('ai.requestTimedOut')));
             });
 
             req.write(payload);
@@ -374,7 +374,7 @@ export class AI {
             try {
                 url = new URL(this.endpoint);
             } catch (err) {
-                reject('Invalid AI endpoint');
+                reject(new Error(t('ai.endpointUnreachable')));
                 return;
             }
 

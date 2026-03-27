@@ -21,6 +21,8 @@
 
 import * as vscode from 'vscode';
 import * as http from 'http';
+import * as fs from 'fs';
+import * as path from 'path';
 import WebSocket from 'ws';
 import { exec } from 'child_process';
 import { Logger } from './Logger';
@@ -80,6 +82,84 @@ export class Browser {
         this.port = vscode.workspace.getConfiguration().get<number>('tomcat.port', 8080);
         this.started = false;
         this.autoReloadBrowser = vscode.workspace.getConfiguration().get<boolean>('tomcat.autoReloadBrowser', true);
+    }
+
+    private getCommandBinary(browser: BrowserName): string | null {
+        const platform = process.platform;
+        const entries = Browser.COMMANDS[browser]?.[platform];
+        if (!entries || entries.length === 0) { return null; }
+        // windows commands often begin with 'start', real binary next
+        if (platform === 'win32' && entries[0].toLowerCase() === 'start' && entries.length > 1) {
+            return entries[1];
+        }
+        return entries[0];
+    }
+
+    private async isBrowserAvailable(browser: BrowserName): Promise<boolean> {
+        if (browser === 'Disable') { return true; }
+        const platform = process.platform;
+        const cmd = this.getCommandBinary(browser);
+        if (!cmd) { return false; }
+
+        if (platform === 'darwin' && cmd.startsWith('"/Applications/')) {
+            const appPath = cmd.replace(/"/g, '');
+            return fs.existsSync(appPath);
+        }
+
+        if (platform === 'win32') {
+            const roots = [process.env['ProgramFiles'], process.env['ProgramFiles(x86)']].filter(Boolean) as string[];
+            const exeCandidates: Record<BrowserName, string[]> = {
+                'Google Chrome': roots.map(r => path.join(r, 'Google', 'Chrome', 'Application', 'chrome.exe')),
+                'Microsoft Edge': roots.map(r => path.join(r, 'Microsoft', 'Edge', 'Application', 'msedge.exe')),
+                'Firefox': roots.map(r => path.join(r, 'Mozilla Firefox', 'firefox.exe')),
+                'Brave': roots.map(r => path.join(r, 'BraveSoftware', 'Brave-Browser', 'Application', 'brave.exe')),
+                'Opera': roots.flatMap(r => [
+                    path.join(r, 'Opera', 'launcher.exe'),
+                    path.join(r, 'Opera', 'opera.exe')
+                ]),
+                'Safari': [],
+                'Disable': []
+            } as const;
+
+            const matches = (exeCandidates[browser] || []).some(p => fs.existsSync(p));
+            if (matches) { return true; }
+        }
+
+        const checkCmd = platform === 'win32' ? `where ${cmd}` : `which ${cmd}`;
+        try {
+            await this.execCommand(checkCmd);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    private async resolveBrowser(preferred: BrowserName, previous?: BrowserName): Promise<BrowserName> {
+        const preferredOk = await this.isBrowserAvailable(preferred);
+        if (preferredOk) { return preferred; }
+
+        if (previous && previous !== 'Disable') {
+            const prevOk = await this.isBrowserAvailable(previous);
+            if (prevOk) { return previous; }
+        }
+
+        return 'Disable';
+    }
+
+    public async setPreferredBrowser(choice: BrowserName, previous?: BrowserName): Promise<BrowserName> {
+        const finalChoice = await this.resolveBrowser(choice, previous);
+        this.browser = finalChoice;
+        await vscode.workspace.getConfiguration().update('tomcat.browser', finalChoice, true);
+
+        if (finalChoice !== choice) {
+            if (previous && finalChoice === previous) {
+                logger.info(`Browser ${choice} not found. Reverted to previous: ${previous}.`, false);
+            } else if (finalChoice === 'Disable') {
+                logger.info(`Browser ${choice} not found. Reverted to Disable.`, false);
+            }
+        }
+
+        return finalChoice;
     }
 
     /**
@@ -179,10 +259,19 @@ export class Browser {
      * 5. Handles errors and recovery
      * 
      * @param appName Name of the application to launch
+     * @param port Optional port number for the application
      * @log warning on unsupported browsers
      */
-    public async run(appName: string): Promise<void> {
-        const browserLabel = translateBrowserName(this.browser);
+    public async run(appName: string, port?: number): Promise<void> {
+        this.port = port ?? this.port;
+        const previous = vscode.workspace.getConfiguration().get<string>('tomcat.browser', 'Google Chrome') as BrowserName;
+        const finalBrowser = await this.setPreferredBrowser(this.browser, previous);
+        const browserLabel = translateBrowserName(finalBrowser);
+
+        if (finalBrowser === 'Disable') {
+            logger.info(t('browser.accessUrl', { url: `http://localhost:${this.port}/${appName.replace(/\s/g, '%20')}` }));
+            return;
+        }
 
         if (!appName) {
             logger.error(t('browser.noAppName'), true, t('browser.noAppNameDetails'));
@@ -190,10 +279,6 @@ export class Browser {
         }
 
         const appUrl = `http://localhost:${this.port}/${appName.replace(/\s/g, '%20')}`;
-        if (this.browser === 'Disable') {
-            logger.info(t('browser.accessUrl', { url: appUrl }));
-            return;
-        }
 
         const debugUrl = `http://localhost:9222/json`;
         const browserCommand = this.getBrowserCommand(this.browser, appUrl);
@@ -337,7 +422,6 @@ export class Browser {
         const browserLabel = translateBrowserName(browser);
         try {
             if (this.started && isRunning) {
-                logger.warn(t('browser.reloadFailedFallback', { browser: browserLabel }), false);
                 await this.execCommand(command);
             } else if (isRunning) {
                 const choice = await vscode.window.showInformationMessage(
@@ -408,7 +492,7 @@ export class Browser {
 
             req.on('error', reject);
             req.setTimeout(5000, () => {
-                req.destroy(new Error('Request timeout'));
+                req.destroy(new Error(t('browser.requestTimeout')));
             });
         });
     }

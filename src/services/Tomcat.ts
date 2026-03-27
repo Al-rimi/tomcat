@@ -34,6 +34,17 @@ import { t } from '../utils/i18n';
 const execAsync = promisify(exec);
 const logger = Logger.getInstance();
 
+type ManagedTomcat = {
+    appName: string;
+    workspace: string;
+    port: number;
+    shutdownPort?: number;
+    pid: number;
+    startedAt: number;
+    home: string;
+    version?: string;
+};
+
 export class Tomcat {
     private static instance: Tomcat;
     private tomcatHome: string;
@@ -42,7 +53,10 @@ export class Tomcat {
     private protectedWebApps: string[];
     private port: number;
     private tomcatProcess: ChildProcess | null = null;
+    private managedPids: Map<number, ManagedTomcat>; // track managed instances by PID
+    private versionCache: Map<string, string> = new Map();
     private currentAppName: string = '';
+    private persistedByPort: Map<number, { app?: string; workspace?: string; home?: string; version?: string }> = new Map();
 
     private readonly PORT_RANGE = { min: 1024, max: 65535 };
 
@@ -61,6 +75,8 @@ export class Tomcat {
         this.javaHome = vscode.workspace.getConfiguration().get<string>('tomcat.javaHome', '');
         this.protectedWebApps = vscode.workspace.getConfiguration().get<string[]>('tomcat.protectedWebApps', ['ROOT', 'docs', 'examples', 'manager', 'host-manager']);
         this.port = vscode.workspace.getConfiguration().get<number>('tomcat.port', 8080);
+        this.managedPids = new Map();
+        void this.loadPersistedInstances();
     }
 
     /**
@@ -130,19 +146,91 @@ export class Tomcat {
      * 
      * @log Error if critical startup failure occurs
      */
-    public async start(showMessages: boolean = false): Promise<void> {
+    public async start(showMessages: boolean = false, appNameOverride?: string): Promise<void> {
         const tomcatHome = await this.findTomcatHome();
         const javaHome = await this.findJavaHome();
         if (!tomcatHome || !javaHome) { return; }
+        await this.loadPersistedInstances();
+        const appName = appNameOverride ?? '';
+        const workspace = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || 'workspace';
         const tomcatBase = await this.findTomcatBase(tomcatHome);
 
-        if (await this.isTomcatRunning()) {
-            logger.info(t('tomcat.alreadyRunning'), showMessages);
-            return;
+        this.currentAppName = appName;
+
+        // allocate a free port to avoid clashing with other instances
+        const desiredPortFromConfig = vscode.workspace.getConfiguration().get<number>('tomcat.port', this.port);
+        const preferredPort = this.getPersistedPort(appName, workspace) ?? desiredPortFromConfig;
+        const availablePort = await this.findAvailablePort(preferredPort);
+        if (availablePort !== preferredPort) {
+            logger.debug(t('tomcat.portAdjusted', { from: preferredPort, to: availablePort }), false);
         }
+        this.port = availablePort;
+        await this.modifyServerXmlPort(tomcatBase, this.port);
 
         try {
-            this.executeTomcatCommand('start', tomcatHome, tomcatBase, javaHome);
+            const child = await this.executeTomcatCommand('start', tomcatHome, tomcatBase, javaHome);
+            if (child && child.pid) {
+                const version = await this.getTomcatVersion(tomcatHome);
+                const instance: ManagedTomcat = {
+                    home: tomcatHome,
+                    appName,
+                    workspace,
+                    port: this.port,
+                    shutdownPort: await this.findAvailablePort(this.port + 1),
+                    pid: child.pid,
+                    startedAt: Date.now(),
+                    version,
+                };
+                this.managedPids.set(child.pid, instance);
+                this.syncPersistedFromManaged();
+                await this.persistInstances();
+            }
+            if (showMessages) {
+                logger.info(t('tomcat.started'), showMessages);
+            }
+        } catch (err) {
+            logger.error(t('tomcat.startFailed'), showMessages, err as string);
+        }
+    }
+
+    public async startWithHome(tomcatHome: string, showMessages: boolean = false, appNameOverride?: string): Promise<void> {
+        const javaHome = await this.findJavaHome();
+        if (!tomcatHome || !javaHome) { return; }
+        await this.loadPersistedInstances();
+        this.tomcatHome = tomcatHome;
+        const appName = appNameOverride ?? '';
+        const workspace = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || 'workspace';
+        const tomcatBase = await this.findTomcatBase(tomcatHome);
+
+        this.currentAppName = appName;
+
+        const desiredPortFromConfig = vscode.workspace.getConfiguration().get<number>('tomcat.port', this.port);
+        const preferredPort = this.getPersistedPort(appName, workspace) ?? desiredPortFromConfig;
+        const availablePort = await this.findAvailablePort(preferredPort);
+        if (availablePort !== preferredPort) {
+            logger.debug(t('tomcat.portAdjusted', { from: preferredPort, to: availablePort }), false);
+        }
+        this.port = availablePort;
+        await this.modifyServerXmlPort(tomcatBase, this.port);
+
+        try {
+            const child = await this.executeTomcatCommand('start', tomcatHome, tomcatBase, javaHome);
+            if (child && child.pid) {
+                const version = await this.getTomcatVersion(tomcatHome);
+                const instance: ManagedTomcat = {
+                    home: tomcatHome,
+                    appName,
+                    workspace,
+                    port: this.port,
+                    shutdownPort: await this.findAvailablePort(this.port + 1),
+                    pid: child.pid,
+                    startedAt: Date.now(),
+                    version,
+                };
+                this.managedPids.set(child.pid, instance);
+                this.syncPersistedFromManaged();
+                await this.persistInstances();
+            }
             if (showMessages) {
                 logger.info(t('tomcat.started'), showMessages);
             }
@@ -179,6 +267,16 @@ export class Tomcat {
                 this.tomcatProcess.kill('SIGTERM');
                 this.tomcatProcess = null;
                 logger.success(t('tomcat.stoppedProcess'), showMessages);
+            } else if (this.managedPids.size > 0) {
+                for (const [pid, meta] of Array.from(this.managedPids.entries())) {
+                    try {
+                        process.kill(pid, 'SIGTERM');
+                        logger.info(t('tomcat.stoppedProcess'), showMessages);
+                    } catch { }
+                    this.managedPids.delete(pid);
+                    this.persistedByPort.delete(meta.port);
+                }
+                await this.persistInstances();
             } else {
                 await this.executeTomcatCommand('stop', tomcatHome, tomcatBase, javaHome);
                 logger.success(t('tomcat.stopped'), showMessages);
@@ -218,7 +316,7 @@ export class Tomcat {
             });
 
             if (!response.ok) {
-                throw new Error(`Reload failed: ${await response.text()}`);
+                throw new Error(t('tomcat.reloadFailed', { reason: await response.text() }));
             }
             logger.success(t('tomcat.reloaded'));
         } catch (err) {
@@ -332,20 +430,79 @@ export class Tomcat {
      */
     private async isTomcatRunning(): Promise<boolean> {
         if (this.tomcatProcess && !this.tomcatProcess.killed) return true;
+        return this.managedPids.size > 0 || await this.isPortInUse(this.port);
+    }
+
+    private async isPortInUse(port: number): Promise<boolean> {
         try {
-            let command: string;
-
-            if (process.platform === 'win32') {
-                command = `netstat -an | findstr ":${this.port}"`;
-            } else {
-                command = `netstat -an | grep ":${this.port}"`;
-            }
-
+            const command = process.platform === 'win32'
+                ? `netstat -an | findstr ":${port}"`
+                : `netstat -an | grep ":${port}"`;
             const { stdout } = await execAsync(command);
-            return stdout.includes(`0.0.0.0:${this.port}`);
-        } catch (error) {
+            return stdout.includes(`:${port}`);
+        } catch {
             return false;
         }
+    }
+
+    private getPersistenceFile(): string | null {
+        const folder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+        if (!folder) { return null; }
+        return path.join(folder, '.tomcat', 'instances.json');
+    }
+
+    private async loadPersistedInstances(): Promise<void> {
+        const file = this.getPersistenceFile();
+        if (!file) { return; }
+        try {
+            const content = await fsp.readFile(file, 'utf8');
+            const parsed = JSON.parse(content) as Array<{ port: number; app?: string; workspace?: string; home?: string; version?: string }>;
+            this.persistedByPort = new Map(parsed.map(p => [p.port, { app: p.app, workspace: p.workspace, home: p.home, version: p.version }]));
+        } catch { }
+    }
+
+    private async persistInstances(): Promise<void> {
+        const file = this.getPersistenceFile();
+        if (!file) { return; }
+        try {
+            await fsp.mkdir(path.dirname(file), { recursive: true });
+            const payload = Array.from(this.persistedByPort.entries()).map(([port, meta]) => ({ port, ...meta }));
+            await fsp.writeFile(file, JSON.stringify(payload, null, 2));
+        } catch { }
+    }
+
+    private syncPersistedFromManaged(): void {
+        for (const [, meta] of this.managedPids.entries()) {
+            this.persistedByPort.set(meta.port, { app: meta.appName, workspace: meta.workspace, home: meta.home, version: meta.version });
+        }
+    }
+
+    private getPersistedPort(appName: string, workspace: string): number | undefined {
+        for (const [port, meta] of this.persistedByPort.entries()) {
+            if (appName && meta.app === appName) {
+                return port;
+            }
+            if (!appName && workspace && meta.workspace === workspace) {
+                return port;
+            }
+        }
+        return undefined;
+    }
+
+    private async findAvailablePort(startPort: number): Promise<number> {
+        const maxScan = 50;
+        // collect ports already in use by managed instances to avoid collisions
+        const managedPorts = new Set(Array.from(this.managedPids.values()).map(m => m.port));
+        for (let i = 0; i <= maxScan; i++) {
+            const candidate = startPort + i;
+            if (candidate > this.PORT_RANGE.max) { break; }
+            if (managedPorts.has(candidate)) {
+                continue;
+            }
+            const inUse = await this.isPortInUse(candidate);
+            if (!inUse) return candidate;
+        }
+        return startPort;
     }
 
     /**
@@ -375,7 +532,11 @@ export class Tomcat {
         );
 
         if (validCandidate && await this.validateTomcatHome(validCandidate)) {
-            await vscode.workspace.getConfiguration().update('tomcat.home', validCandidate, true);
+            const config = vscode.workspace.getConfiguration('tomcat');
+            const homes = config.get<string[]>('homes', []) || [];
+            const merged = Array.from(new Set([...homes, validCandidate]));
+            await config.update('homes', merged, true);
+            await config.update('home', validCandidate, true);
             this.tomcatHome = validCandidate;
             return validCandidate;
         }
@@ -516,7 +677,7 @@ export class Tomcat {
      * @param tomcatHome Path to Tomcat root directory
      * @returns true if valid, false otherwise
      */
-    private async validateTomcatHome(tomcatHome: string): Promise<boolean> {
+    public async validateTomcatHome(tomcatHome: string): Promise<boolean> {
         const catalinaPath = path.join(tomcatHome, 'bin', `catalina${process.platform === 'win32' ? '.bat' : '.sh'}`);
         try {
             await fsp.access(catalinaPath);
@@ -532,7 +693,7 @@ export class Tomcat {
      * @param javaHome Path to Java home
      * @returns true if valid, false otherwise
      */
-    private async validateJavaHome(javaHome: string): Promise<boolean> {
+    public async validateJavaHome(javaHome: string): Promise<boolean> {
         const javaExecutable = path.join(javaHome, 'bin', `java${process.platform === 'win32' ? '.exe' : ''}`);
         try {
             await fsp.access(javaExecutable);
@@ -555,38 +716,28 @@ export class Tomcat {
      */
     public async updatePort(): Promise<void> {
         const config = vscode.workspace.getConfiguration();
-        const newPort = config.get<number>('tomcat.port', 8080);
+        const requestedPort = config.get<number>('tomcat.port', 8080);
         const oldPort = this.port;
 
-        if (newPort !== oldPort) {
-            try {
-                const javaHome = await this.findJavaHome();
-                const tomcatHome = await this.findTomcatHome();
-                if (!javaHome || !tomcatHome) { return; }
-                const tomcatBase = await this.findTomcatBase(tomcatHome);
+        if (requestedPort === oldPort) {
+            return;
+        }
 
-                await this.validatePort(newPort);
-                await new Promise(resolve => setTimeout(resolve, 200));
-
-                if (await this.isTomcatRunning()) {
-                    await this.executeTomcatCommand('stop', tomcatHome, tomcatBase, javaHome);
-                }
-
-                await this.modifyServerXmlPort(tomcatBase, newPort);
-
-                this.port = newPort;
-                this.updateConfig();
-                Tomcat.getInstance().updateConfig();
-                Browser.getInstance().updateConfig();
-
-                await vscode.workspace.getConfiguration().update('tomcat.port', newPort, true);
-                logger.success(t('tomcat.portUpdated', { oldPort, newPort }), true);
-
-                this.executeTomcatCommand('start', tomcatHome, tomcatBase, javaHome);
-            } catch (err) {
-                await vscode.workspace.getConfiguration().update('tomcat.port', oldPort, true);
-                logger.error(t('tomcat.portUpdateFailed'), true, err as string);
+        try {
+            await this.validatePort(requestedPort);
+            if (await this.isPortInUse(requestedPort)) {
+                throw new Error(t('tomcat.portInUse', { port: requestedPort }));
             }
+
+            const tomcatHome = await this.findTomcatHome();
+            if (!tomcatHome) { return; }
+            const tomcatBase = await this.findTomcatBase(tomcatHome);
+
+            await this.modifyServerXmlPort(tomcatBase, requestedPort);
+
+            this.port = requestedPort;
+        } catch (err) {
+            logger.warn(typeof err === 'string' ? err : (err as Error).message, true);
         }
 
     }
@@ -612,19 +763,8 @@ export class Tomcat {
             throw new Error(t('tomcat.portAboveMax', { max: this.PORT_RANGE.max }));
         }
 
-        try {
-            let command: string;
-
-            if (process.platform === 'win32') {
-                command = `netstat -an | findstr ":${port}"`;
-            } else {
-                command = `netstat -an | grep ":${port}"`;
-            }
-
-            const { stdout } = await execAsync(command);
-            if (stdout.includes(`:${port}`)) { throw new Error(t('tomcat.portInUse', { port })); }
-        } catch (error) {
-            return;
+        if (await this.isPortInUse(port)) {
+            throw new Error(t('tomcat.portInUse', { port }));
         }
     }
 
@@ -645,13 +785,22 @@ export class Tomcat {
         const serverXmlPath = path.join(tomcatBase, 'conf', 'server.xml');
         const content = await fsp.readFile(serverXmlPath, 'utf8');
 
-        const updatedContent = content.replace(
+        // pick a shutdown port offset from the HTTP port and ensure it is free
+        const shutdownBase = 8005 + Math.max(0, newPort - 8080);
+        const shutdownPort = await this.findAvailablePort(Math.min(shutdownBase, this.PORT_RANGE.max));
+
+        const withHttpUpdated = content.replace(
             /(port=")\d+(".*protocol="HTTP\/1\.1")/,
             `$1${newPort}$2`
         );
 
-        if (!updatedContent.includes(`port="${newPort}"`)) {
-            throw (`Failed to update port in server.xml`);
+        const updatedContent = withHttpUpdated.replace(
+            /(<Server\s+port=")\d+("\s+shutdown=")/,
+            `$1${shutdownPort}$2`
+        );
+
+        if (!updatedContent.includes(`port="${newPort}"`) || !updatedContent.includes(`<Server port="${shutdownPort}"`)) {
+            throw (t('tomcat.updatePortsFailed'));
         }
 
         await fsp.writeFile(serverXmlPath, updatedContent);
@@ -678,7 +827,7 @@ export class Tomcat {
         tomcatHome: string,
         tomcatBase: string,
         javaHome: string
-    ): Promise<void> {
+    ): Promise<ChildProcess | void> {
         if (action === 'start') {
             const logEncoding = logger.getLogEncoding();
             const { command, args } = this.buildCommand(action, tomcatHome, tomcatBase, javaHome);
@@ -711,15 +860,20 @@ export class Tomcat {
                 this.runBrowserOnKeyword(data);
             });
 
+            // resolve immediately with the spawned process; monitor close asynchronously
             return new Promise((resolve, reject) => {
-                child.on('close', (code) => {
-                    this.tomcatProcess = null;
-                    code === 0 ? resolve() : reject(new Error(`Start failed with code ${code}`));
-                });
-
                 child.on('error', (err) => {
                     this.tomcatProcess = null;
                     reject(err);
+                });
+
+                resolve(child);
+
+                child.on('close', (code) => {
+                    this.tomcatProcess = null;
+                    if (code && code !== 0) {
+                        logger.info(t('tomcat.exitedWithCode', { code }));
+                    }
                 });
             });
         } else {
@@ -727,6 +881,260 @@ export class Tomcat {
             const stopCommand = [command, ...args].join(' ');
             await execAsync(stopCommand);
         }
+    }
+
+    /**
+     * Discover and manage running Tomcat instances (managed and external)
+     */
+    public async getInstanceSnapshot(): Promise<Array<{ pid: number; port?: number; app?: string; workspace?: string; command?: string; home?: string; version?: string; source: 'managed' | 'external' }>> {
+        const managed = Array.from(this.managedPids.entries())
+            .filter(([pid]) => {
+                try {
+                    process.kill(pid, 0);
+                    return true;
+                } catch (err) {
+                    const code = (err as NodeJS.ErrnoException).code;
+                    if (code === 'ESRCH') {
+                        const meta = this.managedPids.get(pid);
+                        this.managedPids.delete(pid);
+                        if (meta) {
+                            this.persistedByPort.delete(meta.port);
+                        }
+                    }
+                    return false;
+                }
+            })
+            .map(([pid, meta]) => ({
+                pid,
+                port: meta.port,
+                app: meta.appName,
+                workspace: meta.workspace,
+                command: undefined,
+                home: meta.home,
+                version: meta.version,
+                source: 'managed' as const
+            }));
+
+        const external = await this.detectExternalInstances();
+        const managedPorts = new Set(managed.map(m => m.port).filter((p): p is number => typeof p === 'number'));
+        const filteredExternal = external
+            .filter(ext => {
+                if (typeof ext.port !== 'number') { return true; }
+                return !managedPorts.has(ext.port);
+            })
+            .map(ext => {
+                const persisted = ext.port ? this.persistedByPort.get(ext.port) : undefined;
+                if (persisted) {
+                    return { ...ext, app: persisted.app, workspace: persisted.workspace, home: persisted.home, version: persisted.version };
+                }
+                return ext;
+            });
+
+        const snapshot = [...managed, ...filteredExternal];
+        this.updateInstanceStatusBar(snapshot);
+        await this.persistInstances();
+        return snapshot;
+    }
+
+    /**
+     * Resolve a deployment target according to app occupancy rules
+     *
+     * Preference order:
+     * 1) Managed instance with no app assigned
+     * 2) Managed instance running the same app
+     * 3) Start a new managed instance and assign the app
+     */
+    public async ensureDeploymentTarget(appName: string): Promise<{ home: string; port: number; base: string }> {
+        const pickManaged = () => {
+            const managed = Array.from(this.managedPids.entries());
+            const sameApp = managed.find(([, meta]) => meta.appName === appName);
+            if (sameApp) { return sameApp; }
+            return managed.find(([, meta]) => !meta.appName);
+        };
+
+        let chosen = pickManaged();
+
+        if (!chosen) {
+            await this.start(false, appName);
+            chosen = pickManaged();
+        }
+
+        if (!chosen) {
+            throw new Error(t('tomcat.noAvailableInstance'));
+        }
+
+        const [pid, meta] = chosen;
+        meta.appName = appName;
+        this.managedPids.set(pid, meta);
+        this.syncPersistedFromManaged();
+        await this.persistInstances();
+
+        this.currentAppName = appName;
+        this.port = meta.port;
+        this.tomcatHome = meta.home;
+        const base = await this.findTomcatBase(meta.home);
+        this.tomcatBase = base;
+
+        return { home: meta.home, port: meta.port, base };
+    }
+
+    public async stopInstanceByPid(pid: number, force: boolean = false): Promise<void> {
+        const isWindows = process.platform === 'win32';
+        const meta = this.managedPids.get(pid);
+        try {
+            if (isWindows) {
+                const base = `taskkill /PID ${pid}`;
+                if (force) {
+                    try {
+                        await execAsync(`${base} /T /F`);
+                    } catch (firstErr) {
+                        // escalate if denied
+                        if (String(firstErr).includes('Access is denied')) {
+                            await execAsync(`powershell -Command "Start-Process taskkill -ArgumentList '/PID ${pid} /T /F' -Verb RunAs -WindowStyle Hidden -Wait"`);
+                        } else {
+                            throw firstErr;
+                        }
+                    }
+                } else {
+                    // graceful stop only; do not force
+                    await execAsync(`${base} /T`);
+                }
+            } else {
+                const signal = force ? 'SIGKILL' : 'SIGTERM';
+                try {
+                    process.kill(pid, signal as NodeJS.Signals);
+                } catch (err) {
+                    const code = (err as NodeJS.ErrnoException).code;
+                    if (code === 'ESRCH') {
+                        // already gone; treat as success
+                    } else if (!force && code === 'EPERM') {
+                        await execAsync(`kill -9 ${pid}`);
+                    } else {
+                        throw err;
+                    }
+                }
+            }
+
+            this.managedPids.delete(pid);
+            if (meta) {
+                this.persistedByPort.delete(meta.port);
+                await this.persistInstances();
+            }
+            logger.success(t('tomcat.stoppedProcess'), false);
+        } catch (err) {
+            const message = String(err);
+            if (isWindows && message.includes('not found')) {
+                // PID already gone, just clean up state
+                this.managedPids.delete(pid);
+                if (meta) {
+                    this.persistedByPort.delete(meta.port);
+                    await this.persistInstances();
+                }
+                logger.info(t('tomcat.processAlreadyExited'), false);
+                return;
+            } else {
+                logger.error(t('tomcat.stopFailed'), false, message);
+            }
+        }
+        const snapshot = await this.getInstanceSnapshot();
+        this.updateInstanceStatusBar(snapshot);
+    }
+
+    private async detectExternalInstances(): Promise<Array<{ pid: number; port?: number; app?: string; workspace?: string; command?: string; source: 'external' }>> {
+        try {
+            const cmd = process.platform === 'win32'
+                ? 'netstat -ano | findstr LISTENING'
+                : 'netstat -anp tcp | grep LISTEN';
+            const { stdout } = await execAsync(cmd);
+            const lines = stdout.split(/\r?\n/).filter(Boolean);
+            const seen = new Map<number, { pid: number; port?: number; source: 'external' }>();
+            for (const line of lines) {
+                const parts = line.trim().split(/\s+/);
+                const local = parts[1] || '';
+                const pidStr = parts[parts.length - 1];
+                const pid = Number(pidStr);
+                const portMatch = local.match(/:(\d+)/);
+                if (!pid || !portMatch) continue;
+                const port = Number(portMatch[1]);
+                if (port < 8000 || port > 10000) continue; // heuristic to limit noise
+                if (this.managedPids.has(pid)) continue;
+                try {
+                    process.kill(pid, 0); // ensure the PID is alive
+                    if (!seen.has(pid)) {
+                        seen.set(pid, { pid, port, source: 'external' });
+                    }
+                } catch (err) {
+                    const code = (err as NodeJS.ErrnoException).code;
+                    if (code === 'ESRCH') {
+                        continue; // skip dead PIDs
+                    }
+                }
+            }
+            return Array.from(seen.values());
+        } catch {
+            return [];
+        }
+    }
+
+    public async getTomcatVersion(tomcatHome: string): Promise<string> {
+        if (this.versionCache.has(tomcatHome)) {
+            return this.versionCache.get(tomcatHome)!;
+        }
+        // 1) Try invoking catalina version for most accurate detection
+        try {
+            const script = process.platform === 'win32'
+                ? path.join(tomcatHome, 'bin', 'catalina.bat')
+                : path.join(tomcatHome, 'bin', 'catalina.sh');
+            const cmd = process.platform === 'win32'
+                ? `cmd /c "\"${script}\" version"`
+                : `sh "${script}" version`;
+            const { stdout } = await execAsync(cmd);
+            const match = stdout.match(/Server version name:\s*Apache Tomcat\/([\d.]+)/i)
+                || stdout.match(/Server number:\s*([\d.]+)/i);
+            if (match && match[1]) {
+                this.versionCache.set(tomcatHome, match[1]);
+                return match[1];
+            }
+        } catch {
+            // fall through to file-based detection
+        }
+
+        // 2) Fallback: parse release notes / running files
+        const candidates = [
+            path.join(tomcatHome, 'RELEASE-NOTES'),
+            path.join(tomcatHome, 'RUNNING.txt')
+        ];
+        for (const file of candidates) {
+            try {
+                const data = await fsp.readFile(file, 'utf8');
+                const snippet = data.slice(0, 800);
+                const match = snippet.match(/Apache Tomcat(?: Version)?[^\d]*(\d+\.\d+\.\d+)/i);
+                if (match) {
+                    this.versionCache.set(tomcatHome, match[1]);
+                    return match[1];
+                }
+            } catch {
+                continue;
+            }
+        }
+
+        // 3) Heuristic: derive from folder name (e.g., apache-tomcat-11.0.11)
+        const base = path.basename(tomcatHome);
+        const nameMatch = base.match(/(\d+\.\d+\.\d+)/);
+        if (nameMatch) {
+            this.versionCache.set(tomcatHome, nameMatch[1]);
+            return nameMatch[1];
+        }
+
+        this.versionCache.set(tomcatHome, 'unknown');
+        return 'unknown';
+    }
+
+    private updateInstanceStatusBar(snapshot: Array<{ source: 'managed' | 'external' }>): void {
+        const managedCount = snapshot.filter(i => i.source === 'managed').length;
+        const externalCount = snapshot.filter(i => i.source === 'external').length;
+        logger.updateStatusBar(t('tomcat.statusBar', { managed: managedCount, external: externalCount }));
+        setTimeout(() => logger.defaultStatusBar(), 2500);
     }
 
     /**
@@ -760,7 +1168,13 @@ export class Tomcat {
                 : pattern.test(data);
 
             if (isMatch) {
-                Browser.getInstance().run(this.currentAppName);
+                if (this.currentAppName) {
+                    // Find the managed instance for the current app
+                    const managed = Array.from(this.managedPids.values()).find(meta => meta.appName === this.currentAppName);
+                    if (managed) {
+                        Browser.getInstance().run(this.currentAppName, managed.port);
+                    }
+                }
             }
         }
     }

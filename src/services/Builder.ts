@@ -34,7 +34,7 @@ const logger = Logger.getInstance();
 
 export class Builder {
     private static instance: Builder;
-    private autoDeployBuildType: 'Local' | 'Maven' | 'Gradle';
+    private buildType: 'Local' | 'Maven' | 'Gradle';
     private autoDeployMode: 'On Save' | 'On Shortcut' | 'Disable';
     private isDeploying = false;
     private attempts = 0;
@@ -48,8 +48,12 @@ export class Builder {
      * - Prepares deployment triggers
      */
     private constructor() {
-        this.autoDeployBuildType = vscode.workspace.getConfiguration().get('tomcat.autoDeployBuildType', 'Local') as 'Local' | 'Maven' | 'Gradle';
+        this.buildType = vscode.workspace.getConfiguration().get('tomcat.buildType', 'Local') as 'Local' | 'Maven' | 'Gradle';
         this.autoDeployMode = vscode.workspace.getConfiguration().get('tomcat.autoDeployMode', 'Disable') as 'On Save' | 'On Shortcut' | 'Disable';
+    }
+
+    public getBuildType(): 'Local' | 'Maven' | 'Gradle' {
+        return this.buildType;
     }
 
     /**
@@ -78,7 +82,7 @@ export class Builder {
      * - Updates dependent properties
      */
     public updateConfig(): void {
-        this.autoDeployBuildType = vscode.workspace.getConfiguration().get('tomcat.autoDeployBuildType', 'Local') as 'Local' | 'Maven' | 'Gradle';
+        this.buildType = vscode.workspace.getConfiguration().get('tomcat.buildType', 'Local') as 'Local' | 'Maven' | 'Gradle';
         this.autoDeployMode = vscode.workspace.getConfiguration().get('tomcat.autoDeployMode', 'Disable') as 'On Save' | 'On Shortcut' | 'Disable';
     }
 
@@ -145,19 +149,21 @@ export class Builder {
 
         if (type === 'Choice') {
             isChoice = true;
-            const subAction = vscode.window.showQuickPick(['Local', 'Maven', 'Gradle'], {
+            const displayOptions = [t('buildType.local'), t('buildType.maven'), t('buildType.gradle')];
+            const subAction = await vscode.window.showQuickPick(displayOptions, {
                 placeHolder: t('builder.selectBuildType')
             });
-            await subAction.then((choice) => {
-                type = (choice as 'Local' | 'Maven' | 'Gradle');
-            });
-            if (!type || type === 'Choice') { return; }
+            if (!subAction) { return; }
+            const idx = displayOptions.indexOf(subAction);
+            type = ['Local', 'Maven', 'Gradle'][idx] as 'Local' | 'Maven' | 'Gradle';
+            if (!type) { return; }
         }
 
         const appName = path.basename(projectDir);
-        const tomcatHome = await tomcat.findTomcatHome();
-
         tomcat.setAppName(appName);
+
+        const target = await tomcat.ensureDeploymentTarget(appName);
+        const tomcatHome = target.home;
 
         if (!tomcatHome || !appName || !fs.existsSync(path.join(tomcatHome, 'webapps'))) { return; }
 
@@ -214,7 +220,7 @@ export class Builder {
             } else {
                 const typeLabel = ['Local', 'Maven', 'Gradle'].includes(type as string)
                     ? translateBuildType(type as BuildType)
-                    : translateBuildType(this.autoDeployBuildType as BuildType);
+                    : translateBuildType(this.buildType as BuildType);
                 logger.error(t('builder.buildFailed', { type: typeLabel }), isChoice, err as string);
             }
             logger.defaultStatusBar();
@@ -243,9 +249,9 @@ export class Builder {
             this.isDeploying = true;
 
             if (this.autoDeployMode === 'On Save') {
-                await this.deploy(this.autoDeployBuildType);
+                await this.deploy(this.buildType);
             } else if (this.autoDeployMode === 'On Shortcut' && reason === vscode.TextDocumentSaveReason.Manual) {
-                await this.deploy(this.autoDeployBuildType);
+                await this.deploy(this.buildType);
             }
         } finally {
             this.isDeploying = false;

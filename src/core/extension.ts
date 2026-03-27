@@ -29,6 +29,7 @@ import { Tomcat } from '../services/Tomcat';
 import { Logger } from '../services/Logger';
 import { Browser } from '../services/Browser';
 import { initializeLocalization, refreshLocalization, t } from '../utils/i18n';
+import { InstanceView } from '../services/InstanceView';
 
 /**
  * Extension activation hook
@@ -51,19 +52,47 @@ export function activate(context: vscode.ExtensionContext) {
 
     const builder = Builder.getInstance();
     const tomcat = Tomcat.getInstance();
+    const instanceView = new InstanceView();
 
     addSyntaxColoringRules();
 
+    const tree = vscode.window.createTreeView('tomcat.instancesView', {
+        treeDataProvider: instanceView,
+        showCollapseAll: false
+    });
+    context.subscriptions.push(tree);
+
     context.subscriptions.push(
-        vscode.commands.registerCommand('tomcat.start', () => tomcat.start(true)),
-        vscode.commands.registerCommand('tomcat.stop', () => tomcat.stop(true)),
-        vscode.commands.registerCommand('tomcat.clean', () => tomcat.clean()),
-        vscode.commands.registerCommand('tomcat.deploy', () => builder.deploy('Choice')),
+        vscode.commands.registerCommand('tomcat.start', async () => { await tomcat.start(true); instanceView.refresh(); }),
+        vscode.commands.registerCommand('tomcat.stop', async () => { await tomcat.stop(true); instanceView.refresh(); }),
+        vscode.commands.registerCommand('tomcat.clean', async () => { await tomcat.clean(); instanceView.refresh(); }),
+        vscode.commands.registerCommand('tomcat.deploy', async () => { await builder.deploy(builder.getBuildType()); instanceView.refresh(); }),
+        vscode.commands.registerCommand('tomcat.manageInstances', () => instanceView.refresh()),
+        vscode.commands.registerCommand('tomcat.instances.refresh', () => instanceView.refresh()),
+        vscode.commands.registerCommand('tomcat.instances.stop', (item) => instanceView.stopInstance(item, false)),
+        vscode.commands.registerCommand('tomcat.instances.kill', (item) => instanceView.stopInstance(item, true)),
+        vscode.commands.registerCommand('tomcat.instances.startNew', () => instanceView.startNew()),
+        vscode.commands.registerCommand('tomcat.instances.configureField', (field: string) => instanceView.configureField(field)),
+        vscode.commands.registerCommand('tomcat.instances.addHome', () => instanceView.addHome()),
+        vscode.commands.registerCommand('tomcat.instances.addJavaHome', () => instanceView.addJavaHome()),
+        vscode.commands.registerCommand('tomcat.instances.removeHome', (item) => instanceView.removeHome(item)),
+        vscode.commands.registerCommand('tomcat.instances.removeJavaHome', (item) => instanceView.removeJavaHome(item)),
+        vscode.commands.registerCommand('tomcat.instances.refreshVersions', () => instanceView.refreshVersions()),
+        vscode.commands.registerCommand('tomcat.instances.setActiveHome', (home?: string) => instanceView.setActiveHome(home)),
+        vscode.commands.registerCommand('tomcat.instances.setActiveJavaHome', (home?: string) => instanceView.setActiveJavaHome(home)),
+        vscode.commands.registerCommand('tomcat.instances.setBrowser', (choice: string) => instanceView.setBrowser(choice)),
+        vscode.commands.registerCommand('tomcat.instances.setPort', (choice: string) => instanceView.setPort(choice)),
+        vscode.commands.registerCommand('tomcat.instances.addPort', () => instanceView.addPort()),
+        vscode.commands.registerCommand('tomcat.instances.removePort', (item) => instanceView.removePort(item.port)),
+        vscode.commands.registerCommand('tomcat.instances.setBuildType', (choice: string) => instanceView.setBuildType(choice)),
+        vscode.commands.registerCommand('tomcat.instances.setLogLevel', (choice: string) => instanceView.setLogLevel(choice)),
+        vscode.commands.registerCommand('tomcat.instances.openInBrowser', (info) => instanceView.openInstance(info)),
 
         // Configuration change listener with efficient filtering
         vscode.workspace.onDidChangeConfiguration(async (event) => {
             if (event.affectsConfiguration('tomcat')) {
                 updateSettings(event);
+                instanceView.refresh();
             }
         })
     );
@@ -131,7 +160,7 @@ function updateSettings(event: vscode.ConfigurationChangeEvent) {
         Tomcat.getInstance().updatePort();
 
     } else if (event.affectsConfiguration('tomcat.autoDeployMode') ||
-        event.affectsConfiguration('tomcat.autoDeployBuildType')) {
+        event.affectsConfiguration('tomcat.buildType')) {
         Builder.getInstance().updateConfig();
         Logger.getInstance().updateConfig();
 

@@ -217,8 +217,9 @@ export class Logger {
      */
     public updateStatusBar(value: string): void {
         if (this.statusBarItem && !this.aiBusy) {
-            this.statusBarItem.text = `$(sync~spin) ${value}`;
-            this.statusBarItem.tooltip = t('status.loadingTooltip', { value });
+            this.statusBarItem.text = `$(circle-outline) ${value}`;
+            this.statusBarItem.tooltip = undefined; // muted: no hover tooltip
+            this.statusBarItem.color = new vscode.ThemeColor('disabledForeground');
         }
     }
 
@@ -240,6 +241,7 @@ export class Logger {
 
             this.statusBarItem.text = `${this.autoDeployMode === 'On Save' ? '$(sync~spin)' : '$(server)'} ${t('status.deployLabel', { mode: displayText })}`;
             this.statusBarItem.tooltip = t('status.changeModeTooltip');
+            this.statusBarItem.color = undefined; // reset to theme default
             this.statusBarIdleText = this.statusBarItem.text;
             this.statusBarIdleTooltip = this.statusBarItem.tooltip;
         }
@@ -252,7 +254,7 @@ export class Logger {
      * @param showToast Whether to show user notification
      */
     public info(message: string, showToast: boolean = false): void {
-        this.log('INFO', message, showToast ? vscode.window.showInformationMessage : undefined);
+        this.log('logger.infoLabel', message, showToast ? vscode.window.showInformationMessage : undefined);
     }
 
     /**
@@ -262,7 +264,7 @@ export class Logger {
      * @param showToast Whether to show user notification
      */
     public success(message: string, showToast: boolean = false): void {
-        this.log('SUCCESS', message, showToast ? vscode.window.showInformationMessage : undefined);
+        this.log('logger.successLabel', message, showToast ? vscode.window.showInformationMessage : undefined);
     }
 
     /**
@@ -272,7 +274,7 @@ export class Logger {
      * @param showToast Whether to show user notification
      */
     public debug(message: string, showToast: boolean = false): void {
-        this.log('DEBUG', message, showToast ? vscode.window.showInformationMessage : undefined);
+        this.log('logger.debugLabel', message, showToast ? vscode.window.showInformationMessage : undefined);
     }
 
     /**
@@ -282,7 +284,7 @@ export class Logger {
      * @param showToast Whether to show user notification
      */
     public warn(message: string, showToast: boolean = false): void {
-        this.log('WARN', message, showToast ? vscode.window.showWarningMessage : undefined);
+        this.log('logger.warnLabel', message, showToast ? vscode.window.showWarningMessage : undefined);
     }
 
     /**
@@ -294,7 +296,7 @@ export class Logger {
      */
     public error(message: string, showToast: boolean = false, error: string): void {
         const fullMessage = error ? `${message}\n${error}` : message;
-        this.log('ERROR', fullMessage, showToast ? vscode.window.showErrorMessage : undefined);
+        this.log('logger.errorLabel', fullMessage, showToast ? vscode.window.showErrorMessage : undefined);
     }
 
     public aiNote(message: string): void {
@@ -328,7 +330,7 @@ export class Logger {
         }
 
         const body = isDebug ? message.replace('AI_DEBUG:', '').trim() : message;
-        const levelTag = isDebug ? '[AI][debug]' : '[AI]';
+        const levelTag = isDebug ? '[debug] [AI]' : '[AI]';
         const timestamp = this.showTimestamp ? `[${new Date().toLocaleString()}] ` : '';
         this.outputChannel.appendLine(`${timestamp}${levelTag} ${body}`);
     }
@@ -803,7 +805,6 @@ export class Logger {
     private async handleDiagnosticsFromMessage(message: string): Promise<void> {
         const location = this.parseErrorLocation(message);
         if (!location) {
-            this.outputChannel.appendLine('[INFO] No error location parsed from build output');
             return;
         }
 
@@ -824,7 +825,7 @@ export class Logger {
             editor.selection = new vscode.Selection(pos, pos);
             editor.revealRange(highlight, vscode.TextEditorRevealType.InCenter);
         } catch (err) {
-            this.outputChannel.appendLine(`[WARN] Failed to open error location ${location.uri.fsPath}: ${err}`);
+            this.outputChannel.appendLine(t('logger.failedOpenErrorLocation', { path: location.uri.fsPath, error: String(err) }));
         }
     }
 
