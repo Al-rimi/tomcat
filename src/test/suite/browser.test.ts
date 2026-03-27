@@ -1,6 +1,8 @@
+/// <reference types="mocha" />
+
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { Browser } from '../../utils/Browser';
+import { Browser } from '../../services/Browser';
 import * as sinon from 'sinon';
 
 suite('Browser Tests', () => {
@@ -23,7 +25,7 @@ suite('Browser Tests', () => {
     sinon.stub(process, 'platform').value('win32');
     const command = browser['getBrowserCommand']('Google Chrome', 'http://localhost');
     if (command) {
-        assert.match(command, /start chrome.exe --remote-debugging-port=9222/);
+      assert.match(command, /start chrome.exe --remote-debugging-port=9222/);
     }
   });
 

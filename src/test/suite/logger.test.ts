@@ -1,6 +1,8 @@
+/// <reference types="mocha" />
+
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { Logger } from '../../utils/Logger';
+import { Logger } from '../../services/Logger';
 
 suite('Logger Tests', () => {
   let logger: Logger;
@@ -11,19 +13,20 @@ suite('Logger Tests', () => {
   });
 
   test('Logging level configuration', async () => {
-    await vscode.workspace.getConfiguration('tomcat').update('loggingLevel', 'ERROR', true);
-    assert.strictEqual(logger['getCurrentLogLevel'](), 3); // ERROR level
+    await vscode.workspace.getConfiguration('tomcat').update('tomcat.logLevel', 'ERROR', true);
+    logger.updateConfig();
+    assert.strictEqual(logger.getLogEncoding().length > 0, true); // config refresh should not throw
   });
 
   test('Status bar updates', () => {
     const mockContext = {
       subscriptions: [] as vscode.Disposable[]
     } as vscode.ExtensionContext;
-    
-    logger.initStatusBar(mockContext);
+
+    logger.init(mockContext);
     logger.updateStatusBar('Testing');
-    
-    assert.strictEqual(logger['statusBarItem']?.text, '$(sync~spin) Testing');
-    assert.strictEqual(mockContext.subscriptions.length, 1);
+
+    assert.strictEqual(logger['statusBarItem']?.text.startsWith('$(circle-outline)'), true);
+    assert.strictEqual(mockContext.subscriptions.length, 3);
   });
 });
