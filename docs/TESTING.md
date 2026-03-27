@@ -85,6 +85,51 @@ test('Structures Java compilation errors', () => {
 });
 ```
 
+### 4. View and Tree Component Tests
+```typescript
+// View refresh and stale cleanup
+test('View.refresh executes Tomcat stale instance cleanup', async () => {
+    const tomcat = Tomcat.getInstance();
+    const cleanup = jest.spyOn(tomcat, 'cleanupStaleManagedInstances').mockResolvedValue();
+    const view = new View();
+    await view.refresh();
+    expect(cleanup).toHaveBeenCalled();
+});
+
+// AppItem state and command behavior
+test('AppItem sets appropriate context and command based on running state', () => {
+    const item = new AppItem('/workspace/app', true, 8080, false);
+    expect(item.contextValue).toBe('tomcatApp.running');
+    expect(item.command?.command).toBe('tomcat.apps.openInBrowser');
+});
+
+// App create and deploy path
+test('View.createApp handles template selection and scaffolding simulation', async () => {
+    jest.spyOn(vscode.window, 'showQuickPick').mockResolvedValue({ label: 'Java EE', id: 'javaee' } as any);
+    jest.spyOn(vscode.window, 'showInputBox').mockResolvedValue('myapp');
+    jest.spyOn(vscode.window, 'showOpenDialog').mockResolvedValue([vscode.Uri.file('/tmp')] as any);
+    const view = new View();
+    const create = view.createApp();
+    await expect(create).resolves.not.toThrow();
+});
+```
+
+### 5. i18n Unit Tests
+```typescript
+test('i18n t() returns correct value for default locale', () => {
+    initializeLocalization({ globalState: { get: () => false, update: () => Promise.resolve() } } as any);
+    const result = t('app.create.frontend.react');
+    expect(result).toBe('React');
+});
+
+test('translateBuildType maps keys correctly', () => {
+    expect(translateBuildType('Local')).toBe('Local');
+    expect(translateBuildType('Maven')).toBe('Maven');
+    expect(translateBuildType('Gradle')).toBe('Gradle');
+});
+```
+
+
 ## Test Execution
 
 ```bash
