@@ -359,10 +359,6 @@ export class Builder {
             fs.mkdirSync(libDir, { recursive: true });
         }
 
-        if (!fs.existsSync(targetLib)) {
-            fs.mkdirSync(targetLib, { recursive: true });
-        }
-
         this.brutalSync(libDir, targetLib);
     }
 
