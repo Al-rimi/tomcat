@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## [4.2.0] - 2026-03-28
 ### Added
 - Output panel messages now include app name and port context for multi-app/multi-instance precision.
 - Persistence reload now works correctly on extension startup when global storage path is set, preventing loss of persisted app-to-instance mapping.
@@ -109,26 +111,19 @@
 ### Added
 - Streaming AI explanations for WARN/ERROR logs with live typing output in the Tomcat channel and status bar feedback.
 - Automatic navigation to build error file/line with diagnostics cleared on save and on successful builds.
-
-### Changed
-- Simplified AI settings surface (provider, endpoint, model, API key, start command) while forcing auto-explain on and auto-starting local AI only for localhost endpoints.
-- Status bar now shows "AI typing" while responses stream.
-
-### Fixed
-- Windows path parsing for Maven/Gradle errors, eliminating stale error markers and ensuring jump-to-location reliability.
-
-## [Unreleased]
-### Added
 - Added AI settings summary on AI group title showing selected provider and model with dot separator
 - Added CATALINA_BASE selection support via folder picker and persisted `tomcat.bases` list in settings
 
 ### Changed
+- Simplified AI settings surface (provider, endpoint, model, API key, start command) while forcing auto-explain on and auto-starting local AI only for localhost endpoints.
+- Status bar now shows "AI typing" while responses stream.
 - Reordered main settings groups: Build type, Browser, HTTP port, Tomcat home, Java home, Log level, AI, Additional
 - Reordered additional settings group: CATALINA_BASE, Log Encoding, Show Timestamp, Auto Reload Browser
 - Updated AI settings list to hide add/remove for log encoding and make model/provider selection inline
 - Updated Instance item display to omit unknown values instead of showing `n/a`
 
 ### Fixed
+- Windows path parsing for Maven/Gradle errors, eliminating stale error markers and ensuring jump-to-location reliability.
 - Applied explicit empty placeholder behavior for unknown instance fields and AI provider/model display fallback
 
 ## [2.5.3] - 2025-05-14

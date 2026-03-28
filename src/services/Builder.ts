@@ -163,12 +163,12 @@ export class Builder {
         const toScan = new Set<string>();
 
         const workspaceFolders = vscode.workspace.workspaceFolders?.map(f => f.uri.fsPath) || [];
-        if (baseDir) toScan.add(baseDir);
+        if (baseDir) {toScan.add(baseDir);}
         workspaceFolders.forEach(folder => toScan.add(folder));
 
         const walk = (dir: string, depth = 0) => {
-            if (depth > 5 || roots.has(dir)) return;
-            if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) return;
+            if (depth > 5 || roots.has(dir)) {return;}
+            if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) {return;}
             if (Builder.isJavaEEProjectRoot(dir)) {
                 roots.add(dir);
                 return;
@@ -495,7 +495,7 @@ export class Builder {
             throw new Error(t('builder.webAppMissing', { path: webAppPath }));
         }
         const javaHome = await tomcat.findJavaHome();
-        if (!javaHome) return;
+        if (!javaHome) {return;}
 
         const javacPath = path.join(javaHome, 'bin', 'javac');
         const javaSourcePath = path.join(projectDir, 'src', 'main', 'java');

@@ -138,6 +138,7 @@ const translations = {
         'browser.reloadFailedFallback': 'Failed to connect to {browser}; launching a new window. Change the browser or disable browser reload in the settings. See the README known issues section for details.',
         'browser.launchFailed': 'Browser launch failed',
         'browser.requestTimeout': 'Request timeout',
+        'browser.invalidDebugProtocolResponse': 'Invalid debug protocol response',
         'browser.restartPrompt': '{browser} needs restart in debug mode',
         'browser.restartOption': 'Restart',
         'browser.cancelOption': 'Cancel',
@@ -543,6 +544,7 @@ const translations = {
         'ai.systemPrompt': '你是简洁的 Tomcat 构建/服务器日志助手，用不超过 120 字说明可能原因和简短修复方案。如果日志不完整，请说明下一步应该检查什么。',
         'ai.userPrompt': '日志级别：{level}\n日志：{log}',
         'ai.failedLocalStart': '[AI] 启动本地 AI 失败：{error}',
+        'browser.invalidDebugProtocolResponse': '无效的调试协议响应',
         'logger.userSelected': '用户选择：{selection}',
         'logger.noErrorLocationParsed': '未解析到错误位置',
         'logger.infoLabel': '信息',
@@ -564,7 +566,7 @@ let initialized = false;
  * Output: sets `currentLocale` and `initialized`.
  */
 export function initializeLocalization(context: vscode.ExtensionContext): void {
-    if (initialized) return;
+    if (initialized) { return; }
 
     const cfg = vscode.workspace.getConfiguration('tomcat');
     const configured = cfg.get<LanguageSetting>('language', 'auto');
@@ -685,8 +687,8 @@ export function translateBrowserName(browser: BrowserName): string {
  * @returns Locale ('en' or 'zh-CN')
  */
 function resolveLocale(setting: LanguageSetting | undefined, fallback: Locale): Locale {
-    if (setting === 'zh-CN') return 'zh-CN';
-    if (setting === 'en') return 'en';
+    if (setting === 'zh-CN') { return 'zh-CN'; }
+    if (setting === 'en') { return 'en'; }
     return fallback;
 }
 
@@ -713,7 +715,7 @@ function detectLocale(): Locale {
  * @returns Interpolated string
  */
 function format(template: string, vars?: Record<string, string | number>): string {
-    if (!vars) return template;
+    if (!vars) { return template; }
     return Object.keys(vars).reduce((acc, key) => {
         const value = typeof vars[key] === 'number' ? String(vars[key]) : (vars[key] as string);
         return acc.replace(new RegExp(`\\{${key}\\}`, 'g'), value ?? '');

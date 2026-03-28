@@ -304,7 +304,7 @@ export class Browser {
             const sessions = JSON.parse(response);
 
             if (!Array.isArray(sessions)) {
-                throw ('Invalid debug protocol response');
+                throw new Error(t('browser.invalidDebugProtocolResponse'));
             }
 
             const target = sessions.find((session: any) =>

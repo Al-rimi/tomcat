@@ -2,7 +2,7 @@
   "name": "tomcat",
   "displayName": "%ext.displayName%",
   "description": "%ext.description%",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "publisher": "Al-rimi",
   "author": {
     "email": "alrimi@zjnu.edu.cn",

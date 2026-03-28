@@ -269,37 +269,17 @@ For technical implementation details and contribution guidelines, see:
 [![Suggest Fix](https://img.shields.io/badge/-Suggest_Fix-green?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/pulls)
 
 
-## What's New in 4.1.0
+## What's New in 4.2.0
 
-### Added
-- Workspace-wide multi-project detection and smart project switching for multi-root workspaces.
-- Advanced project scaffolding UI: `+` in apps with template + frontend options (JSP/Thymeleaf/React/Vue/Angular/None).
-- Per-instance deploy animation (`sync~spin`) and global refresh command button.
-- Create App + refresh actions in app tree toolbar with one-click scaffold behavior.
-- Localization for new create-app flow and expanded Chinese/English strings.
-- MIT license, README scaffolding, and environment-aware versions (Java/Tomcat/Node/NPM/platform) in generated projects.
-- Fix: frontend starter `public/index.html` path creation (ENOENT resolved).
+This release focuses on reliability and usability for multi-app workflows, safer instance management, smarter deploy behavior, and clearer AI integration.
 
-### Changed
-- Avoid forcibly closing external Tomcat processes on extension deactivate; managed instances are tracked and persisted instead.
-- Improved deployment logic to reuse running instances when possible (reuse same app instance, pick unused instance, or start a new one).
-- Browser handling improved: availability checks, preferred-browser fallback, and safer launch/timeout handling.
-- Large i18n sweep: all user-facing strings moved to runtime NLS with English and Chinese translations.
+- Better context & persistence: output messages now include app+port context and persisted instance mappings are reliably restored on extension startup.
+- Safer instance controls: per-instance stop/kill avoids global termination and the extension reuses existing instances to prevent duplicates.
+- Smarter deployments: the Builder coalesces repeated deploy requests, auto-restarts the last deploy, and fixes auto-deploy trigger edge cases.
+- Improved AI UX: AI settings are clearer in the tree view (provider/model shown), boolean toggles work inline, and AI stream duplication is reduced.
+- Cleaner logging: process exit logs include instance context and Tomcat startup messages are quieter (moved to DEBUG).
 
-### Fixed
-- Various localization and JSON/TypeScript issues introduced during the i18n sweep have been resolved.
-- Port allocation and update behavior improved to avoid accidental restarts; better port-in-use detection.
-
-[View Full Changelog](https://github.com/Al-rimi/tomcat/blob/main/CHANGELOG.md)
-
-## Roadmap & Future Work
-
-- Per-instance log panels and filtered views for easier troubleshooting.
-- Remote/SSH Tomcat instance management and cross-workspace syncing of persisted instances.
-- Visual improvements to the Instances Tree (grouping, filtering, and inline actions).
-- Enhanced AI features: multi-provider orchestration, richer suggestions, and custom explanation templates.
-
-If you'd like any roadmap items prioritized for v4.x, tell me which ones and I can prepare a focused PR or issue list.
+[See the full changelog](https://github.com/Al-rimi/tomcat/blob/main/CHANGELOG.md) for details.
 
 ---
 

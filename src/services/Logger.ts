@@ -206,7 +206,7 @@ export class Logger {
         this.statusBarItem?.dispose();
         this.diagnostics.clear();
         this.diagnostics.dispose();
-        if (this.fileCheckInterval) clearInterval(this.fileCheckInterval);
+        if (this.fileCheckInterval) {clearInterval(this.fileCheckInterval);}
         this.logWatchers.forEach(watcher => fs.unwatchFile(watcher.file, watcher.listener));
         this.accessLogStream?.destroy();
         this.accessLogWatcher?.close();
@@ -348,7 +348,7 @@ export class Logger {
         }
 
         if (message.startsWith('AI_STREAM_CHUNK:')) {
-            if (!this.aiStreaming) return;
+            if (!this.aiStreaming) {return;}
 
             const body = message.replace('AI_STREAM_CHUNK:', '');
             const newTotal = this.aiStreamingTotal + body;
@@ -371,7 +371,7 @@ export class Logger {
         }
 
         if (message.startsWith('AI_STREAM_END')) {
-            if (!this.aiStreaming) return;
+            if (!this.aiStreaming) {return;}
 
             if (this.aiStreamingLineStarted) {
                 this.outputChannel.appendLine('');
@@ -412,7 +412,7 @@ export class Logger {
     }
 
     public showAIStatus(message: string = t('status.aiTyping')): void {
-        if (!this.statusBarItem) return;
+        if (!this.statusBarItem) {return;}
         this.aiBusy = true;
         if (!this.statusBarIdleText) {
             this.statusBarIdleText = this.statusBarItem.text;
@@ -424,7 +424,7 @@ export class Logger {
     }
 
     public clearAIStatus(message: string = t('status.aiReady')): void {
-        if (!this.statusBarItem) return;
+        if (!this.statusBarItem) {return;}
         this.aiBusy = false;
         if (this.statusBarIdleText) {
             this.statusBarItem.text = this.statusBarIdleText;
@@ -480,7 +480,7 @@ export class Logger {
      * of OS-level notifications
      */
     public startLogFileWatcher(): void {
-        if (!this.tomcatHome) return;
+        if (!this.tomcatHome) {return;}
 
         const logsDir = path.join(this.tomcatHome, 'logs');
         this.fileCheckInterval = setInterval(() => {
@@ -650,7 +650,7 @@ export class Logger {
      */
     private setupRealtimeAccessLog(logPath: string) {
         this.accessLogWatcher = fs.watch(logPath, (eventType) => {
-            if (eventType === 'change') this.handleLiveLogUpdate(logPath);
+            if (eventType === 'change') {this.handleLiveLogUpdate(logPath);}
         });
 
         this.accessLogStream = fs.createReadStream(logPath, {
@@ -662,7 +662,7 @@ export class Logger {
         this.accessLogStream.on('data', (data) => {
             const lines = data.toString().split('\n');
             lines.forEach(line => {
-                if (line.trim()) this.processAccessLogLine(line);
+                if (line.trim()) {this.processAccessLogLine(line);}
             });
         });
     }
@@ -691,7 +691,7 @@ export class Logger {
 
             stream.on('data', data => {
                 data.toString().split('\n').forEach(line => {
-                    if (line.trim()) this.processAccessLogLine(line);
+                    if (line.trim()) {this.processAccessLogLine(line);}
                 });
             });
         }
@@ -743,7 +743,7 @@ export class Logger {
                 .filter(file => file.startsWith('localhost_access_log.'))
                 .sort((a, b) => this.extractDate(b) - this.extractDate(a));
 
-            if (logFiles.length === 0) return;
+            if (logFiles.length === 0) {return;}
 
             const latestFile = path.join(logsDir, logFiles[0]);
             if (latestFile !== this.currentLogFile) {
@@ -769,7 +769,7 @@ export class Logger {
         this.currentLogFile = newFile;
 
         fs.stat(newFile, (err) => {
-            if (err) return;
+            if (err) {return;}
 
             const listener: fs.StatsListener = (curr, prev) => {
                 if (curr.size > prev.size) {
@@ -854,7 +854,7 @@ export class Logger {
     ): void {
         const messageLevel = level.toUpperCase();
         const messageLevelValue = this.logLevels[messageLevel] ?? this.logLevels.INFO;
-        if (messageLevelValue < this.logLevels[this.logLevel]) return;
+        if (messageLevelValue < this.logLevels[this.logLevel]) {return;}
 
         const timestamp = this.showTimestamp ? `[${new Date().toLocaleString()}] ` : '';
 
@@ -955,13 +955,13 @@ export class Logger {
 
         for (const rawLine of lines) {
             const line = rawLine.trim();
-            if (!line) continue;
+            if (!line) {continue;}
 
             for (const pattern of patterns) {
                 const hit = pattern(line);
-                if (!hit) continue;
+                if (!hit) {continue;}
                 const candidate = this.resolvePath(hit.file, workspaceRoot);
-                if (!candidate) continue;
+                if (!candidate) {continue;}
                 const lineNum = Math.max(hit.line - 1, 0);
                 const colNum = Math.max(hit.col - 1, 0);
                 const range = new vscode.Range(lineNum, colNum, lineNum, colNum + 1);

@@ -668,7 +668,7 @@ export class Tomcat {
      * @returns Boolean indicating server running state
      */
     private async isTomcatRunning(): Promise<boolean> {
-        if (this.tomcatProcess && !this.tomcatProcess.killed) return true;
+        if (this.tomcatProcess && !this.tomcatProcess.killed) {return true;}
         return this.managedPids.size > 0 || await this.isPortInUse(this.port);
     }
 
@@ -820,7 +820,7 @@ export class Tomcat {
                 continue;
             }
             const inUse = await this.isPortInUse(candidate);
-            if (!inUse) return candidate;
+            if (!inUse) {return candidate;}
         }
         return startPort;
     }
@@ -1467,10 +1467,10 @@ export class Tomcat {
                 const pidStr = parts[parts.length - 1];
                 const pid = Number(pidStr);
                 const portMatch = local.match(/:(\d+)/);
-                if (!pid || !portMatch) continue;
+                if (!pid || !portMatch) {continue;}
                 const port = Number(portMatch[1]);
-                if (port < 8000 || port > 10000) continue; // heuristic to limit noise
-                if (this.managedPids.has(pid)) continue;
+                if (port < 8000 || port > 10000) {continue;} // heuristic to limit noise
+                if (this.managedPids.has(pid)) {continue;}
                 try {
                     process.kill(pid, 0); // ensure the PID is alive
                     if (!seen.has(pid)) {

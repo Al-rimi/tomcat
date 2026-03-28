@@ -501,7 +501,7 @@ export class AI {
                     buffer = lines.pop() || '';
                     for (const lineRaw of lines) {
                         const line = lineRaw.trim();
-                        if (!line) continue;
+                        if (!line) {continue;}
                         const content = this.extractStreamContent(line);
                         if (content) {
                             if (!firstTokenAt) {
