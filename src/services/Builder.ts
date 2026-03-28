@@ -36,9 +36,11 @@ export class Builder {
     private static instance: Builder;
     private buildType: 'Local' | 'Maven' | 'Gradle';
     private autoDeployMode: 'On Save' | 'On Shortcut' | 'Disable';
-    private isDeploying = false;
+    private deployingApps: Set<string> = new Set();
+    private pendingDeployRequests: Map<string, { type: 'Local' | 'Maven' | 'Gradle' | 'Choice'; projectDir?: string; preferActiveProject: boolean }> = new Map();
     private currentDeployingApp: string | null = null;
     private attempts = 0;
+    private autoDeploySuppressedUntil = 0;
     private stateChangeListeners: Array<() => void> = [];
 
     /**
@@ -58,8 +60,11 @@ export class Builder {
         return this.buildType;
     }
 
-    public isDeployingInProgress(): boolean {
-        return this.isDeploying;
+    public isDeployingInProgress(appName?: string): boolean {
+        if (appName) {
+            return this.deployingApps.has(appName);
+        }
+        return this.deployingApps.size > 0;
     }
 
     public getCurrentDeployingApp(): string | null {
@@ -99,6 +104,10 @@ export class Builder {
             Builder.instance = new Builder();
         }
         return Builder.instance;
+    }
+
+    public suppressAutoDeploy(durationMs: number = 1000): void {
+        this.autoDeploySuppressedUntil = Date.now() + durationMs;
     }
 
     /**
@@ -255,13 +264,15 @@ export class Builder {
      * @log Deployment progress and errors
      */
     public async deploy(type: 'Local' | 'Maven' | 'Gradle' | 'Choice', projectDir?: string, preferActiveProject: boolean = false): Promise<void> {
-        if (this.isDeploying) {
-            Logger.getInstance().debug(t('builder.deployInProgress'));
-            return;
-        }
-
         projectDir = await this.selectProjectDirectory(projectDir, preferActiveProject);
         if (!projectDir) { return; }
+
+        const appName = path.basename(projectDir);
+        if (this.isDeployingInProgress(appName)) {
+            this.pendingDeployRequests.set(appName, { type, projectDir, preferActiveProject });
+            logger.debug(t('builder.deployInProgressApp', { app: appName }));
+            return;
+        }
 
         let isChoice;
 
@@ -277,7 +288,6 @@ export class Builder {
             if (!type) { return; }
         }
 
-        const appName = path.basename(projectDir);
         tomcat.setAppName(appName);
 
         const target = await tomcat.ensureDeploymentTarget(appName);
@@ -288,7 +298,7 @@ export class Builder {
         const targetDir = path.join(tomcatHome, 'webapps', appName);
         await vscode.workspace.saveAll();
 
-        this.isDeploying = true;
+        this.deployingApps.add(appName);
         this.currentDeployingApp = appName;
         this.emitStateChange();
 
@@ -329,7 +339,7 @@ export class Builder {
                 const port = Tomcat.getInstance().getPort();
                 logger.success(t('builder.buildCompletedWithApp', { type: typeLabel, app: appName, port, duration }), isChoice);
                 await new Promise(resolve => setTimeout(resolve, 100));
-                await tomcat.reload();
+                await tomcat.reload(port, appName);
             }
 
             this.attempts = 0;
@@ -338,8 +348,9 @@ export class Builder {
             const isBusyError = errorMessage.includes('EBUSY') || errorMessage.includes('resource busy or locked');
             if (isBusyError && this.attempts < 3) {
                 this.attempts++;
-                await tomcat.kill();
-                this.deploy(type);
+                const port = Tomcat.getInstance().getPort();
+                await tomcat.killManagedInstanceByPort(port);
+                await this.deploy(type, projectDir, preferActiveProject);
             } else {
                 const typeLabel = ['Local', 'Maven', 'Gradle'].includes(type as string)
                     ? translateBuildType(type as BuildType)
@@ -349,8 +360,28 @@ export class Builder {
             }
             logger.defaultStatusBar();
         } finally {
-            this.currentDeployingApp = null;
-            this.isDeploying = false;
+            if (appName) {
+                this.deployingApps.delete(appName);
+                if (this.currentDeployingApp === appName) {
+                    this.currentDeployingApp = null;
+                }
+
+                if (this.pendingDeployRequests.has(appName)) {
+                    const pending = this.pendingDeployRequests.get(appName)!;
+                    this.pendingDeployRequests.delete(appName);
+                    this.emitStateChange();
+
+                    const snapshot = await tomcat.getInstanceSnapshot();
+                    const alreadyRunning = snapshot.some(i => i.app === appName && i.source === 'managed');
+                    if (!alreadyRunning) {
+                        logger.debug(t('builder.deployQueuedRestart', { app: appName }));
+                        void this.deploy(pending.type, pending.projectDir, pending.preferActiveProject);
+                        return;
+                    } else {
+                        logger.debug(t('builder.deployAlreadyRunning', { app: appName }));
+                    }
+                }
+            }
             this.emitStateChange();
             logger.defaultStatusBar();
         }
@@ -369,6 +400,12 @@ export class Builder {
      * @param reason Document save reason triggering deployment
      */
     public async autoDeploy(reason?: vscode.TextDocumentSaveReason): Promise<void> {
+
+        if (Date.now() < this.autoDeploySuppressedUntil) {
+            this.autoDeploySuppressedUntil = 0;
+            logger.debug('AutoDeploy suppressed due to recent configuration change.');
+            return;
+        }
 
         if (!Builder.isJavaEEProject()) { return; }
 

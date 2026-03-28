@@ -150,12 +150,11 @@ export class View implements vscode.TreeDataProvider<
         if (element instanceof AppsGroup) {
             const apps = await Builder.findJavaEEProjects();
             const instances = await this.tomcat.getInstanceSnapshot();
-            const currentDeployingApp = Builder.getInstance().getCurrentDeployingApp();
 
             const appItems = apps.map((appPath) => {
                 const appName = path.basename(appPath);
                 const instance = instances.find((info) => info.app === appName);
-                const isDeploying = appName === currentDeployingApp;
+                const isDeploying = Builder.getInstance().isDeployingInProgress(appName);
                 return new AppItem(appPath, Boolean(instance), instance?.port, isDeploying || false);
             });
 

@@ -63,6 +63,13 @@ export function activate(context: vscode.ExtensionContext) {
     });
     context.subscriptions.push(tree);
 
+    // Track the intent of each save event (manual vs autosave) via willSave event
+    let lastSaveReason: vscode.TextDocumentSaveReason | null = null;
+
+    context.subscriptions.push(vscode.workspace.onWillSaveTextDocument((event) => {
+        lastSaveReason = event.reason;
+    }));
+
     context.subscriptions.push(
         vscode.commands.registerCommand('tomcat.start', async () => { await tomcat.start(true); view.refresh(); }),
         vscode.commands.registerCommand('tomcat.stop', async () => { await tomcat.stop(true); view.refresh(); }),
@@ -77,6 +84,7 @@ export function activate(context: vscode.ExtensionContext) {
         }),
         vscode.commands.registerCommand('tomcat.apps.undeploy', async (payload: any) => {
             await view.undeployApp(payload);
+            await view.refresh();
         }),
         vscode.commands.registerCommand('tomcat.instances.refresh', () => view.refresh()),
         vscode.commands.registerCommand('tomcat.instances.stop', (item) => view.stopInstance(item, false)),
@@ -112,9 +120,21 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(
         vscode.workspace.onDidSaveTextDocument((document) => {
+            const normalizedPath = document.uri.fsPath.replace(/\\/g, '/').toLowerCase();
+
+            // Avoid messages caused by settings changes.
+            if (normalizedPath.endsWith('/.vscode/settings.json') ||
+                normalizedPath.includes('/.vscode/settings.json') ||
+                (normalizedPath.endsWith('/settings.json') && (normalizedPath.includes('/user/') || normalizedPath.includes('/code/user/')))) {
+                return;
+            }
+
+            const reason = lastSaveReason ?? vscode.TextDocumentSaveReason.Manual;
+            lastSaveReason = null;
+
             const projectPath = Builder.findProjectForFile(document.uri.fsPath) || Builder.findJavaEEProjects()[0];
             if (projectPath) {
-                builder.autoDeploy(vscode.TextDocumentSaveReason.Manual);
+                builder.autoDeploy(reason);
             }
         })
     );
@@ -189,7 +209,7 @@ function updateSettings(event: vscode.ConfigurationChangeEvent) {
             Logger.getInstance().warn(t('config.encoding.unsupported', { encoding: configured }));
             vscode.workspace.getConfiguration().update('tomcat.logEncoding', 'utf8', true);
         }
-        Tomcat.getInstance().kill();
+        Tomcat.getInstance().stop();
         Logger.getInstance().updateConfig();
 
     } else if (event.affectsConfiguration('tomcat.ai')) {
