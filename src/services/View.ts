@@ -168,7 +168,6 @@ export class View implements vscode.TreeDataProvider<
             const maxTokens = config.get<number>('ai.maxTokens', 128);
             const timeoutMs = config.get<number>('ai.timeoutMs', 45000);
             const autoStartLocal = config.get<boolean>('ai.autoStartLocal', true);
-            const debug = config.get<boolean>('ai.debug', false);
 
             return [
                 new AIProviderGroup(t('ai.provider'), provider),
@@ -178,8 +177,7 @@ export class View implements vscode.TreeDataProvider<
                 new AIListGroup('localStartCommand', t('ai.localStartCommand'), localStartCommand),
                 new AISettingItem('maxTokens', t('ai.maxTokens'), String(maxTokens), 'symbol-numeric'),
                 new AISettingItem('timeoutMs', t('ai.timeoutMs'), String(timeoutMs), 'clock'),
-                new AISettingItem('autoStartLocal', t('ai.autoStartLocal'), autoStartLocal ? 'On' : 'Off', 'check', autoStartLocal),
-                new AISettingItem('debug', t('ai.debug'), debug ? 'On' : 'Off', 'bug', debug)
+                new AISettingItem('autoStartLocal', t('ai.autoStartLocal'), autoStartLocal ? 'On' : 'Off', 'check', autoStartLocal)
             ];
         }
 
@@ -1097,7 +1095,6 @@ export class View implements vscode.TreeDataProvider<
         await config.update('ai.maxTokens', 128, true);
         await config.update('ai.timeoutMs', 45000, true);
         await config.update('ai.autoStartLocal', true, true);
-        await config.update('ai.debug', false, true);
         AI.getInstance().updateConfig();
         Logger.getInstance().updateConfig();
         this.refresh();

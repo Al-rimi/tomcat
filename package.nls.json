@@ -42,7 +42,7 @@
         "config.ai.maxTokens.description": "Maximum number of tokens to request from AI completion. Use smaller values to reduce latency and cost.",
         "config.ai.timeoutMs.description": "HTTP timeout in milliseconds for AI request calls.",
         "config.ai.autoStartLocal.description": "Automatically start the local AI service when endpoint is unreachable.",
-        "config.ai.debug.description": "Enable debug logging for AI operations in the output channel.""config.logEncoding.description": "Encoding for Tomcat logs. This setting is used to read the logs and should match the encoding used by Tomcat. If you are unsure, use 'utf8'.",
+        "config.logEncoding.description": "Encoding for Tomcat logs. This setting is used to read the logs and should match the encoding used by Tomcat. If you are unsure, use 'utf8'.",
         "config.logLevel.description": "Minimum log level to display. Messages at or above this level will be shown.",
         "config.showTimestamp.description": "Whether to include timestamps in log messages.",
         "config.protectedWebApps.description": "List of web applications to keep when cleaning Apache Tomcat.",

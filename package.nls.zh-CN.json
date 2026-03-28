@@ -46,7 +46,6 @@
         "config.ai.maxTokens.description": "AI 补全请求的最大 token 数，数值小可降低延迟与成本。",
         "config.ai.timeoutMs.description": "AI 请求的 HTTP 超时时间（毫秒）。",
         "config.ai.autoStartLocal.description": "当端点不可达时自动启动本地 AI 服务。",
-        "config.ai.debug.description": "启用 AI 操作的调试日志输出。",
         "config.logEncoding.description": "Tomcat 日志编码。应与 Tomcat 输出编码一致；不确定时选择 utf8。",
         "config.logLevel.description": "最小日志级别，等于或高于该级别的消息会显示。",
         "config.showTimestamp.description": "是否在日志消息中包含时间戳。",

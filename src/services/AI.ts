@@ -28,7 +28,6 @@ export class AI {
     private autoStartLocal: boolean;
     private localStartCommand: string;
     private startAttempted = false;
-    private debug: boolean;
     private logLevelDebug: boolean;
     private lastReadyMs?: number;
     private lastBootMs?: number;
@@ -60,7 +59,6 @@ export class AI {
         this.localStartCommand = vscode.workspace.getConfiguration().get('tomcat.ai.localStartCommand', 'ollama serve');
         const logLevel = vscode.workspace.getConfiguration().get('tomcat.logLevel', 'INFO').toUpperCase();
         this.logLevelDebug = logLevel === 'DEBUG';
-        this.debug = vscode.workspace.getConfiguration().get('tomcat.ai.debug', false) || this.logLevelDebug;
     }
 
     /**
@@ -94,7 +92,6 @@ export class AI {
         this.localStartCommand = cfg.get('tomcat.ai.localStartCommand', 'ollama serve');
         const logLevel = cfg.get('tomcat.logLevel', 'INFO').toUpperCase();
         this.logLevelDebug = logLevel === 'DEBUG';
-        this.debug = cfg.get('tomcat.ai.debug', false) || this.logLevelDebug;
     }
 
     /**
@@ -425,7 +422,7 @@ export class AI {
                             || parsed?.message?.content
                             || parsed?.text
                             || null;
-                        if (this.debug) {
+                        if (this.logLevelDebug) {
                             const snippet = data.slice(0, 300);
                             this.debugLog(`resp status=${res.statusCode} len=${data.length} text=${text ? text.slice(0, 120) : '<null>'} body=${snippet}`);
                         }
@@ -602,7 +599,7 @@ export class AI {
      * @returns void
      */
     private debugLog(message: string): void {
-        if (this.debug) {
+        if (this.logLevelDebug) {
             this.logSink?.(`AI_DEBUG: ${message}`);
         }
     }
