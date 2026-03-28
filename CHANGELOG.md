@@ -21,6 +21,7 @@
 - Auto-deploy on save now triggers after any save type as intended.
 - Ensure same app deploy reuses existing Tomcat instance and avoids launching duplicate same-app processes.
 - Preserved managed/external instance identity across restarts by rehydrating persisted managed instances from `persistedByPort`.
+- App group tree label now includes discovered app count for quicker overview.
 - AI stream output duplication fixed: stream end no longer reprints already-shown content, and interleaved logs don't duplicate in-flight AI text.
 - Tomcat startup info messages now mapped to DEBUG instead of INFO/APP to reduce noise and maintain semantics.
 

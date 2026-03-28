@@ -151,6 +151,8 @@ export class View implements vscode.TreeDataProvider<
             const apps = await Builder.findJavaEEProjects();
             const instances = await this.tomcat.getInstanceSnapshot();
 
+            element.label = `${t('group.apps')} (${apps.length})`;
+
             const appItems = apps.map((appPath) => {
                 const appName = path.basename(appPath);
                 const instance = instances.find((info) => info.app === appName);
@@ -163,9 +165,11 @@ export class View implements vscode.TreeDataProvider<
 
         if (!element) {
             const instances = await this.tomcat.getInstanceSnapshot();
+            const apps = await Builder.findJavaEEProjects();
+
             const label = `${t('group.instances')} (${instances.length})`;
             const instancesGroup = new InstancesGroup(label);
-            const appsGroup = new AppsGroup(t('group.apps'));
+            const appsGroup = new AppsGroup(`${t('group.apps')} (${apps.length})`);
             const settingsGroup = new SettingsGroup();
             return [instancesGroup, appsGroup, settingsGroup];
         }
