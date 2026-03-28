@@ -104,6 +104,10 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('tomcat.instances.removePort', (item) => view.removePort(item.port)),
         vscode.commands.registerCommand('tomcat.instances.setBuildType', (choice: string) => view.setBuildType(choice)),
         vscode.commands.registerCommand('tomcat.instances.setLogLevel', (choice: string) => view.setLogLevel(choice)),
+        vscode.commands.registerCommand('tomcat.ai.updateSetting', (payload: any) => view.updateAISetting(payload)),
+        vscode.commands.registerCommand('tomcat.ai.addListValue', (element: any) => view.addListValue(element)),
+        vscode.commands.registerCommand('tomcat.ai.removeListValue', (element: any) => view.removeListValue(element)),
+        vscode.commands.registerCommand('tomcat.ai.setProvider', (provider: string) => view.setProvider(provider)),
         vscode.commands.registerCommand('tomcat.instances.openInBrowser', (info) => view.openInstance(info)),
         vscode.commands.registerCommand('tomcat.apps.create', async () => { await view.createApp(); }),
 

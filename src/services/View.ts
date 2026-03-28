@@ -204,7 +204,6 @@ export class View implements vscode.TreeDataProvider<
         if (element instanceof AIListGroup) {
             const groupSetting = element.setting;
             const isAIListGroup = ['endpoint', 'model', 'apiKey', 'localStartCommand'].includes(groupSetting);
-            const isBaseGroup = groupSetting === 'base';
             const isLogEncodingGroup = groupSetting === 'logEncoding';
 
             const listKey = isAIListGroup ? `ai.${groupSetting}s` : `${groupSetting}s`;
@@ -224,15 +223,7 @@ export class View implements vscode.TreeDataProvider<
                 }
             }
 
-            const items: Array<AIListValue | AISettingItem> = listValues.map((value) => new AIListValue(groupSetting, value, value === activeValue));
-            if (isAIListGroup) {
-                items.push(new AISettingItem(groupSetting, t('ai.addOption'), '', 'add', false, 'add'));
-            }
-            if ((isAIListGroup || isBaseGroup) && activeValue && listValues.includes(activeValue)) {
-                const removeLabel = `${t('ai.removeOption')} ${activeValue}`;
-                items.push(new AISettingItem(groupSetting, removeLabel, '', 'trash', false, 'remove', activeValue));
-            }
-
+            const items: Array<AIListValue> = listValues.map((value) => new AIListValue(groupSetting, value, value === activeValue));
             return items;
         }
 
@@ -881,7 +872,7 @@ export class View implements vscode.TreeDataProvider<
 
         if (!setting) { return; }
 
-        const aiSettings = ['endpoint', 'model', 'apiKey', 'localStartCommand'];
+        const aiSettings = ['endpoint', 'model', 'apiKey', 'localStartCommand', 'maxTokens', 'timeoutMs', 'autoStartLocal'];
         const listSettings = ['endpoint', 'model', 'apiKey', 'localStartCommand', 'base', 'logEncoding'];
         const settingsArrayKeys: Record<string, string> = {
             endpoint: 'endpoints',
@@ -1000,8 +991,7 @@ export class View implements vscode.TreeDataProvider<
                 value = Number(input);
                 break;
             }
-            case 'autoStartLocal':
-            case 'debug': {
+            case 'autoStartLocal': {
                 value = !aiConfig(setting);
                 break;
             }
