@@ -197,10 +197,20 @@ describe('Builder Tests', () => {
     });
 
     it('should skip deploy when already deploying', async () => {
-      (builder as any).isDeploying = true;
+      (builder as any).deployingApps = new Set(['project']);
       const deployStub = sandbox.stub(builder, 'deploy').resolves();
       await builder.autoDeploy(vscode.TextDocumentSaveReason.Manual);
       assert.ok(deployStub.notCalled);
+    });
+
+    it('should queue new deploy request and rerun last after current finishes', async () => {
+      const deployStub = sandbox.stub(builder, 'deploy').callThrough();
+      Object.assign(builder, { deployingApps: new Set(['login-module']) });
+      builder['pendingDeployRequests'].set('login-module', { type: 'Local', projectDir: '/test/project', preferActiveProject: false });
+      // simulate finalization loop
+      builder['deployingApps'].delete('login-module');
+      await (builder as any).deploy('Local', '/test/project', false);
+      assert.ok(deployStub.called);
     });
   });
 });

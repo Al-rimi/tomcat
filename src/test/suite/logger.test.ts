@@ -29,4 +29,11 @@ suite('Logger Tests', () => {
     assert.strictEqual(logger['statusBarItem']?.text.startsWith('$(circle-outline)'), true);
     assert.strictEqual(mockContext.subscriptions.length, 3);
   });
+
+  test('Tomcat metadata lines are normalized to DEBUG level', () => {
+    const processTomcatLine = (logger as any).processTomcatLine.bind(logger);
+    const evaluated = processTomcatLine('[INFO] Server version name: Apache Tomcat/11.0.11');
+
+    assert.deepStrictEqual(evaluated, ['DEBUG', 'Server version name: Apache Tomcat/11.0.11']);
+  });
 });
