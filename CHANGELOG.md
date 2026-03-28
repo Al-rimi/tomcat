@@ -3,9 +3,11 @@
 ## [Unreleased]
 ### Added
 - Output panel messages now include app name and port context for multi-app/multi-instance precision.
+- Persistence reload now works correctly on extension startup when global storage path is set, preventing loss of persisted app-to-instance mapping.
 
 ### Changed
 - Instance/app tree view with new app management commands and status context.
+- Tomcat manager now ensures `persistedByPort` is fully seeded before snapshot/route decisions, so restarted instances are labeled with the right app.
 
 ## [4.1.0] - 2026-03-27
 ### Added

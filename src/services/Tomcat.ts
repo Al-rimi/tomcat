@@ -58,6 +58,7 @@ export class Tomcat {
     private currentAppName: string = '';
     private persistedByPort: Map<number, { app?: string; workspace?: string; home?: string; version?: string }> = new Map();
     private storagePath: string | null = null;
+    private persistenceLoadPromise: Promise<void> | null = null;
 
     private readonly PORT_RANGE = { min: 1024, max: 65535 };
 
@@ -77,7 +78,7 @@ export class Tomcat {
         this.protectedWebApps = vscode.workspace.getConfiguration().get<string[]>('tomcat.protectedWebApps', ['ROOT', 'docs', 'examples', 'manager', 'host-manager']);
         this.port = vscode.workspace.getConfiguration().get<number>('tomcat.port', 8080);
         this.managedPids = new Map();
-        void this.loadPersistedInstances();
+        this.persistenceLoadPromise = null;
     }
 
     /**
@@ -210,7 +211,7 @@ export class Tomcat {
         const tomcatHome = await this.findTomcatHome();
         const javaHome = await this.findJavaHome();
         if (!tomcatHome || !javaHome) { return; }
-        await this.loadPersistedInstances();
+        await this.ensurePersistenceLoaded();
         const appName = appNameOverride ?? '';
         const workspace = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || 'workspace';
         const tomcatBase = await this.findTomcatBase(tomcatHome);
@@ -270,7 +271,7 @@ export class Tomcat {
     public async startWithHome(tomcatHome: string, showMessages: boolean = false, appNameOverride?: string): Promise<void> {
         const javaHome = await this.findJavaHome();
         if (!tomcatHome || !javaHome) { return; }
-        await this.loadPersistedInstances();
+        await this.ensurePersistenceLoaded();
         this.tomcatHome = tomcatHome;
         const appName = appNameOverride ?? '';
         const workspace = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || 'workspace';
@@ -573,6 +574,8 @@ export class Tomcat {
      */
     public setStoragePath(storagePath: string): void {
         this.storagePath = storagePath;
+        // Force reload from file when global path becomes available
+        this.persistenceLoadPromise = this.loadPersistedInstances();
     }
 
     /**
@@ -592,6 +595,19 @@ export class Tomcat {
         const folder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
         if (!folder) { return null; }
         return path.join(folder, '.tomcat', 'instances.json');
+    }
+
+    /**
+     * Ensure persistence data is loaded
+     *
+     * Guarantees that any operation depending on persisted metadata waits
+     * until disk-backed instance metadata has been loaded.
+     */
+    private async ensurePersistenceLoaded(): Promise<void> {
+        if (!this.persistenceLoadPromise) {
+            this.persistenceLoadPromise = this.loadPersistedInstances();
+        }
+        await this.persistenceLoadPromise;
     }
 
     /**
@@ -1061,6 +1077,8 @@ export class Tomcat {
      * Discover and manage running Tomcat instances (managed and external)
      */
     public async getInstanceSnapshot(): Promise<Array<{ pid: number; port?: number; app?: string; workspace?: string; command?: string; home?: string; version?: string; source: 'managed' | 'external' }>> {
+        await this.ensurePersistenceLoaded();
+
         const managed = Array.from(this.managedPids.entries())
             .filter(([pid]) => {
                 try {
