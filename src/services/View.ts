@@ -7,6 +7,7 @@ import { Tomcat } from './Tomcat';
 import { Browser } from './Browser';
 import { Logger } from './Logger';
 import { Builder } from './Builder';
+import { AI } from './AI';
 import { t } from '../utils/i18n';
 import { getAppTemplates, getTemplateById } from '../data/appTemplates';
 import { InstanceInfo } from '../types/InstanceInfo';
@@ -14,6 +15,12 @@ import { InstanceItem } from '../components/InstanceItem';
 import { PlaceholderItem } from '../components/PlaceholderItem';
 import { ConfigItem } from '../components/ConfigItem';
 import { SettingsGroup } from '../components/SettingsGroup';
+import { AIGroup } from '../components/AIGroup';
+import { AISettingItem } from '../components/AISettingItem';
+import { AIProviderGroup } from '../components/AIProviderGroup';
+import { AIListGroup } from '../components/AIListGroup';
+import { AIListValue } from '../components/AIListValue';
+import { AdditionalGroup } from '../components/AdditionalGroup';
 import { InstancesGroup } from '../components/InstancesGroup';
 import { AppsGroup } from '../components/AppsGroup';
 import { AppItem } from '../components/AppItem';
@@ -29,7 +36,7 @@ import { PortGroup } from '../components/PortGroup';
 import { PortItem } from '../components/PortItem';
 
 export class View implements vscode.TreeDataProvider<
-    InstanceItem | PlaceholderItem | ConfigItem | SettingsGroup | InstancesGroup | AppsGroup | ActionItem | HomeItem | HomeGroup | BrowserGroup | BrowserOptionItem | JavaHomeItem | JavaHomeGroup | OptionItem | PortGroup | PortItem | AppItem
+    InstanceItem | PlaceholderItem | ConfigItem | SettingsGroup | AIGroup | AIListGroup | AIListValue | AISettingItem | InstancesGroup | AppsGroup | ActionItem | HomeItem | HomeGroup | BrowserGroup | BrowserOptionItem | JavaHomeItem | JavaHomeGroup | OptionItem | PortGroup | PortItem | AppItem
 > {
     private readonly tomcat = Tomcat.getInstance();
     private _onDidChangeTreeData = new vscode.EventEmitter<void>();
@@ -46,11 +53,11 @@ export class View implements vscode.TreeDataProvider<
         this._onDidChangeTreeData.fire();
     }
 
-    getTreeItem(element: InstanceItem | PlaceholderItem | ConfigItem | SettingsGroup | InstancesGroup | ActionItem | HomeItem | HomeGroup | BrowserGroup | BrowserOptionItem | JavaHomeItem | JavaHomeGroup | OptionItem | PortGroup | PortItem): vscode.TreeItem {
+    getTreeItem(element: InstanceItem | PlaceholderItem | ConfigItem | SettingsGroup | AIGroup | AIListGroup | AIListValue | AISettingItem | InstancesGroup | AppsGroup | ActionItem | HomeItem | HomeGroup | BrowserGroup | BrowserOptionItem | JavaHomeItem | JavaHomeGroup | OptionItem | PortGroup | PortItem | AppItem): vscode.TreeItem {
         return element;
     }
 
-    async getChildren(element?: InstanceItem | PlaceholderItem | ConfigItem | SettingsGroup | InstancesGroup | ActionItem | HomeItem | HomeGroup | BrowserGroup | BrowserOptionItem | JavaHomeItem | JavaHomeGroup | OptionItem | PortGroup | PortItem): Promise<Array<InstanceItem | PlaceholderItem | ConfigItem | SettingsGroup | InstancesGroup | ActionItem | HomeItem | HomeGroup | BrowserGroup | BrowserOptionItem | JavaHomeItem | JavaHomeGroup | OptionItem | PortGroup | PortItem>> {
+    async getChildren(element?: InstanceItem | PlaceholderItem | ConfigItem | SettingsGroup | AIGroup | AIListGroup | AIListValue | AISettingItem | InstancesGroup | AppsGroup | ActionItem | HomeItem | HomeGroup | BrowserGroup | BrowserOptionItem | JavaHomeItem | JavaHomeGroup | OptionItem | PortGroup | PortItem | AppItem): Promise<Array<InstanceItem | PlaceholderItem | ConfigItem | SettingsGroup | AIGroup | AIListGroup | AIListValue | AISettingItem | InstancesGroup | AppsGroup | ActionItem | HomeItem | HomeGroup | BrowserGroup | BrowserOptionItem | JavaHomeItem | JavaHomeGroup | OptionItem | PortGroup | PortItem | AppItem>> {
         const config = vscode.workspace.getConfiguration('tomcat');
         const activeHome = config.get<string>('home', '') || '';
         const homes = config.get<string[]>('homes', []) || [];
@@ -109,7 +116,12 @@ export class View implements vscode.TreeDataProvider<
             logLevelGroup.iconPath = new vscode.ThemeIcon('megaphone');
             logLevelGroup.description = currentLogLevel;
 
-            return [homeGroup, javaHomeGroup, browserGroup, autoDeployGroup, logLevelGroup, portGroup, ...configItems];
+            const provider = config.get<string>('ai.provider', 'none');
+            const model = config.get<string>('ai.model', '');
+            const aiGroup = new AIGroup(provider === 'none' ? '' : provider, model);
+            const additionalGroup = new AdditionalGroup();
+
+            return [autoDeployGroup, browserGroup, portGroup, homeGroup, javaHomeGroup, logLevelGroup, aiGroup, additionalGroup, ...configItems];
         }
 
         if (element instanceof HomeGroup) {
@@ -145,6 +157,85 @@ export class View implements vscode.TreeDataProvider<
                 return [new PlaceholderItem(t('instance.noTomcatInstances'))];
             }
             return instanceItems;
+        }
+
+        if (element instanceof AIGroup) {
+            const provider = config.get<string>('ai.provider', 'none');
+            const endpoint = config.get<string>('ai.endpoint', '');
+            const model = config.get<string>('ai.model', '');
+            const apiKey = config.get<string>('ai.apiKey', '');
+            const localStartCommand = config.get<string>('ai.localStartCommand', 'ollama serve');
+            const maxTokens = config.get<number>('ai.maxTokens', 128);
+            const timeoutMs = config.get<number>('ai.timeoutMs', 45000);
+            const autoStartLocal = config.get<boolean>('ai.autoStartLocal', true);
+            const debug = config.get<boolean>('ai.debug', false);
+
+            return [
+                new AIProviderGroup(t('ai.provider'), provider),
+                new AIListGroup('endpoint', t('ai.endpoint'), endpoint),
+                new AIListGroup('model', t('ai.model'), model),
+                new AIListGroup('apiKey', t('ai.apiKey'), apiKey ? '***' : ''),
+                new AIListGroup('localStartCommand', t('ai.localStartCommand'), localStartCommand),
+                new AISettingItem('maxTokens', t('ai.maxTokens'), String(maxTokens), 'symbol-numeric'),
+                new AISettingItem('timeoutMs', t('ai.timeoutMs'), String(timeoutMs), 'clock'),
+                new AISettingItem('autoStartLocal', t('ai.autoStartLocal'), autoStartLocal ? 'On' : 'Off', 'check', autoStartLocal),
+                new AISettingItem('debug', t('ai.debug'), debug ? 'On' : 'Off', 'bug', debug)
+            ];
+        }
+
+        if (element instanceof AIProviderGroup) {
+            const activeProvider = config.get<string>('ai.provider', 'none');
+            const providerOptions = ['none', 'local', 'aliyun-dashscope', 'baichuan', 'zhipu', 'deepseek', 'custom'];
+            return providerOptions.map((option) => new AIListValue('provider', option, option === activeProvider));
+        }
+
+        if (element instanceof AdditionalGroup) {
+            const logEncoding = config.get<string>('logEncoding', 'utf8');
+            const showTimestamp = config.get<boolean>('showTimestamp', true);
+            const autoReloadBrowser = config.get<boolean>('autoReloadBrowser', true);
+            const base = config.get<string>('base', '');
+
+            return [
+                new AIListGroup('base', t('config.base'), base),
+                new AIListGroup('logEncoding', t('config.logEncoding'), logEncoding),
+                new AISettingItem('showTimestamp', t('config.showTimestamp'), showTimestamp ? 'On' : 'Off', 'clock', showTimestamp),
+                new AISettingItem('autoReloadBrowser', t('config.autoReloadBrowser'), autoReloadBrowser ? 'On' : 'Off', 'sync', autoReloadBrowser)
+            ];
+        }
+
+        if (element instanceof AIListGroup) {
+            const groupSetting = element.setting;
+            const isAIListGroup = ['endpoint', 'model', 'apiKey', 'localStartCommand'].includes(groupSetting);
+            const isBaseGroup = groupSetting === 'base';
+            const isLogEncodingGroup = groupSetting === 'logEncoding';
+
+            const listKey = isAIListGroup ? `ai.${groupSetting}s` : `${groupSetting}s`;
+            const settingKey = isAIListGroup ? `ai.${groupSetting}` : groupSetting;
+            const activeValue = config.get<string>(settingKey, '');
+
+            let listValues: string[];
+            if (isLogEncodingGroup) {
+                listValues = ['utf8', 'utf-8', 'utf16le', 'utf-16le', 'ascii', 'latin1', 'binary', 'base64', 'base64url', 'hex', 'ucs2', 'ucs-2'];
+            } else {
+                listValues = config.get<string[]>(listKey, []) || [];
+                if (activeValue && !listValues.includes(activeValue)) {
+                    listValues = [activeValue, ...listValues];
+                }
+                if (groupSetting === 'model' && listValues.length === 0 && activeValue) {
+                    listValues = [activeValue];
+                }
+            }
+
+            const items: Array<AIListValue | AISettingItem> = listValues.map((value) => new AIListValue(groupSetting, value, value === activeValue));
+            if (isAIListGroup) {
+                items.push(new AISettingItem(groupSetting, t('ai.addOption'), '', 'add', false, 'add'));
+            }
+            if ((isAIListGroup || isBaseGroup) && activeValue && listValues.includes(activeValue)) {
+                const removeLabel = `${t('ai.removeOption')} ${activeValue}`;
+                items.push(new AISettingItem(groupSetting, removeLabel, '', 'trash', false, 'remove', activeValue));
+            }
+
+            return items;
         }
 
         if (element instanceof AppsGroup) {
@@ -704,6 +795,311 @@ export class View implements vscode.TreeDataProvider<
         await config.update('logLevel', choice, true);
         Logger.getInstance().updateConfig();
         Logger.getInstance().info(t('instance.logLevelSet', { level: choice }), false);
+        this.refresh();
+    }
+
+    async setProvider(provider: string): Promise<void> {
+        const config = vscode.workspace.getConfiguration('tomcat');
+        await config.update('ai.provider', provider, true);
+
+        AI.getInstance().updateConfig();
+        Logger.getInstance().updateConfig();
+
+        if (!this.validateAIConfig()) {
+            Logger.getInstance().warn(t('ai.invalidConfigReverted'), true);
+            await this.restoreAIConfigDefaults();
+        } else {
+            Logger.getInstance().debug(t('ai.settingUpdated', { key: 'provider', value: provider }), false);
+        }
+
+        this.refresh();
+    }
+
+    async addListValue(element: any): Promise<void> {
+        const setting = typeof element === 'string' ? element : element?.setting;
+        if (!setting) { return; }
+
+        if (setting === 'provider') {
+            Logger.getInstance().warn(t('ai.providerReadOnly'), true);
+            return;
+        }
+
+        if (setting === 'logEncoding') {
+            Logger.getInstance().warn(t('ai.logEncodingReadOnly'), true);
+            return;
+        }
+
+        if (setting === 'base') {
+            const config = vscode.workspace.getConfiguration('tomcat');
+            const selected = await vscode.window.showOpenDialog({
+                canSelectFiles: false,
+                canSelectFolders: true,
+                canSelectMany: false,
+                openLabel: t('instance.addCatalinaBase')
+            });
+            const folder = selected?.[0]?.fsPath;
+            if (!folder) { return; }
+
+            const existing = config.get<string[]>('bases', []) || [];
+            const next = Array.from(new Set([...existing, folder]));
+            await config.update('bases', next, true);
+            await config.update('base', folder, true);
+
+            this.tomcat.updateConfig();
+            Logger.getInstance().updateConfig();
+            Logger.getInstance().info(t('instance.catalinaBaseSet', { path: folder }), false);
+            this.refresh();
+            return;
+        }
+
+        await this.updateAISetting({ setting, action: 'add' });
+    }
+
+    async removeListValue(element: any): Promise<void> {
+        const setting = typeof element === 'string' ? element : element?.setting;
+        const value = element?.value;
+        if (!setting || !value) {
+            return;
+        }
+        if (setting === 'logEncoding') {
+            Logger.getInstance().warn(t('ai.logEncodingReadOnly'), true);
+            return;
+        }
+        await this.updateAISetting({ setting, action: 'remove', value });
+    }
+
+    async updateAISetting(payload: any): Promise<void> {
+        const config = vscode.workspace.getConfiguration('tomcat');
+        const aiConfig = (key: string) => config.get<any>(`ai.${key}`, null);
+
+        // Backward compatibility: string-based call
+        if (typeof payload === 'string') {
+            return this.updateAISetting({ setting: payload });
+        }
+
+        const setting = payload?.setting;
+        const action = payload?.action ?? 'edit';
+        const valueArg = payload?.value;
+
+        if (!setting) { return; }
+
+        const aiSettings = ['endpoint', 'model', 'apiKey', 'localStartCommand'];
+        const listSettings = ['endpoint', 'model', 'apiKey', 'localStartCommand', 'base', 'logEncoding'];
+        const settingsArrayKeys: Record<string, string> = {
+            endpoint: 'endpoints',
+            model: 'models',
+            apiKey: 'apiKeys',
+            localStartCommand: 'localStartCommands',
+            base: 'bases'
+        };
+
+        const isAISetting = aiSettings.includes(setting);
+        const isListSetting = listSettings.includes(setting);
+
+        let value: any;
+
+        if (isListSetting && action === 'select') {
+            const settingKey = isAISetting ? `ai.${setting}` : setting;
+
+            value = valueArg;
+            await config.update(settingKey, value, true);
+
+            if (setting !== 'logEncoding') {
+                const arrayKey = isAISetting ? `ai.${settingsArrayKeys[setting]}` : settingsArrayKeys[setting];
+                const currentList = config.get<string[]>(arrayKey, []) || [];
+                if (!currentList.includes(value)) {
+                    currentList.push(value);
+                    await config.update(arrayKey, currentList, true);
+                }
+            }
+
+            return this.finishAIUpdate(setting, value);
+        }
+
+        if (isListSetting && action === 'add') {
+            if (setting === 'logEncoding') {
+                Logger.getInstance().warn(t('ai.logEncodingReadOnly'), true);
+                return;
+            }
+
+            let prompt = t('ai.endpoint.prompt');
+            let validation: ((v: string) => string | null) | undefined;
+            if (setting === 'model') {
+                prompt = t('ai.model.prompt');
+                validation = (v) => v.trim() ? null : t('ai.model.validation');
+            } else if (setting === 'apiKey') {
+                prompt = t('ai.apiKey.prompt');
+                validation = undefined;
+            } else if (setting === 'localStartCommand') {
+                prompt = t('ai.localStartCommand.prompt');
+                validation = (v) => v.trim() ? null : t('ai.localStartCommand.validation');
+            } else if (setting === 'base') {
+                prompt = t('config.base');
+                validation = undefined;
+            }
+
+            const input = await vscode.window.showInputBox({ prompt, value: valueArg ?? '', validateInput: validation });
+            if (typeof input !== 'string') { return; }
+            value = input.trim();
+
+            const settingKey = isAISetting ? `ai.${setting}` : setting;
+            const arrayKey = isAISetting ? `ai.${settingsArrayKeys[setting]}` : settingsArrayKeys[setting];
+
+            const currentList = config.get<string[]>(arrayKey, []) || [];
+            if (!currentList.includes(value)) {
+                currentList.push(value);
+                await config.update(arrayKey, currentList, true);
+            }
+            await config.update(settingKey, value, true);
+            return this.finishAIUpdate(setting, value);
+        }
+
+        if (isListSetting && action === 'remove') {
+            if (setting === 'logEncoding') {
+                Logger.getInstance().warn(t('ai.logEncodingReadOnly'), true);
+                return;
+            }
+
+            const settingKey = isAISetting ? `ai.${setting}` : setting;
+            const arrayKey = isAISetting ? `ai.${settingsArrayKeys[setting]}` : settingsArrayKeys[setting];
+
+            const currentList = config.get<string[]>(arrayKey, []) || [];
+            const target = valueArg || (isAISetting ? aiConfig(setting) : config.get<string>(setting, ''));
+            if (!target) {
+                return;
+            }
+            const filtered = currentList.filter((item) => item !== target);
+            await config.update(arrayKey, filtered, true);
+
+            const activeValue = isAISetting ? aiConfig(setting) : config.get<string>(setting, '');
+            if (activeValue === target) {
+                await config.update(settingKey, filtered[0] || '', true);
+            }
+
+            return this.finishAIUpdate(setting, filtered[0] || '');
+        }
+
+        switch (setting) {
+            case 'provider': {
+                const providers = ['none', 'local', 'aliyun-dashscope', 'baichuan', 'zhipu', 'deepseek', 'custom'];
+                const pick = await vscode.window.showQuickPick(
+                    providers.map((p) => ({ label: p, description: p === aiConfig('provider') ? t('instance.activeLabel') : '' })),
+                    { placeHolder: t('ai.selectProvider') }
+                );
+                if (!pick) { return; }
+                value = pick.label;
+                break;
+            }
+            case 'maxTokens': {
+                const input = await vscode.window.showInputBox({ prompt: t('ai.maxTokens.prompt'), value: String(aiConfig('maxTokens') || 128), validateInput: (v) => { const n = Number(v); return Number.isInteger(n) && n > 0 ? null : t('ai.maxTokens.validation'); } });
+                if (typeof input !== 'string') { return; }
+                value = Number(input);
+                break;
+            }
+            case 'timeoutMs': {
+                const input = await vscode.window.showInputBox({ prompt: t('ai.timeoutMs.prompt'), value: String(aiConfig('timeoutMs') || 45000), validateInput: (v) => { const n = Number(v); return Number.isInteger(n) && n >= 1000 ? null : t('ai.timeoutMs.validation'); } });
+                if (typeof input !== 'string') { return; }
+                value = Number(input);
+                break;
+            }
+            case 'autoStartLocal':
+            case 'debug': {
+                value = !aiConfig(setting);
+                break;
+            }
+            case 'logEncoding': {
+                const options = ['utf8', 'utf-8', 'utf16le', 'utf-16le', 'ascii', 'latin1', 'binary', 'base64', 'base64url', 'hex', 'ucs2', 'ucs-2'];
+                const current = config.get<string>('logEncoding', 'utf8');
+                const pick = await vscode.window.showQuickPick(
+                    options.map((option) => ({ label: option, description: option === current ? t('instance.activeLabel') : '' })),
+                    { placeHolder: t('config.logEncoding') }
+                );
+                if (!pick) { return; }
+                value = pick.label;
+                break;
+            }
+            case 'showTimestamp': {
+                value = !config.get<boolean>('showTimestamp', true);
+                break;
+            }
+            case 'autoReloadBrowser': {
+                value = !config.get<boolean>('autoReloadBrowser', true);
+                break;
+            }
+            case 'base': {
+                const input = await vscode.window.showInputBox({ prompt: t('config.base'), value: config.get<string>('base', '') });
+                if (typeof input !== 'string') { return; }
+                value = input.trim();
+                break;
+            }
+            case 'javaHome': {
+                const input = await vscode.window.showInputBox({ prompt: t('config.javaHome'), value: config.get<string>('javaHome', '') });
+                if (typeof input !== 'string') { return; }
+                value = input.trim();
+                break;
+            }
+            default:
+                return;
+        }
+
+        const configKey = isAISetting ? `ai.${setting}` : setting;
+        await config.update(configKey, value, true);
+        return this.finishAIUpdate(setting, value, isAISetting);
+    }
+
+    private async finishAIUpdate(setting: string, value: any, validateAI = true): Promise<void> {
+        AI.getInstance().updateConfig();
+        Logger.getInstance().updateConfig();
+
+        if (validateAI && !this.validateAIConfig()) {
+            Logger.getInstance().warn(t('ai.invalidConfigReverted'), true);
+            await this.restoreAIConfigDefaults();
+        } else {
+            Logger.getInstance().debug(t('ai.settingUpdated', { key: setting, value: String(value) }), false);
+        }
+
+        this.refresh();
+    }
+
+    private validateAIConfig(): boolean {
+        const config = vscode.workspace.getConfiguration('tomcat');
+        const provider = config.get<string>('ai.provider', 'none');
+        const endpoint = (config.get<string>('ai.endpoint', '') || '').trim();
+        const model = (config.get<string>('ai.model', '') || '').trim();
+        const maxTokens = config.get<number>('ai.maxTokens', 128);
+        const timeoutMs = config.get<number>('ai.timeoutMs', 45000);
+
+        if (!['none', 'local', 'aliyun-dashscope', 'baichuan', 'zhipu', 'deepseek', 'custom'].includes(provider)) {
+            return false;
+        }
+        if (provider !== 'none' && !endpoint) {
+            return false;
+        }
+        if (provider !== 'none' && !model) {
+            return false;
+        }
+        if (!Number.isInteger(maxTokens) || maxTokens <= 0) {
+            return false;
+        }
+        if (!Number.isInteger(timeoutMs) || timeoutMs < 1000) {
+            return false;
+        }
+        return true;
+    }
+
+    private async restoreAIConfigDefaults(): Promise<void> {
+        const config = vscode.workspace.getConfiguration('tomcat');
+        await config.update('ai.provider', 'none', true);
+        await config.update('ai.endpoint', 'http://127.0.0.1:11434/api/chat', true);
+        await config.update('ai.model', 'qwen2.5:7b', true);
+        await config.update('ai.apiKey', '', true);
+        await config.update('ai.localStartCommand', 'ollama serve', true);
+        await config.update('ai.maxTokens', 128, true);
+        await config.update('ai.timeoutMs', 45000, true);
+        await config.update('ai.autoStartLocal', true, true);
+        await config.update('ai.debug', false, true);
+        AI.getInstance().updateConfig();
+        Logger.getInstance().updateConfig();
         this.refresh();
     }
 }

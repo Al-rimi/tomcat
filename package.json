@@ -187,6 +187,16 @@
         "title": "%command.instances.setPort.title%"
       },
       {
+        "command": "tomcat.ai.addListValue",
+        "title": "AI: Add list entry",
+        "icon": "$(add)"
+      },
+      {
+        "command": "tomcat.ai.removeListValue",
+        "title": "AI: Remove list entry",
+        "icon": "$(trash)"
+      },
+      {
         "command": "tomcat.instances.addPort",
         "title": "%command.instances.addPort.title%",
         "icon": "$(add)"
@@ -209,7 +219,7 @@
       "activitybar": [
         {
           "id": "tomcat",
-          "title": "%view.tomcat.title%",
+          "title": "Tomcat",
           "icon": "resources/tomcat-icon-dark.svg"
         }
       ]
@@ -218,7 +228,7 @@
       "tomcat": [
         {
           "id": "tomcat.instancesView",
-          "name": "%view.tomcat.name%",
+          "name": "Tomcat",
           "icon": "resources/tomcat-icon-dark.svg"
         }
       ]
@@ -302,6 +312,18 @@
           "icon": "$(add)"
         },
         {
+          "command": "tomcat.ai.addListValue",
+          "when": "view == tomcat.instancesView && (viewItem == tomcatAIListGroup || viewItem == tomcatBaseGroup)",
+          "group": "inline",
+          "icon": "$(add)"
+        },
+        {
+          "command": "tomcat.ai.removeListValue",
+          "when": "view == tomcat.instancesView && viewItem == tomcatAIListValue",
+          "group": "inline",
+          "icon": "$(trash)"
+        },
+        {
           "command": "tomcat.instances.removePort",
           "when": "view == tomcat.instancesView && viewItem == tomcatPortEntry",
           "group": "inline",
@@ -318,6 +340,18 @@
           "when": "view == tomcat.instancesView && viewItem == tomcatApp.running",
           "group": "inline",
           "icon": "$(debug-stop)"
+        },
+        {
+          "command": "tomcat.ai.addListValue",
+          "when": "view == tomcat.instancesView && (viewItem == tomcatAIListGroup || viewItem == tomcatBaseGroup)",
+          "group": "inline",
+          "icon": "$(add)"
+        },
+        {
+          "command": "tomcat.ai.removeListValue",
+          "when": "view == tomcat.instancesView && viewItem == tomcatAIListValue",
+          "group": "inline",
+          "icon": "$(trash)"
         }
       ]
     },
@@ -339,6 +373,11 @@
           ],
           "description": "%config.language.description%"
         },
+        "tomcat.ai": {
+          "type": "object",
+          "default": {},
+          "description": "%config.ai.description%"
+        },
         "tomcat.ai.provider": {
           "type": "string",
           "enum": [
@@ -358,20 +397,80 @@
           "default": "http://127.0.0.1:11434/api/chat",
           "description": "%config.ai.endpoint.description%"
         },
+        "tomcat.ai.endpoints": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "http://127.0.0.1:11434/api/chat"
+          ],
+          "description": "%config.ai.endpoints.description%"
+        },
         "tomcat.ai.model": {
           "type": "string",
           "default": "qwen2.5:7b",
           "description": "%config.ai.model.description%"
+        },
+        "tomcat.ai.models": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "qwen2.5:7b"
+          ],
+          "description": "%config.ai.models.description%"
         },
         "tomcat.ai.apiKey": {
           "type": "string",
           "default": "",
           "description": "%config.ai.apiKey.description%"
         },
+        "tomcat.ai.apiKeys": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "%config.ai.apiKeys.description%"
+        },
         "tomcat.ai.localStartCommand": {
           "type": "string",
           "default": "ollama serve",
           "description": "%config.ai.localStartCommand.description%"
+        },
+        "tomcat.ai.localStartCommands": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "ollama serve"
+          ],
+          "description": "%config.ai.localStartCommands.description%"
+        },
+        "tomcat.ai.maxTokens": {
+          "type": "number",
+          "default": 128,
+          "minimum": 1,
+          "description": "%config.ai.maxTokens.description%"
+        },
+        "tomcat.ai.timeoutMs": {
+          "type": "number",
+          "default": 45000,
+          "minimum": 1000,
+          "description": "%config.ai.timeoutMs.description%"
+        },
+        "tomcat.ai.autoStartLocal": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.ai.autoStartLocal.description%"
+        },
+        "tomcat.ai.debug": {
+          "type": "boolean",
+          "default": false,
+          "description": "%config.ai.debug.description%"
         },
         "tomcat.logEncoding": {
           "type": "string",
@@ -486,6 +585,15 @@
           "default": "",
           "scope": "machine",
           "description": "%config.base.description%"
+        },
+        "tomcat.bases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "scope": "machine",
+          "description": "List of configured CATALINA_BASE paths"
         },
         "tomcat.homes": {
           "type": "array",
