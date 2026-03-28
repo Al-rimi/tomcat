@@ -22,6 +22,9 @@
 - Ensure same app deploy reuses existing Tomcat instance and avoids launching duplicate same-app processes.
 - Preserved managed/external instance identity across restarts by rehydrating persisted managed instances from `persistedByPort`.
 - App group tree label now includes discovered app count for quicker overview.
+- AI settings group now shows all AI values as editable tree items with icon + description and single-click action.
+- Boolean AI toggles are represented with circle/check icons and toggled directly on click (no true/false pick list).
+- AI settings validation is run when values change; invalid settings are reverted to defaults with warning.
 - AI stream output duplication fixed: stream end no longer reprints already-shown content, and interleaved logs don't duplicate in-flight AI text.
 - Tomcat startup info messages now mapped to DEBUG instead of INFO/APP to reduce noise and maintain semantics.
 
@@ -113,6 +116,20 @@
 
 ### Fixed
 - Windows path parsing for Maven/Gradle errors, eliminating stale error markers and ensuring jump-to-location reliability.
+
+## [Unreleased]
+### Added
+- Added AI settings summary on AI group title showing selected provider and model with dot separator
+- Added CATALINA_BASE selection support via folder picker and persisted `tomcat.bases` list in settings
+
+### Changed
+- Reordered main settings groups: Build type, Browser, HTTP port, Tomcat home, Java home, Log level, AI, Additional
+- Reordered additional settings group: CATALINA_BASE, Log Encoding, Show Timestamp, Auto Reload Browser
+- Updated AI settings list to hide add/remove for log encoding and make model/provider selection inline
+- Updated Instance item display to omit unknown values instead of showing `n/a`
+
+### Fixed
+- Applied explicit empty placeholder behavior for unknown instance fields and AI provider/model display fallback
 
 ## [2.5.3] - 2025-05-14
 ### Changed
