@@ -8,6 +8,21 @@
 ### Changed
 - Instance/app tree view with new app management commands and status context.
 - Tomcat manager now ensures `persistedByPort` is fully seeded before snapshot/route decisions, so restarted instances are labeled with the right app.
+- `reload`/`stop` operations now emit per-instance app+port status, and `Builder` no longer uses global `tomcat.kill()` for build-specific retries.
+- Tomcat process exit code logging now includes instance app and port context (`tomcat.exitedWithCodeInstance`).
+- Builder now queues only the last repeated “deploy same app” trigger and auto-restarts after current task finishes (no stack of buttons).
+- Logger now preserves AI stream partial text when non-AI logs arrive and keeps AI response continuation visible.
+
+### Fixed
+- Prevented global stop/kill path from stopping all managed instances; stop now targets a single consistent app instance.
+- Clean process no longer calls global java/tomcat kill; it stops only managed instances.
+- Auto-deploy mode toggling no longer triggers accidental deploys when changing deploy mode settings.
+- On Shortcut now uses true save reason from `onWillSaveTextDocument` and only triggers deploy when manual save.
+- Auto-deploy on save now triggers after any save type as intended.
+- Ensure same app deploy reuses existing Tomcat instance and avoids launching duplicate same-app processes.
+- Preserved managed/external instance identity across restarts by rehydrating persisted managed instances from `persistedByPort`.
+- AI stream output duplication fixed: stream end no longer reprints already-shown content, and interleaved logs don't duplicate in-flight AI text.
+- Tomcat startup info messages now mapped to DEBUG instead of INFO/APP to reduce noise and maintain semantics.
 
 ## [4.1.0] - 2026-03-27
 ### Added
