@@ -195,6 +195,22 @@ export class Tomcat {
     }
 
     /**
+     * Kill a managed Tomcat instance by its configured HTTP port.
+     *
+     * This preserves other instances when one deployment triggers a `EBUSY` recovery path.
+     */
+    public async killManagedInstanceByPort(port: number): Promise<void> {
+        const entry = Array.from(this.managedPids.entries()).find(([, meta]) => meta.port === port);
+        if (!entry) {
+            logger.warn(t('tomcat.noInstanceForPort', { port }));
+            return;
+        }
+
+        const [pid] = entry;
+        await this.stopInstanceByPid(pid, true);
+    }
+
+    /**
      * Tomcat server start flow
      * 
      * Orchestrates startup including:
@@ -326,6 +342,26 @@ export class Tomcat {
      * 
      * @log Error if shutdown sequence fails
      */
+    private resolveStoppedContext(pid?: number): { app?: string; port?: number; context?: string } {
+        if (pid) {
+            const meta = this.managedPids.get(pid);
+            if (meta) {
+                return { app: meta.appName, port: meta.port };
+            }
+        }
+        if (this.currentAppName && this.port) {
+            return { app: this.currentAppName, port: this.port };
+        }
+        const persisted = this.persistedByPort.get(this.port);
+        if (persisted?.app) {
+            return { app: persisted.app, port: this.port };
+        }
+        if (pid) {
+            return { context: ` on pid ${pid}` };
+        }
+        return {};
+    }
+
     public async stop(showMessages: boolean = false): Promise<void> {
         const tomcatHome = await this.findTomcatHome();
         const javaHome = await this.findJavaHome();
@@ -339,19 +375,30 @@ export class Tomcat {
 
         try {
             if (this.tomcatProcess) {
+                const pid = this.tomcatProcess.pid;
                 this.tomcatProcess.kill('SIGTERM');
                 this.tomcatProcess = null;
-                logger.success(t('tomcat.stoppedProcess'), showMessages);
-            } else if (this.managedPids.size > 0) {
-                for (const [pid, meta] of Array.from(this.managedPids.entries())) {
-                    try {
-                        process.kill(pid, 'SIGTERM');
-                        logger.info(t('tomcat.stoppedProcess'), showMessages);
-                    } catch { }
-                    this.managedPids.delete(pid);
-                    this.persistedByPort.delete(meta.port);
+                const resolved = this.resolveStoppedContext(pid);
+                if (resolved.app && resolved.port) {
+                    logger.success(t('tomcat.stoppedInstance', { app: resolved.app, port: resolved.port }), showMessages);
+                } else {
+                    logger.success(t('tomcat.stoppedProcess', { context: resolved.context ?? '' }), showMessages);
                 }
-                await this.persistInstances();
+            } else if (this.managedPids.size > 0) {
+                const currentApp = this.currentAppName?.trim();
+                if (currentApp) {
+                    const target = Array.from(this.managedPids.entries()).find(([, meta]) => meta.appName === currentApp);
+                    if (target) {
+                        await this.stopInstanceByPid(target[0], true);
+                    } else {
+                        logger.warn(t('tomcat.noInstanceForApp', { app: currentApp }), showMessages);
+                    }
+                } else if (this.managedPids.size === 1) {
+                    const [pid] = Array.from(this.managedPids.keys());
+                    await this.stopInstanceByPid(pid, true);
+                } else {
+                    logger.warn(t('tomcat.stopMultipleInstancesNotSupported'), showMessages);
+                }
             } else {
                 await this.executeTomcatCommand('stop', tomcatHome, tomcatBase, javaHome);
                 logger.success(t('tomcat.stopped'), showMessages);
@@ -373,18 +420,31 @@ export class Tomcat {
      * 
      * @log Error if reload fails with diagnostic information
      */
-    public async reload(): Promise<void> {
-        const tomcatHome = await this.findTomcatHome();
+    public async getManagedInstanceByPort(port: number): Promise<ManagedTomcat | undefined> {
+        for (const meta of this.managedPids.values()) {
+            if (meta.port === port) {
+                return meta;
+            }
+        }
+        return undefined;
+    }
+
+    public async reload(port?: number, appName?: string): Promise<void> {
+        const instancePort = port ?? this.port;
+        const instance = port ? await this.getManagedInstanceByPort(port) : undefined;
+        const instanceApp = appName || instance?.appName || this.currentAppName || path.basename(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '');
+        const tomcatHome = instance?.home ?? await this.findTomcatHome();
         const javaHome = await this.findJavaHome();
 
         if (!tomcatHome || !javaHome) { return; }
         const tomcatBase = await this.findTomcatBase(tomcatHome);
 
         try {
-            const appName = path.basename(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '');
-            if (!appName) { return; }
+            if (!instanceApp) {
+                throw new Error(t('tomcat.noAppContext'));
+            }
 
-            const response = await fetch(`http://localhost:${this.port}/manager/text/reload?path=/${encodeURIComponent(appName)}`, {
+            const response = await fetch(`http://localhost:${instancePort}/manager/text/reload?path=/${encodeURIComponent(instanceApp)}`, {
                 headers: {
                     'Authorization': `Basic ${Buffer.from('admin:admin').toString('base64')}`
                 }
@@ -393,15 +453,15 @@ export class Tomcat {
             if (!response.ok) {
                 throw new Error(t('tomcat.reloadFailed', { reason: await response.text() }));
             }
-            logger.success(t('tomcat.reloaded'));
+
+            logger.success(t('tomcat.reloadedInstance', { app: instanceApp, port: instancePort }));
         } catch (err) {
-            if (!await this.isTomcatRunning()) {
-                this.start();
+            if (!await this.isPortInUse(instancePort) && !this.managedPids.size) {
+                logger.warn(t('tomcat.reloadFailedNoInstance', { app: instanceApp, port: instancePort }));
                 return;
-            } else {
-                logger.warn(t('tomcat.reloadAddingUser'));
-                await this.addTomcatUser(tomcatBase);
             }
+            logger.warn(t('tomcat.reloadAddingUser'));
+            await this.addTomcatUser(tomcatBase);
         }
     }
 
@@ -429,7 +489,11 @@ export class Tomcat {
         }
 
         try {
-            await this.kill();
+            if (this.managedPids.size > 0) {
+                for (const [pid] of Array.from(this.managedPids.entries())) {
+                    await this.stopInstanceByPid(pid, true);
+                }
+            }
             const entries = fs.readdirSync(webappsDir, { withFileTypes: true });
 
             for (const entry of entries) {
@@ -475,6 +539,30 @@ export class Tomcat {
      *
      * Removes both exploded folder and war file (if present), and reloads Tomcat to apply.
      */
+    private async cleanupAppMappings(appName: string): Promise<void> {
+        for (const [pid, meta] of this.managedPids.entries()) {
+            if (meta.appName === appName) {
+                this.managedPids.delete(pid);
+            }
+        }
+        for (const [port, meta] of this.persistedByPort.entries()) {
+            if (meta.app === appName) {
+                this.persistedByPort.delete(port);
+            }
+        }
+        this.syncPersistedFromManaged();
+        await this.persistInstances();
+    }
+
+    public async stopInstanceByApp(appName: string): Promise<void> {
+        for (const [pid, meta] of this.managedPids.entries()) {
+            if (meta.appName === appName) {
+                await this.stopInstanceByPid(pid, true);
+                return;
+            }
+        }
+    }
+
     public async undeployApp(appName: string): Promise<void> {
         const tomcatHome = await this.findTomcatHome();
         if (!tomcatHome) { return; }
@@ -485,19 +573,61 @@ export class Tomcat {
             const appDir = path.join(webappsDir, appName);
             const warFile = path.join(webappsDir, `${appName}.war`);
 
-            if (fs.existsSync(appDir)) {
-                fs.rmSync(appDir, { recursive: true, force: true });
-                logger.info(t('tomcat.appUndeployed', { app: appName }));
-            }
+            const removeApp = async () => {
+                if (fs.existsSync(appDir)) {
+                    fs.rmSync(appDir, { recursive: true, force: true });
+                    logger.info(t('tomcat.appUndeployed', { app: appName }));
+                }
+                if (fs.existsSync(warFile)) {
+                    fs.rmSync(warFile, { force: true });
+                    logger.info(t('tomcat.appWarRemoved', { app: appName }));
+                }
+            };
 
-            if (fs.existsSync(warFile)) {
-                fs.rmSync(warFile, { force: true });
-                logger.info(t('tomcat.appWarRemoved', { app: appName }));
+            try {
+                await removeApp();
+            } catch (innerErr) {
+                if (String(innerErr).includes('EBUSY') || String(innerErr).includes('in use')) {
+                    logger.warn(t('tomcat.appUndeployBusy', { app: appName }));
+                    await this.stopInstanceByApp(appName);
+
+                    // give the process a moment to release handles
+                    await new Promise(resolve => setTimeout(resolve, 750));
+
+                    try {
+                        await removeApp();
+                    } catch (innerErr2) {
+                        if (String(innerErr2).includes('EBUSY') || String(innerErr2).includes('in use')) {
+                            logger.warn(t('tomcat.appUndeployForceCleanup', { app: appName }));
+                            await this.cleanupAppMappings(appName);
+                        } else {
+                            throw innerErr2;
+                        }
+                    }
+                } else {
+                    throw innerErr;
+                }
             }
 
             if (await this.isTomcatRunning()) {
                 await this.reload();
             }
+
+            // Clear internal mapping for undeployed app so View no longer shows it as running.
+            for (const [pid, meta] of this.managedPids.entries()) {
+                if (meta.appName === appName) {
+                    meta.appName = '';
+                    this.managedPids.set(pid, meta);
+                }
+            }
+            for (const [port, meta] of this.persistedByPort.entries()) {
+                if (meta.app === appName) {
+                    this.persistedByPort.delete(port);
+                }
+            }
+            await this.syncPersistedFromManaged();
+            await this.persistInstances();
+
             logger.success(t('tomcat.appUndeploySuccess', { app: appName }));
         } catch (err) {
             logger.error(t('tomcat.appUndeployFailed', { app: appName }), true, err as string);
@@ -1059,11 +1189,26 @@ export class Tomcat {
 
                 resolve(child);
 
-                child.on('close', (code) => {
+                child.on('close', async (code) => {
                     this.tomcatProcess = null;
+                    const app = this.currentAppName || this.persistedByPort.get(this.port)?.app || 'unknown';
+                    const port = this.port;
+
                     if (code && code !== 0) {
-                        logger.info(t('tomcat.exitedWithCode', { code }));
+                        logger.info(t('tomcat.exitedWithCodeInstance', { code, app, port }));
+                        this.currentAppName = '';
                     }
+
+                    // Clean up stale managed metadata immediately after process terminates.
+                    if (child.pid) {
+                        const meta = this.managedPids.get(child.pid);
+                        if (meta) {
+                            this.managedPids.delete(child.pid);
+                            this.persistedByPort.delete(meta.port);
+                            await this.persistInstances();
+                        }
+                    }
+                    this.syncPersistedFromManaged();
                 });
             });
         } else {
@@ -1107,6 +1252,11 @@ export class Tomcat {
                 source: 'managed' as const
             }));
 
+        // Avoid stale app identity propagation when all managed instances are gone.
+        if (managed.length === 0) {
+            this.currentAppName = '';
+        }
+
         const external = await this.detectExternalInstances();
         const managedPorts = new Set(managed.map(m => m.port).filter((p): p is number => typeof p === 'number'));
         const filteredExternal = external
@@ -1117,7 +1267,26 @@ export class Tomcat {
             .map(ext => {
                 const persisted = ext.port ? this.persistedByPort.get(ext.port) : undefined;
                 if (persisted) {
-                    return { ...ext, app: persisted.app, workspace: persisted.workspace, home: persisted.home, version: persisted.version };
+                    // Rehydrate as managed if we previously owned this port/app.
+                    const managedMeta: ManagedTomcat = {
+                        appName: persisted.app ?? '',
+                        workspace: persisted.workspace ?? '',
+                        home: persisted.home ?? '',
+                        port: ext.port!,
+                        shutdownPort: undefined,
+                        pid: ext.pid,
+                        startedAt: Date.now(),
+                        version: persisted.version
+                    };
+                    this.managedPids.set(ext.pid, managedMeta);
+                    return {
+                        ...ext,
+                        app: persisted.app,
+                        workspace: persisted.workspace,
+                        home: persisted.home,
+                        version: persisted.version,
+                        source: 'managed' as const
+                    };
                 }
                 return ext;
             });
@@ -1138,6 +1307,18 @@ export class Tomcat {
      * 3) Start a new managed instance and assign the app
      */
     public async ensureDeploymentTarget(appName: string): Promise<{ home: string; port: number; base: string }> {
+        // Always refresh running instances first to avoid launching duplicates for same app.
+        const snapshot = await this.getInstanceSnapshot();
+        const existing = snapshot.find(i => i.app === appName && i.source === 'managed');
+        if (existing && existing.home && existing.port !== undefined) {
+            this.currentAppName = appName;
+            this.port = existing.port;
+            this.tomcatHome = existing.home;
+            const base = await this.findTomcatBase(existing.home);
+            this.tomcatBase = base;
+            return { home: existing.home, port: existing.port, base };
+        }
+
         const pickManaged = () => {
             const managed = Array.from(this.managedPids.entries());
             const sameApp = managed.find(([, meta]) => meta.appName === appName);
@@ -1180,9 +1361,26 @@ export class Tomcat {
      * @param pid Process ID to stop
      * @param force Force kill option
      */
+    private async findInstanceMetaByPid(pid: number): Promise<{ app?: string; port?: number; source?: 'managed' | 'external' }> {
+        const managed = this.managedPids.get(pid);
+        if (managed) {
+            return { app: managed.appName, port: managed.port, source: 'managed' };
+        }
+
+        const snapshot = await this.getInstanceSnapshot();
+        const found = snapshot.find(i => i.pid === pid);
+        if (found) {
+            return { app: found.app, port: found.port, source: found.source };
+        }
+
+        return {};
+    }
+
     public async stopInstanceByPid(pid: number, force: boolean = false): Promise<void> {
         const isWindows = process.platform === 'win32';
         const meta = this.managedPids.get(pid);
+        let resolvedMeta = await this.findInstanceMetaByPid(pid);
+
         try {
             if (isWindows) {
                 const base = `taskkill /PID ${pid}`;
@@ -1222,7 +1420,13 @@ export class Tomcat {
                 this.persistedByPort.delete(meta.port);
                 await this.persistInstances();
             }
-            logger.success(t('tomcat.stoppedProcess'), false);
+
+            if (resolvedMeta.app && resolvedMeta.port) {
+                logger.success(t('tomcat.stoppedInstance', { app: resolvedMeta.app, port: resolvedMeta.port }), false);
+            } else {
+                const context = resolvedMeta.port ? ` on port ${resolvedMeta.port}` : ` on pid ${pid}`;
+                logger.success(t('tomcat.stoppedProcess', { context }), false);
+            }
         } catch (err) {
             const message = String(err);
             if (isWindows && message.includes('not found')) {

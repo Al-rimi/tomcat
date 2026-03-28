@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { t } from '../utils/i18n';
-import { Builder } from '../services/Builder';
 
 export class AppItem extends vscode.TreeItem {
     constructor(
@@ -19,18 +18,9 @@ export class AppItem extends vscode.TreeItem {
         this.description = portHint;
         this.tooltip = `${t('app.tooltip')}: ${appPath}`;
 
-        const isAnyDeploying = Builder.getInstance().isDeployingInProgress();
-
         if (isDeploying) {
             this.contextValue = 'tomcatApp.deploying';
             this.iconPath = new vscode.ThemeIcon('sync~spin');
-            this.command = undefined;
-            return;
-        }
-
-        if (isAnyDeploying) {
-            this.contextValue = 'tomcatApp.busy';
-            this.iconPath = new vscode.ThemeIcon(isRunning ? 'play-circle' : 'circle-outline');
             this.command = undefined;
             return;
         }

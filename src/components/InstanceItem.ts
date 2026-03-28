@@ -30,7 +30,7 @@ export class InstanceItem extends vscode.TreeItem {
         this.description = descriptionParts.join(' · ');
         this.tooltip = tooltipLines.join('\n');
         this.contextValue = 'tomcatInstance';
-        this.iconPath = new vscode.ThemeIcon(info.source === 'managed' ? 'server-process' : 'plug');
+        this.iconPath = new vscode.ThemeIcon(info.source === 'managed' ? 'server' : 'server-process');
         this.command = {
             command: 'tomcat.instances.openInBrowser',
             title: t('instance.openInBrowser'),
