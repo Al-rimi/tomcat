@@ -14,17 +14,17 @@ export class InstanceItem extends vscode.TreeItem {
         super(label, vscode.TreeItemCollapsibleState.None);
         const descriptionParts = [
             info.version ? `v${info.version}` : '',
-            `${t('label.port')} ${info.port ?? t('label.na')}`,
-            info.app ?? info.workspace ?? t('label.na')
+            info.port ? `${t('label.port')} ${info.port}` : '',
+            info.app || info.workspace || ''
         ].filter(Boolean);
 
         const tooltipLines = [
             `${t('label.pid')}: ${info.pid}`,
-            `${t('label.port')}: ${info.port ?? t('label.na')}`,
+            info.port ? `${t('label.port')}: ${info.port}` : undefined,
             info.version ? `${t('label.version')}: ${info.version}` : undefined,
-            `${t('group.home')}: ${info.home ?? t('label.na')}`,
-            `${t('label.workspace')}: ${info.workspace ?? t('label.na')}`,
-            `${t('label.command')}: ${info.command ?? t('label.na')}`
+            info.home ? `${t('group.home')}: ${info.home}` : undefined,
+            info.workspace ? `${t('label.workspace')}: ${info.workspace}` : undefined,
+            info.command ? `${t('label.command')}: ${info.command}` : undefined
         ].filter(Boolean);
 
         this.description = descriptionParts.join(' · ');
