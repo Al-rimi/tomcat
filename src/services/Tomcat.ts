@@ -136,6 +136,20 @@ export class Tomcat {
     }
 
     /**
+     * Get current app name context
+     */
+    public getAppName(): string {
+        return this.currentAppName;
+    }
+
+    /**
+     * Get current configured port
+     */
+    public getPort(): number {
+        return this.port;
+    }
+
+    /**
      * Process liveness check
      *
      * Validates whether a PID is still alive:

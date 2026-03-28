@@ -1,6 +1,11 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- Output panel messages now include app name and port context for multi-app/multi-instance precision.
+
+### Changed
+- Instance/app tree view with new app management commands and status context.
 
 ## [4.1.0] - 2026-03-27
 ### Added

@@ -326,7 +326,8 @@ export class Builder {
             const duration = Math.round(endTime - startTime);
 
             if (fs.existsSync(targetDir)) {
-                logger.success(t('builder.buildCompleted', { type: typeLabel, duration }), isChoice);
+                const port = Tomcat.getInstance().getPort();
+                logger.success(t('builder.buildCompletedWithApp', { type: typeLabel, app: appName, port, duration }), isChoice);
                 await new Promise(resolve => setTimeout(resolve, 100));
                 await tomcat.reload();
             }
@@ -343,7 +344,8 @@ export class Builder {
                 const typeLabel = ['Local', 'Maven', 'Gradle'].includes(type as string)
                     ? translateBuildType(type as BuildType)
                     : translateBuildType(this.buildType as BuildType);
-                logger.error(t('builder.buildFailed', { type: typeLabel }), isChoice, err as string);
+                const port = Tomcat.getInstance().getPort();
+                logger.error(t('builder.buildFailedWithApp', { type: typeLabel, app: appName, port }), isChoice, err as string);
             }
             logger.defaultStatusBar();
         } finally {
