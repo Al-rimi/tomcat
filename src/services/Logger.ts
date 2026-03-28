@@ -23,6 +23,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { AI } from './AI';
+import { Builder } from './Builder';
 import { DeployMode, t, translateDeployMode } from '../utils/i18n';
 
 export class Logger {
@@ -34,6 +35,10 @@ export class Logger {
     private statusBarIdleText = '';
     private statusBarIdleTooltip?: string | vscode.MarkdownString;
     private aiBusy = false;
+    private aiStreaming = false;
+    private aiStreamingLineStarted = false;
+    private aiStreamingInterrupted = false;
+    private aiStreamingTotal = '';
     private currentLogFile: string | null = null;
     private fileCheckInterval?: NodeJS.Timeout;
     private logWatchers: { file: string; listener: fs.StatsListener }[] = [];
@@ -43,7 +48,6 @@ export class Logger {
     private showTimestamp: boolean;
     private logEncoding: string;
     private diagnostics: vscode.DiagnosticCollection;
-    private aiStreaming = false;
     private logLevels: { [key: string]: number } = {
         DEBUG: 0,
         INFO: 1,
@@ -56,13 +60,13 @@ export class Logger {
 
     private readonly TOMCAT_FILTERS = [
         /^Loaded Apache Tomcat Native library/,
-        /^org.apache.catalina.startup.VersionLoggerListener log/,
+        /^org\.apache\.catalina\.startup\.VersionLoggerListener log/,
         /^OpenSSL successfully initialized/,
         /^At least one JAR was scanned for TLDs/,
         /^Log4j API could not find a logging provider/,
         /^You need to add "--add-opens"/,
         /^Match \[Context\] failed to set property/,
-        /^org.apache.catalina.core.ApplicationContext log/,
+        /^org\.apache\.catalina\.core\.ApplicationContext log/,
         /^Manager: init:/,
         /^Reloading Context with name/,
         /^SessionListener: contextInitialized/,
@@ -75,6 +79,36 @@ export class Logger {
         /^Java Home:/,
         /^JVM Version:/,
         /^CATALINA_/
+    ];
+
+    private readonly TOMCAT_METADATA_TO_DEBUG = [
+        /^Server version name:/,
+        /^Server built:/,
+        /^OS Name:/,
+        /^OS Version:/,
+        /^Architecture:/,
+        /^Java Home:/,
+        /^JVM Version:/,
+        /^JVM Vendor:/,
+        /^CATALINA_BASE:/,
+        /^CATALINA_HOME:/,
+        /^Command line argument:/,
+        /^Loaded Apache Tomcat Native library/,
+        /^OpenSSL successfully initialized/,
+        /^Starting ProtocolHandler/,
+        /^Starting service \[Catalina\]/,
+        /^Starting Servlet engine:/,
+        /^Deployment of web application (archive|directory)/,
+        /^Reloading Context with name/,
+        /^ContextListener:/,
+        /^SessionListener:/,
+        /^Manager: init:/,
+        /^HostConfig undeploy/,
+        /^Undeploying context/,
+        /^At least one JAR was scanned for TLDs/,
+        /^Match \[Context\] failed to set property/,
+        /^Log4j API could not find a logging provider/,
+        /^You need to add/m
     ];
 
     /**
@@ -302,36 +336,78 @@ export class Logger {
     public aiNote(message: string): void {
         if (message.startsWith('AI_STREAM_START:')) {
             this.aiStreaming = true;
-            const body = message.replace('AI_STREAM_START:', '').trim();
-            const timestamp = this.showTimestamp ? `[${new Date().toLocaleString()}] ` : '';
-            this.outputChannel.append(`${timestamp}[AI] ${body}`);
+            this.aiStreamingLineStarted = false;
+            this.aiStreamingInterrupted = false;
+            this.aiStreamingTotal = '';
+
+            const initial = message.replace('AI_STREAM_START:', '').trim();
+            if (initial) {
+                this.aiNote(`AI_STREAM_CHUNK:${initial}`);
+            }
             return;
         }
 
         if (message.startsWith('AI_STREAM_CHUNK:')) {
-            if (this.aiStreaming) {
-                const body = message.replace('AI_STREAM_CHUNK:', '');
+            if (!this.aiStreaming) return;
+
+            const body = message.replace('AI_STREAM_CHUNK:', '');
+            const newTotal = this.aiStreamingTotal + body;
+
+            if (!this.aiStreamingLineStarted) {
+                const timestamp = this.showTimestamp ? `[${new Date().toLocaleString()}] ` : '';
+                if (this.aiStreamingInterrupted) {
+                    this.outputChannel.append(`${timestamp}[AI] ${newTotal}`);
+                    this.aiStreamingInterrupted = false;
+                } else {
+                    this.outputChannel.append(`${timestamp}[AI] ${body}`);
+                }
+                this.aiStreamingLineStarted = true;
+            } else {
                 this.outputChannel.append(body);
             }
+
+            this.aiStreamingTotal = newTotal;
             return;
         }
 
         if (message.startsWith('AI_STREAM_END')) {
-            if (this.aiStreaming) {
-                this.outputChannel.append('\n');
+            if (!this.aiStreaming) return;
+
+            if (this.aiStreamingLineStarted) {
+                this.outputChannel.appendLine('');
+                this.aiStreamingLineStarted = false;
             }
+
+            // Completed stream; already emitted all tokens in chunks.
             this.aiStreaming = false;
+            this.aiStreamingTotal = '';
+            this.aiStreamingInterrupted = false;
             return;
         }
 
         const isDebug = message.startsWith('AI_DEBUG:');
+        const timestamp = this.showTimestamp ? `[${new Date().toLocaleString()}] ` : '';
+
+        if (this.aiStreaming) {
+            if (this.aiStreamingLineStarted) {
+                // Close current streaming line before logging non-stream AI messages
+                this.outputChannel.appendLine('');
+                this.aiStreamingLineStarted = false;
+                this.aiStreamingInterrupted = true;
+            }
+
+            const body = isDebug ? message.replace('AI_DEBUG:', '').trim() : message;
+            const levelTag = isDebug ? '[debug] [AI]' : '[AI]';
+            this.outputChannel.appendLine(`${timestamp}${levelTag} ${body}`);
+            return;
+        }
+
         if (isDebug && this.logLevels[this.logLevel] > this.logLevels.DEBUG) {
             return; // honor current log level for debug noise
         }
 
         const body = isDebug ? message.replace('AI_DEBUG:', '').trim() : message;
         const levelTag = isDebug ? '[debug] [AI]' : '[AI]';
-        const timestamp = this.showTimestamp ? `[${new Date().toLocaleString()}] ` : '';
         this.outputChannel.appendLine(`${timestamp}${levelTag} ${body}`);
     }
 
@@ -388,6 +464,7 @@ export class Logger {
         }
 
         await vscode.workspace.getConfiguration().update('tomcat.autoDeployMode', this.autoDeployMode, true);
+        Builder.getInstance().suppressAutoDeploy(1200);
         this.defaultStatusBar();
     }
 
@@ -477,7 +554,11 @@ export class Logger {
             };
 
             const level = Object.keys(levelMap).find(l => cleanLine.includes(l)) || 'INFO';
-            const mappedLevel = levelMap[level];
+            let mappedLevel = levelMap[level];
+
+            if (this.TOMCAT_METADATA_TO_DEBUG.some(pattern => pattern.test(message))) {
+                mappedLevel = 'DEBUG';
+            }
 
             return [mappedLevel, message];
         }
@@ -515,8 +596,11 @@ export class Logger {
             return ['DEBUG', cleanLine];
         }
 
-        if (this.TOMCAT_FILTERS.some(pattern => pattern.test(cleanLine)) ||
-            cleanLine.trim().length === 0 ||
+        if (this.TOMCAT_FILTERS.some(pattern => pattern.test(cleanLine))) {
+            return ['DEBUG', cleanLine];
+        }
+
+        if (cleanLine.trim().length === 0 ||
             cleanLine.includes('API could not find a logging provider.')) {
             return null;
         }
@@ -773,6 +857,14 @@ export class Logger {
         if (messageLevelValue < this.logLevels[this.logLevel]) return;
 
         const timestamp = this.showTimestamp ? `[${new Date().toLocaleString()}] ` : '';
+
+        if (this.aiStreaming && this.aiStreamingLineStarted && !this.aiStreamingInterrupted) {
+            // Close current AI typing line once when another log appears during stream.
+            this.outputChannel.appendLine('');
+            this.aiStreamingLineStarted = false;
+            this.aiStreamingInterrupted = true;
+        }
+
         const formattedMessage = `${timestamp}[${level}] ${message}`;
 
         this.outputChannel.appendLine(formattedMessage);
