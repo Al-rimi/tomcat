@@ -279,7 +279,7 @@ This release focuses on reliability and usability for multi-app workflows, safer
 - Improved AI UX: AI settings are clearer in the tree view (provider/model shown), boolean toggles work inline, and AI stream duplication is reduced.
 - Cleaner logging: process exit logs include instance context and Tomcat startup messages are quieter (moved to DEBUG).
 
-[See the full changelog](https://github.com/Al-rimi/tomcat/blob/main/CHANGELOG.md) for details.
+See the full [changelog](https://github.com/Al-rimi/tomcat/blob/main/CHANGELOG.md) for details.
 
 ---
 
