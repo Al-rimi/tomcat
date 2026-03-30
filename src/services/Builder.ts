@@ -163,12 +163,12 @@ export class Builder {
         const toScan = new Set<string>();
 
         const workspaceFolders = vscode.workspace.workspaceFolders?.map(f => f.uri.fsPath) || [];
-        if (baseDir) {toScan.add(baseDir);}
+        if (baseDir) { toScan.add(baseDir); }
         workspaceFolders.forEach(folder => toScan.add(folder));
 
         const walk = (dir: string, depth = 0) => {
-            if (depth > 5 || roots.has(dir)) {return;}
-            if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) {return;}
+            if (depth > 5 || roots.has(dir)) { return; }
+            if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) { return; }
             if (Builder.isJavaEEProjectRoot(dir)) {
                 roots.add(dir);
                 return;
@@ -290,8 +290,9 @@ export class Builder {
 
         tomcat.setAppName(appName);
 
-        const target = await tomcat.ensureDeploymentTarget(appName);
-        const tomcatHome = target.home;
+        const preBuildTarget = await tomcat.ensureDeploymentTarget(appName, false);
+        const tomcatHome = preBuildTarget.home;
+        const defaultPort = preBuildTarget.port;
 
         if (!tomcatHome || !appName || !fs.existsSync(path.join(tomcatHome, 'webapps'))) { return; }
 
@@ -302,6 +303,7 @@ export class Builder {
         this.currentDeployingApp = appName;
         this.emitStateChange();
 
+        let buildSucceeded = false;
         try {
             const action = {
                 'Local': () => this.localDeploy(projectDir, targetDir, tomcatHome),
@@ -330,32 +332,41 @@ export class Builder {
                 await action();
             }
 
+            buildSucceeded = true;
             logger.defaultStatusBar();
 
             const endTime = performance.now();
             const duration = Math.round(endTime - startTime);
 
-            if (fs.existsSync(targetDir)) {
-                const port = Tomcat.getInstance().getPort();
+            if (buildSucceeded && fs.existsSync(targetDir)) {
+                const successfulInstance = (await tomcat.getInstanceSnapshot()).some(i => i.app === appName && i.source === 'managed');
+                const activeTarget = await tomcat.ensureDeploymentTarget(appName, true);
+                const port = activeTarget.port;
                 logger.success(t('builder.buildCompletedWithApp', { type: typeLabel, app: appName, port, duration }), isChoice);
-                await new Promise(resolve => setTimeout(resolve, 100));
-                await tomcat.reload(port, appName);
+
+                if (successfulInstance) {
+                    logger.info(t('builder.deployingAppAfterBuild', { app: appName, port }), true);
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    await tomcat.reload(port, appName);
+                } else {
+                    logger.info(t('builder.startingTomcatAfterBuild', { app: appName }), false);
+                }
             }
 
             this.attempts = 0;
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : String(err);
             const isBusyError = errorMessage.includes('EBUSY') || errorMessage.includes('resource busy or locked');
+            const port = defaultPort ?? Tomcat.getInstance().getPort();
+
             if (isBusyError && this.attempts < 3) {
                 this.attempts++;
-                const port = Tomcat.getInstance().getPort();
                 await tomcat.killManagedInstanceByPort(port);
                 await this.deploy(type, projectDir, preferActiveProject);
             } else {
                 const typeLabel = ['Local', 'Maven', 'Gradle'].includes(type as string)
                     ? translateBuildType(type as BuildType)
                     : translateBuildType(this.buildType as BuildType);
-                const port = Tomcat.getInstance().getPort();
                 logger.error(t('builder.buildFailedWithApp', { type: typeLabel, app: appName, port }), isChoice, err as string);
             }
             logger.defaultStatusBar();
@@ -495,7 +506,7 @@ export class Builder {
             throw new Error(t('builder.webAppMissing', { path: webAppPath }));
         }
         const javaHome = await tomcat.findJavaHome();
-        if (!javaHome) {return;}
+        if (!javaHome) { return; }
 
         const javacPath = path.join(javaHome, 'bin', 'javac');
         const javaSourcePath = path.join(projectDir, 'src', 'main', 'java');

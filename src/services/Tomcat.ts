@@ -52,6 +52,7 @@ export class Tomcat {
     private javaHome: string;
     private protectedWebApps: string[];
     private port: number;
+    private shutdownPort: number;
     private tomcatProcess: ChildProcess | null = null;
     private managedPids: Map<number, ManagedTomcat>; // track managed instances by PID
     private versionCache: Map<string, string> = new Map();
@@ -77,6 +78,7 @@ export class Tomcat {
         this.javaHome = vscode.workspace.getConfiguration().get<string>('tomcat.javaHome', '');
         this.protectedWebApps = vscode.workspace.getConfiguration().get<string[]>('tomcat.protectedWebApps', ['ROOT', 'docs', 'examples', 'manager', 'host-manager']);
         this.port = vscode.workspace.getConfiguration().get<number>('tomcat.port', 8080);
+        this.shutdownPort = 8005;
         this.managedPids = new Map();
         this.persistenceLoadPromise = null;
     }
@@ -234,15 +236,16 @@ export class Tomcat {
 
         this.currentAppName = appName;
 
-        // allocate a free port to avoid clashing with other instances
+        // allocate a free port pair (HTTP port + shutdown port)
         const desiredPortFromConfig = vscode.workspace.getConfiguration().get<number>('tomcat.port', this.port);
         const preferredPort = this.getPersistedPort(appName, workspace) ?? desiredPortFromConfig;
-        const availablePort = await this.findAvailablePort(preferredPort);
-        if (availablePort !== preferredPort) {
-            logger.debug(t('tomcat.portAdjusted', { from: preferredPort, to: availablePort }), false);
+        const { httpPort, shutdownPort } = await this.findAvailablePortPair(preferredPort);
+        if (httpPort !== preferredPort) {
+            logger.debug(t('tomcat.portAdjusted', { from: preferredPort, to: httpPort }), false);
         }
-        this.port = availablePort;
-        await this.modifyServerXmlPort(tomcatBase, this.port);
+        this.port = httpPort;
+        this.shutdownPort = shutdownPort;
+        await this.modifyServerXmlPort(tomcatBase, this.port, this.shutdownPort);
 
         try {
             const child = await this.executeTomcatCommand('start', tomcatHome, tomcatBase, javaHome);
@@ -295,14 +298,16 @@ export class Tomcat {
 
         this.currentAppName = appName;
 
+        // allocate a free port pair (HTTP port + shutdown port)
         const desiredPortFromConfig = vscode.workspace.getConfiguration().get<number>('tomcat.port', this.port);
         const preferredPort = this.getPersistedPort(appName, workspace) ?? desiredPortFromConfig;
-        const availablePort = await this.findAvailablePort(preferredPort);
-        if (availablePort !== preferredPort) {
-            logger.debug(t('tomcat.portAdjusted', { from: preferredPort, to: availablePort }), false);
+        const { httpPort, shutdownPort } = await this.findAvailablePortPair(preferredPort);
+        if (httpPort !== preferredPort) {
+            logger.debug(t('tomcat.portAdjusted', { from: preferredPort, to: httpPort }), false);
         }
-        this.port = availablePort;
-        await this.modifyServerXmlPort(tomcatBase, this.port);
+        this.port = httpPort;
+        this.shutdownPort = shutdownPort;
+        await this.modifyServerXmlPort(tomcatBase, this.port, this.shutdownPort);
 
         try {
             const child = await this.executeTomcatCommand('start', tomcatHome, tomcatBase, javaHome);
@@ -330,37 +335,6 @@ export class Tomcat {
         }
     }
 
-    /**
-     * Tomcat server shutdown procedure
-     * 
-     * Implements controlled server shutdown:
-     * 1. Verifies running state
-     * 2. Executes platform-specific shutdown command
-     * 3. Handles shutdown timeouts
-     * 4. Verifies process termination
-     * 5. Cleans up residual resources
-     * 
-     * @log Error if shutdown sequence fails
-     */
-    private resolveStoppedContext(pid?: number): { app?: string; port?: number; context?: string } {
-        if (pid) {
-            const meta = this.managedPids.get(pid);
-            if (meta) {
-                return { app: meta.appName, port: meta.port };
-            }
-        }
-        if (this.currentAppName && this.port) {
-            return { app: this.currentAppName, port: this.port };
-        }
-        const persisted = this.persistedByPort.get(this.port);
-        if (persisted?.app) {
-            return { app: persisted.app, port: this.port };
-        }
-        if (pid) {
-            return { context: ` on pid ${pid}` };
-        }
-        return {};
-    }
 
     public async stop(showMessages: boolean = false): Promise<void> {
         const tomcatHome = await this.findTomcatHome();
@@ -376,20 +350,19 @@ export class Tomcat {
         try {
             if (this.tomcatProcess) {
                 const pid = this.tomcatProcess.pid;
-                this.tomcatProcess.kill('SIGTERM');
                 this.tomcatProcess = null;
-                const resolved = this.resolveStoppedContext(pid);
-                if (resolved.app && resolved.port) {
-                    logger.success(t('tomcat.stoppedInstance', { app: resolved.app, port: resolved.port }), showMessages);
+                if (pid !== undefined) {
+                    await this.stopInstanceByPid(pid, true);
                 } else {
-                    logger.success(t('tomcat.stoppedProcess', { context: resolved.context ?? '' }), showMessages);
+                    logger.warn(t('tomcat.noInstanceForPort', { port: this.port }), showMessages);
                 }
             } else if (this.managedPids.size > 0) {
                 const currentApp = this.currentAppName?.trim();
                 if (currentApp) {
                     const target = Array.from(this.managedPids.entries()).find(([, meta]) => meta.appName === currentApp);
                     if (target) {
-                        await this.stopInstanceByPid(target[0], true);
+                        const [pid] = target;
+                        await this.stopInstanceByPid(pid, true);
                     } else {
                         logger.warn(t('tomcat.noInstanceForApp', { app: currentApp }), showMessages);
                     }
@@ -573,6 +546,9 @@ export class Tomcat {
             const appDir = path.join(webappsDir, appName);
             const warFile = path.join(webappsDir, `${appName}.war`);
 
+            // Ensure the application is stopped before filesystem cleanup.
+            await this.stopInstanceByApp(appName);
+
             const removeApp = async () => {
                 if (fs.existsSync(appDir)) {
                     fs.rmSync(appDir, { recursive: true, force: true });
@@ -668,7 +644,7 @@ export class Tomcat {
      * @returns Boolean indicating server running state
      */
     private async isTomcatRunning(): Promise<boolean> {
-        if (this.tomcatProcess && !this.tomcatProcess.killed) {return true;}
+        if (this.tomcatProcess && !this.tomcatProcess.killed) { return true; }
         return this.managedPids.size > 0 || await this.isPortInUse(this.port);
     }
 
@@ -820,9 +796,39 @@ export class Tomcat {
                 continue;
             }
             const inUse = await this.isPortInUse(candidate);
-            if (!inUse) {return candidate;}
+            if (!inUse) { return candidate; }
         }
         return startPort;
+    }
+
+    private async findAvailablePortPair(startPort: number): Promise<{ httpPort: number, shutdownPort: number }> {
+        const maxScan = 50;
+        for (let i = 0; i <= maxScan; i++) {
+            const httpCandidate = startPort + i;
+            if (httpCandidate > this.PORT_RANGE.max) { break; }
+            if (this.managedPids.has(httpCandidate)) { continue; }
+            if (await this.isPortInUse(httpCandidate)) { continue; }
+
+            const shutdownBase = 8005 + Math.max(0, httpCandidate - 8080);
+            const shutdownCandidate = await this.findAvailablePort(shutdownBase);
+            if (shutdownCandidate >= this.PORT_RANGE.min && shutdownCandidate <= this.PORT_RANGE.max && !await this.isPortInUse(shutdownCandidate)) {
+                return { httpPort: httpCandidate, shutdownPort: shutdownCandidate };
+            }
+        }
+        throw new Error('No available HTTP/shutdown port pair found');
+    }
+
+    private async waitForPortFree(port: number, timeoutMs: number = 5000): Promise<boolean> {
+        const step = 100;
+        const expire = Date.now() + timeoutMs;
+        while (Date.now() < expire) {
+            if (!(await this.isPortInUse(port))) {
+                return true;
+            }
+            await new Promise(resolve => setTimeout(resolve, step));
+        }
+        logger.warn(t('tomcat.portReleaseTimeout', { port }), false);
+        return false;
     }
 
     /**
@@ -1101,13 +1107,14 @@ export class Tomcat {
      * @param newPort Port number to configure
      * @throws Error if file operations fail
      */
-    private async modifyServerXmlPort(tomcatBase: string, newPort: number): Promise<void> {
+    private async modifyServerXmlPort(tomcatBase: string, newPort: number, shutdownPort?: number): Promise<void> {
         const serverXmlPath = path.join(tomcatBase, 'conf', 'server.xml');
         const content = await fsp.readFile(serverXmlPath, 'utf8');
 
-        // pick a shutdown port offset from the HTTP port and ensure it is free
-        const shutdownBase = 8005 + Math.max(0, newPort - 8080);
-        const shutdownPort = await this.findAvailablePort(Math.min(shutdownBase, this.PORT_RANGE.max));
+        if (shutdownPort === undefined) {
+            const shutdownBase = 8005 + Math.max(0, newPort - 8080);
+            shutdownPort = await this.findAvailablePort(shutdownBase);
+        }
 
         const withHttpUpdated = content.replace(
             /(port=")\d+(".*protocol="HTTP\/1\.1")/,
@@ -1306,7 +1313,11 @@ export class Tomcat {
      * 2) Managed instance running the same app
      * 3) Start a new managed instance and assign the app
      */
-    public async ensureDeploymentTarget(appName: string): Promise<{ home: string; port: number; base: string }> {
+    public async isServerRunning(): Promise<boolean> {
+        return this.isTomcatRunning();
+    }
+
+    public async ensureDeploymentTarget(appName: string, startIfMissing: boolean = true): Promise<{ home: string; port: number; base: string }> {
         // Always refresh running instances first to avoid launching duplicates for same app.
         const snapshot = await this.getInstanceSnapshot();
         const existing = snapshot.find(i => i.app === appName && i.source === 'managed');
@@ -1328,12 +1339,24 @@ export class Tomcat {
 
         let chosen = pickManaged();
 
-        if (!chosen) {
+        if (!chosen && startIfMissing) {
             await this.start(false, appName);
             chosen = pickManaged();
         }
 
         if (!chosen) {
+            if (!startIfMissing) {
+                const tomcatHome = await this.findTomcatHome();
+                if (!tomcatHome) {
+                    throw new Error(t('tomcat.noAvailableInstance'));
+                }
+
+                const base = await this.findTomcatBase(tomcatHome);
+                const desiredPort = this.getPersistedPort(appName, vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '')
+                    ?? vscode.workspace.getConfiguration().get<number>('tomcat.port', this.port);
+                const availablePort = await this.findAvailablePort(desiredPort);
+                return { home: tomcatHome, port: availablePort, base };
+            }
             throw new Error(t('tomcat.noAvailableInstance'));
         }
 
@@ -1381,36 +1404,53 @@ export class Tomcat {
         const meta = this.managedPids.get(pid);
         let resolvedMeta = await this.findInstanceMetaByPid(pid);
 
+        let stoppedByJavaCommand = false;
+
+        if (meta && !force) {
+            try {
+                const javaHome = await this.findJavaHome();
+                const tomcatBase = await this.findTomcatBase(meta.home);
+                if (javaHome && tomcatBase) {
+                    await this.executeTomcatCommand('stop', meta.home, tomcatBase, javaHome);
+                    stoppedByJavaCommand = true;
+                }
+            } catch (cmdErr) {
+                logger.warn(t('tomcat.stopViaJavaFailed', { app: meta.appName ?? 'unknown', reason: String(cmdErr) }), false);
+            }
+        }
+
         try {
-            if (isWindows) {
-                const base = `taskkill /PID ${pid}`;
-                if (force) {
-                    try {
-                        await execAsync(`${base} /T /F`);
-                    } catch (firstErr) {
-                        // escalate if denied
-                        if (String(firstErr).includes('Access is denied')) {
-                            await execAsync(`powershell -Command "Start-Process taskkill -ArgumentList '/PID ${pid} /T /F' -Verb RunAs -WindowStyle Hidden -Wait"`);
-                        } else {
-                            throw firstErr;
+            if (!stoppedByJavaCommand) {
+                if (isWindows) {
+                    const base = `taskkill /PID ${pid}`;
+                    if (force) {
+                        try {
+                            await execAsync(`${base} /T /F`);
+                        } catch (firstErr) {
+                            // escalate if denied
+                            if (String(firstErr).includes('Access is denied')) {
+                                await execAsync(`powershell -Command "Start-Process taskkill -ArgumentList '/PID ${pid} /T /F' -Verb RunAs -WindowStyle Hidden -Wait"`);
+                            } else {
+                                throw firstErr;
+                            }
                         }
+                    } else {
+                        // graceful stop only; do not force
+                        await execAsync(`${base} /T`);
                     }
                 } else {
-                    // graceful stop only; do not force
-                    await execAsync(`${base} /T`);
-                }
-            } else {
-                const signal = force ? 'SIGKILL' : 'SIGTERM';
-                try {
-                    process.kill(pid, signal as NodeJS.Signals);
-                } catch (err) {
-                    const code = (err as NodeJS.ErrnoException).code;
-                    if (code === 'ESRCH') {
-                        // already gone; treat as success
-                    } else if (!force && code === 'EPERM') {
-                        await execAsync(`kill -9 ${pid}`);
-                    } else {
-                        throw err;
+                    const signal = force ? 'SIGKILL' : 'SIGTERM';
+                    try {
+                        process.kill(pid, signal as NodeJS.Signals);
+                    } catch (err) {
+                        const code = (err as NodeJS.ErrnoException).code;
+                        if (code === 'ESRCH') {
+                            // already gone; treat as success
+                        } else if (!force && code === 'EPERM') {
+                            await execAsync(`kill -9 ${pid}`);
+                        } else {
+                            throw err;
+                        }
                     }
                 }
             }
@@ -1419,6 +1459,13 @@ export class Tomcat {
             if (meta) {
                 this.persistedByPort.delete(meta.port);
                 await this.persistInstances();
+            }
+
+            if (meta) {
+                await this.waitForPortFree(meta.port);
+                if (meta.shutdownPort !== undefined) {
+                    await this.waitForPortFree(meta.shutdownPort);
+                }
             }
 
             if (resolvedMeta.app && resolvedMeta.port) {
@@ -1467,10 +1514,10 @@ export class Tomcat {
                 const pidStr = parts[parts.length - 1];
                 const pid = Number(pidStr);
                 const portMatch = local.match(/:(\d+)/);
-                if (!pid || !portMatch) {continue;}
+                if (!pid || !portMatch) { continue; }
                 const port = Number(portMatch[1]);
-                if (port < 8000 || port > 10000) {continue;} // heuristic to limit noise
-                if (this.managedPids.has(pid)) {continue;}
+                if (port < 8000 || port > 10000) { continue; } // heuristic to limit noise
+                if (this.managedPids.has(pid)) { continue; }
                 try {
                     process.kill(pid, 0); // ensure the PID is alive
                     if (!seen.has(pid)) {

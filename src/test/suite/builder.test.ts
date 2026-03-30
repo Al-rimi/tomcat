@@ -111,10 +111,12 @@ describe('Builder Tests', () => {
 
     it('should show error on failed deployment', async () => {
       const errorStub = sandbox.stub(logger, 'error');
+      const ensureTargetStub = sandbox.stub(Tomcat.getInstance(), 'ensureDeploymentTarget').resolves({ home: '/tomcat', port: 8080, base: '/tomcat/base' });
       execStub.callsArgWith(1, new Error('Build failed'));
 
       await builder.deploy('Maven');
       assert.ok(errorStub.calledWithMatch('Maven build failed'), 'Should log error');
+      assert.ok(ensureTargetStub.calledOnceWithExactly('project', false), 'Should only resolve target once pre-build and not start Tomcat on failure');
     });
 
     it('should prompt user when multiple JavaEE projects found', async () => {

@@ -36,4 +36,11 @@ suite('Logger Tests', () => {
 
     assert.deepStrictEqual(evaluated, ['DEBUG', 'Server version name: Apache Tomcat/11.0.11']);
   });
+
+  test('Tomcat stack trace ellipsis lines are mapped to DEBUG level', () => {
+    const processTomcatLine = (logger as any).processTomcatLine.bind(logger);
+    const evaluated = processTomcatLine('\t... 34 more');
+
+    assert.deepStrictEqual(evaluated, ['DEBUG', '... 34 more']);
+  });
 });
