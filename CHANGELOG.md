@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [4.2.1] - 2026-03-30
+### Fixed
+- Improved deploy guard when build fails: local/Maven/Gradle failure no longer launches Tomcat instance unintentionally.
+- Prevented Tomcat start/reload after failed build: `Builder.deploy` now resolves `ensureDeploymentTarget(..., false)` before build and avoids `startIfMissing=true` in catch/failure path.
+- Strengthened EBUSY recovery to use known pre-build port without implied Tomcat instance bootstrap.
+
 ## [4.2.0] - 2026-03-28
 ### Added
 - Output panel messages now include app name and port context for multi-app/multi-instance precision.

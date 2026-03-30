@@ -14,6 +14,12 @@ AI-assisted Tomcat control for VS Code: streaming log explanations, one-click de
 - **Java Web Apps Support**  
   Detect and manage Java EE/Tomcat webapp projects, including multi-root workspace app discovery and deployment.
 
+## Latest Release (4.2.1)
+
+- Build failures no longer start or reload Tomcat automatically.
+- Tomcat deploy guard strengthened to resolve instance target with `startIfMissing=false` before compile step.
+- EBUSY recovery now uses pre-build resolved port and avoids implicit bootstrapping side effects.
+
 - **Build Strategies**  
   Three build strategies Local, Maven and Gradle to choose from
 
@@ -40,12 +46,13 @@ AI-assisted Tomcat control for VS Code: streaming log explanations, one-click de
 
 ## Installation
 
-1. Open VS Code  
-2. Launch Extensions View (`Ctrl+Shift+X`)  
-3. Search for `Al-rimi.tomcat`  
+1. Open VS Code
+2. Launch Extensions View (`Ctrl+Shift+X`)
+3. Search for `Al-rimi.tomcat`
 4. Click <kbd>Install</kbd>
 
 Command line:
+
 ```bash
 code --install-extension Al-rimi.tomcat
 ```
@@ -53,9 +60,10 @@ code --install-extension Al-rimi.tomcat
 ## Usage
 
 > The `Editor Button` and `Status Bar` are only visible when the selected workspace folder contains a detected Java EE project (multi-root workspace support included).
+>
 > - In multi-project workspaces, each folder is detected independently, and app commands are scoped to the active project.
 > - View UI convention now reflects the shared tree + per-project snippets in the same panel.
-> 
+>
 > See the following detection criteria below for details.
 
 <details>
@@ -131,6 +139,7 @@ public static isJavaEEProject(): boolean {
 The Instances View is now a full management center for instances and apps. It provides a real-time tree of running and saved Tomcat instances, plus app entries for deploy, run, refresh, and delete.
 
 You can:
+
 - start/stop/kill Tomcat instances
 - manage Tomcat/Java homes, HTTP ports, and per-instance settings
 - create new apps and scaffold templates from the `+` action
@@ -158,57 +167,57 @@ Click the Tomcat status in the bottom bar to toggle auto deploy modes.
 
 Use the Command Palette (`Ctrl+Shift+P`) to quickly access core commands:
 
-| Command                | Description                                         |
-|------------------------|-----------------------------------------------------|
-| `Tomcat: Start`        | Launch the Tomcat server                            |
-| `Tomcat: Stop`         | Stop the running server                             |
-| `Tomcat: Clean`        | Clean Tomcat `webapps`, `temp`, and `work` folders |
-| `Tomcat: Deploy`       | Deploy the current Java EE project                 |
-| `Tomcat: Refresh Instances` | Refresh the list of running and saved Tomcat instances |
-| `Tomcat: Kill Instance`     | Force-stop a selected Tomcat instance                  |
-| `Tomcat: Open in Browser`   | Open the deployed app for an instance in your browser  |
-| `Tomcat: New Instance`      | Start a new Tomcat instance                            |
-| `Tomcat: Configure Field`   | Edit Tomcat Home, Java Home, Port, or Browser for an instance |
-| `Tomcat: Add Tomcat Home`   | Add a new Tomcat installation path                     |
-| `Tomcat: Remove Tomcat Home`| Remove a saved Tomcat installation path                |
-| `Tomcat: Refresh Versions`  | Refresh available Tomcat versions                      |
-| `Tomcat: Use This Tomcat`   | Set a Tomcat home as the active one                    |
-| `Tomcat: Add Java Home`     | Add a new Java installation path                       |
-| `Tomcat: Remove Java Home`  | Remove a saved Java installation path                  |
-| `Tomcat: Use This Java`     | Set a Java home as the active one                      |
-| `Tomcat: Set HTTP Port`     | Change the HTTP port for an instance                   |
-| `Tomcat: Add HTTP Port`     | Add a new HTTP port to the quick selection list        |
-| `Tomcat: Remove HTTP Port`  | Remove a saved HTTP port                               |
-| `Tomcat: Create App`        | Scaffold a new web app from templates                  |
-| `Tomcat: Refresh Apps`      | Reload the apps list in the tree view                  |
-| `Tomcat: Set Build Type`    | Change the build strategy for an instance              |
-| `Tomcat: Set Log Level`     | Change the log level for an instance                   |
+| Command                      | Description                                                   |
+| ---------------------------- | ------------------------------------------------------------- |
+| `Tomcat: Start`              | Launch the Tomcat server                                      |
+| `Tomcat: Stop`               | Stop the running server                                       |
+| `Tomcat: Clean`              | Clean Tomcat `webapps`, `temp`, and `work` folders            |
+| `Tomcat: Deploy`             | Deploy the current Java EE project                            |
+| `Tomcat: Refresh Instances`  | Refresh the list of running and saved Tomcat instances        |
+| `Tomcat: Kill Instance`      | Force-stop a selected Tomcat instance                         |
+| `Tomcat: Open in Browser`    | Open the deployed app for an instance in your browser         |
+| `Tomcat: New Instance`       | Start a new Tomcat instance                                   |
+| `Tomcat: Configure Field`    | Edit Tomcat Home, Java Home, Port, or Browser for an instance |
+| `Tomcat: Add Tomcat Home`    | Add a new Tomcat installation path                            |
+| `Tomcat: Remove Tomcat Home` | Remove a saved Tomcat installation path                       |
+| `Tomcat: Refresh Versions`   | Refresh available Tomcat versions                             |
+| `Tomcat: Use This Tomcat`    | Set a Tomcat home as the active one                           |
+| `Tomcat: Add Java Home`      | Add a new Java installation path                              |
+| `Tomcat: Remove Java Home`   | Remove a saved Java installation path                         |
+| `Tomcat: Use This Java`      | Set a Java home as the active one                             |
+| `Tomcat: Set HTTP Port`      | Change the HTTP port for an instance                          |
+| `Tomcat: Add HTTP Port`      | Add a new HTTP port to the quick selection list               |
+| `Tomcat: Remove HTTP Port`   | Remove a saved HTTP port                                      |
+| `Tomcat: Create App`         | Scaffold a new web app from templates                         |
+| `Tomcat: Refresh Apps`       | Reload the apps list in the tree view                         |
+| `Tomcat: Set Build Type`     | Change the build strategy for an instance                     |
+| `Tomcat: Set Log Level`      | Change the log level for an instance                          |
 
 ## Configuration
 
 Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 
-| **Setting**                  | **Default**       | **Description**                                                                          |
-|------------------------------|-------------------|------------------------------------------------------------------------------------------|
-| `tomcat.language`            | `auto`           | Extension UI language (`auto`, `en`, `zh-CN`). On first run, `auto` follows VS Code's display language. |
-| `tomcat.buildType`           | `Local`           | Default build strategy for deployments (`Local`, `Maven`, `Gradle`)                      |
-| `tomcat.autoDeployMode`      | `Disable`        | Auto-deploy triggers (`Disable`, `On Save`, `On Shortcut`)                              |
-| `tomcat.browser`             | `Google Chrome`   | Browser for app launch & debug (`Disable`, `Google Chrome`, `Microsoft Edge`, `Firefox`, `Safari`, `Brave`, `Opera`) |
-| `tomcat.port`                | `8080`            | Tomcat server listen port (valid range: `1024`-`49151`)                                  |
-| `tomcat.ports`               | `[]`              | Saved HTTP ports for quick selection (array of numbers, preserved per workspace)         |
-| `tomcat.homes`               | `[]`              | List of available Tomcat installation paths for multi-version management               |
-| `tomcat.javaHomes`           | `[]`              | List of configured Java homes (array of strings); `tomcat.javaHome` is the active entry |
-| `tomcat.base`                | ``                | Path to `CATALINA_BASE` (conf/webapps/logs). Defaults to `tomcat.home` if not set.       |
-| `tomcat.protectedWebApps`    | `["ROOT", "docs", "examples", "manager", "host-manager"]` | List of protected web apps during cleanup operations |
-| `tomcat.logLevel`            | `INFO`            | Minimum log level to display (`DEBUG`, `INFO`, `SUCCESS`, `HTTP`, `APP`, `WARN`, `ERROR`) |
-| `tomcat.showTimestamp`       | `true`            | Whether to include timestamps in log messages                                            |
-| `tomcat.autoReloadBrowser`   | `true`            | Whether to automatically reload the browser after deployment. Disable this option if having issues with the browser reloading. |
-| `tomcat.logEncoding`         | `utf8`            | Encoding for Tomcat logs (`utf8`, `ascii`, `utf-8`, `utf16le`, `utf-16le`, `ucs2`, `ucs-2`, `base64`, `base64url`, `latin1`, `binary`, `hex`) |
-| `tomcat.ai.provider`         | `none`           | AI provider for streaming explanations (`none`, `local`, `aliyun-dashscope`, `baichuan`, `zhipu`, `deepseek`, `custom`). |
-| `tomcat.ai.endpoint`         | `http://127.0.0.1:11434/api/chat` | Full HTTP endpoint for AI chat/completions. |
-| `tomcat.ai.model`            | `qwen2.5:7b`      | Model identifier sent to the configured AI endpoint. |
-| `tomcat.ai.apiKey`           | ``                | Optional bearer token for hosted providers. |
-| `tomcat.ai.localStartCommand`| `ollama serve`    | Command to launch the local AI service when the endpoint is unreachable. |
+| **Setting**                   | **Default**                                               | **Description**                                                                                                                               |
+| ----------------------------- | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tomcat.language`             | `auto`                                                    | Extension UI language (`auto`, `en`, `zh-CN`). On first run, `auto` follows VS Code's display language.                                       |
+| `tomcat.buildType`            | `Local`                                                   | Default build strategy for deployments (`Local`, `Maven`, `Gradle`)                                                                           |
+| `tomcat.autoDeployMode`       | `Disable`                                                 | Auto-deploy triggers (`Disable`, `On Save`, `On Shortcut`)                                                                                    |
+| `tomcat.browser`              | `Google Chrome`                                           | Browser for app launch & debug (`Disable`, `Google Chrome`, `Microsoft Edge`, `Firefox`, `Safari`, `Brave`, `Opera`)                          |
+| `tomcat.port`                 | `8080`                                                    | Tomcat server listen port (valid range: `1024`-`49151`)                                                                                       |
+| `tomcat.ports`                | `[]`                                                      | Saved HTTP ports for quick selection (array of numbers, preserved per workspace)                                                              |
+| `tomcat.homes`                | `[]`                                                      | List of available Tomcat installation paths for multi-version management                                                                      |
+| `tomcat.javaHomes`            | `[]`                                                      | List of configured Java homes (array of strings); `tomcat.javaHome` is the active entry                                                       |
+| `tomcat.base`                 | ``                                                        | Path to `CATALINA_BASE` (conf/webapps/logs). Defaults to `tomcat.home` if not set.                                                            |
+| `tomcat.protectedWebApps`     | `["ROOT", "docs", "examples", "manager", "host-manager"]` | List of protected web apps during cleanup operations                                                                                          |
+| `tomcat.logLevel`             | `INFO`                                                    | Minimum log level to display (`DEBUG`, `INFO`, `SUCCESS`, `HTTP`, `APP`, `WARN`, `ERROR`)                                                     |
+| `tomcat.showTimestamp`        | `true`                                                    | Whether to include timestamps in log messages                                                                                                 |
+| `tomcat.autoReloadBrowser`    | `true`                                                    | Whether to automatically reload the browser after deployment. Disable this option if having issues with the browser reloading.                |
+| `tomcat.logEncoding`          | `utf8`                                                    | Encoding for Tomcat logs (`utf8`, `ascii`, `utf-8`, `utf16le`, `utf-16le`, `ucs2`, `ucs-2`, `base64`, `base64url`, `latin1`, `binary`, `hex`) |
+| `tomcat.ai.provider`          | `none`                                                    | AI provider for streaming explanations (`none`, `local`, `aliyun-dashscope`, `baichuan`, `zhipu`, `deepseek`, `custom`).                      |
+| `tomcat.ai.endpoint`          | `http://127.0.0.1:11434/api/chat`                         | Full HTTP endpoint for AI chat/completions.                                                                                                   |
+| `tomcat.ai.model`             | `qwen2.5:7b`                                              | Model identifier sent to the configured AI endpoint.                                                                                          |
+| `tomcat.ai.apiKey`            | ``                                                        | Optional bearer token for hosted providers.                                                                                                   |
+| `tomcat.ai.localStartCommand` | `ollama serve`                                            | Command to launch the local AI service when the endpoint is unreachable.                                                                      |
 
 > `tomcat.home` and `tomcat.javaHome` are now auto-detected and hidden from user settings.
 > AI explanations are automatic for WARN/ERROR logs; local AI auto-starts only for localhost endpoints when unreachable.
@@ -218,21 +227,20 @@ Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 - **Runtime**:
   - JDK 11+
   - Apache Tomcat 9+
-  
 - **Build Tools** (optional):
-  - `Maven` 3.6+ *or* `Gradle` 6.8+ (if using `Maven` or `Gradle` build types)
+  - `Maven` 3.6+ _or_ `Gradle` 6.8+ (if using `Maven` or `Gradle` build types)
 
 ## Developer Documentation
 
 For technical implementation details and contribution guidelines, see:
-- [System Architecture](https://github.com/Al-rimi/tomcat/tree/main/docs/ARCHITECTURE.md)
-- [Development Guide](https://github.com/Al-rimi/tomcat/tree/main/docs/DEVELOPMENT.md) 
-- [Testing Strategy](https://github.com/Al-rimi/tomcat/tree/main/docs/TESTING.md)
 
+- [System Architecture](https://github.com/Al-rimi/tomcat/tree/main/docs/ARCHITECTURE.md)
+- [Development Guide](https://github.com/Al-rimi/tomcat/tree/main/docs/DEVELOPMENT.md)
+- [Testing Strategy](https://github.com/Al-rimi/tomcat/tree/main/docs/TESTING.md)
 
 ## Known Issues
 
-- **Browser Compatibility for Auto-Reload**  
+- **Browser Compatibility for Auto-Reload**
   <details>
   <summary>Some browsers may not support automatic page reloading (click to expand)</summary>
 
@@ -245,18 +253,20 @@ For technical implementation details and contribution guidelines, see:
   **Unsupported Browsers**:
   - Firefox
   - Safari
-  
+
   These lack CDP support and will not auto-reload.
   </details>
 
-- **Debug Mode Launch Failures**  
+- **Debug Mode Launch Failures**
   <details>
   <summary>Occasional issues launching browsers in debug mode (click to expand)</summary>
 
   Even supported browsers might fail to launch in debug mode due to system configurations. The extension uses this command template:
+
   ```bash
   start chrome.exe --remote-debugging-port=9222 http://localhost:8080/app-name
   ```
+
   **Common solutions**:
   1. Verify browser executable path in system PATH
   2. Ensure no other instances are using port 9222
@@ -268,8 +278,7 @@ For technical implementation details and contribution guidelines, see:
 [![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/issues/new)  
 [![Suggest Fix](https://img.shields.io/badge/-Suggest_Fix-green?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/pulls)
 
-
-## What's New in 4.2.0
+## What's New in 4.2.1
 
 This release focuses on reliability and usability for multi-app workflows, safer instance management, smarter deploy behavior, and clearer AI integration.
 
