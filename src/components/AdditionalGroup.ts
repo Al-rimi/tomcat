@@ -6,5 +6,6 @@ export class AdditionalGroup extends vscode.TreeItem {
         super(t('group.additional'), vscode.TreeItemCollapsibleState.Collapsed);
         this.contextValue = 'tomcatAdditionalGroup';
         this.iconPath = new vscode.ThemeIcon('settings-gear');
+        this.tooltip = t('group.additionalTooltip');
     }
 }

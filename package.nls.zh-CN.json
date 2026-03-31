@@ -76,5 +76,9 @@
         "command.instances.addPort.title": "Tomcat: 添加 HTTP 端口",
         "command.instances.removePort.title": "Tomcat: 移除 HTTP 端口",
         "command.instances.setBuildType.title": "Tomcat: 设置构建类型",
-        "command.instances.setLogLevel.title": "Tomcat: 设置日志级别"
+        "command.instances.setLogLevel.title": "Tomcat: 设置日志级别",
+        "command.apps.create.title": "Tomcat: 创建应用",
+        "command.apps.deploy.title": "Tomcat: 部署应用",
+        "command.apps.openInBrowser.title": "Tomcat: 在浏览器中打开应用",
+        "command.apps.undeploy.title": "Tomcat: 卸载应用"
     }

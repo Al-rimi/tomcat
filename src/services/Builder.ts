@@ -345,11 +345,11 @@ export class Builder {
                 logger.success(t('builder.buildCompletedWithApp', { type: typeLabel, app: appName, port, duration }), isChoice);
 
                 if (successfulInstance) {
-                    logger.info(t('builder.deployingAppAfterBuild', { app: appName, port }), true);
+                    logger.info(t('builder.deployingAppAfterBuild', { app: appName, port }));
                     await new Promise(resolve => setTimeout(resolve, 100));
                     await tomcat.reload(port, appName);
                 } else {
-                    logger.info(t('builder.startingTomcatAfterBuild', { app: appName }), false);
+                    logger.info(t('builder.startingTomcatAfterBuild', { app: appName }));
                 }
             }
 
@@ -414,7 +414,7 @@ export class Builder {
 
         if (Date.now() < this.autoDeploySuppressedUntil) {
             this.autoDeploySuppressedUntil = 0;
-            logger.debug('AutoDeploy suppressed due to recent configuration change.');
+            logger.debug(t('builder.autoDeploySuppressed'));
             return;
         }
 
@@ -481,7 +481,7 @@ export class Builder {
                 });
             }
         } else {
-            logger.success(t('builder.deployCanceled'), true);
+            logger.success(t('builder.deployCanceled'));
         }
     }
 

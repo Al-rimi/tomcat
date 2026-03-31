@@ -9,6 +9,7 @@ export class AIGroup extends vscode.TreeItem {
         super(t('group.ai'), vscode.TreeItemCollapsibleState.Collapsed);
         this.contextValue = 'tomcatAIGroup';
         this.iconPath = new vscode.ThemeIcon('sparkle');
+        this.tooltip = t('group.aiTooltip');
 
         const parts: string[] = [];
         if (provider) {

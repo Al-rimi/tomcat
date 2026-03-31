@@ -19,6 +19,6 @@ export class HomeItem extends vscode.TreeItem {
             title: t('instance.useThisTomcat'),
             arguments: [home]
         };
-        this.tooltip = `${home}\nVersion: ${version}${active ? '\n(Current)' : ''}`;
+        this.tooltip = `${t('app.tooltip')}: ${home}\n${t('home.version')}: ${version}${active ? '\n' + t('label.current') : ''}`;
     }
 }

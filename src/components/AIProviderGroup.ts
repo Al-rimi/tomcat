@@ -9,6 +9,7 @@ export class AIProviderGroup extends vscode.TreeItem {
         super(label || t('ai.provider'), vscode.TreeItemCollapsibleState.Collapsed);
         this.contextValue = 'tomcatAIProviderGroup';
         this.iconPath = new vscode.ThemeIcon('globe');
+        this.tooltip = t('ai.providerTooltip');
         if (selected) {
             this.description = selected;
         }

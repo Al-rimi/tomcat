@@ -13,5 +13,6 @@ export class PortGroup extends vscode.TreeItem {
         this.contextValue = 'tomcatPortGroup';
         this.iconPath = new vscode.ThemeIcon('plug');
         this.description = String(current);
+        this.tooltip = t('group.portTooltip');
     }
 }

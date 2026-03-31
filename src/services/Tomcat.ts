@@ -241,7 +241,7 @@ export class Tomcat {
         const preferredPort = this.getPersistedPort(appName, workspace) ?? desiredPortFromConfig;
         const { httpPort, shutdownPort } = await this.findAvailablePortPair(preferredPort);
         if (httpPort !== preferredPort) {
-            logger.debug(t('tomcat.portAdjusted', { from: preferredPort, to: httpPort }), false);
+            logger.debug(t('tomcat.portAdjusted', { from: preferredPort, to: httpPort }));
         }
         this.port = httpPort;
         this.shutdownPort = shutdownPort;
@@ -303,7 +303,7 @@ export class Tomcat {
         const preferredPort = this.getPersistedPort(appName, workspace) ?? desiredPortFromConfig;
         const { httpPort, shutdownPort } = await this.findAvailablePortPair(preferredPort);
         if (httpPort !== preferredPort) {
-            logger.debug(t('tomcat.portAdjusted', { from: preferredPort, to: httpPort }), false);
+            logger.debug(t('tomcat.portAdjusted', { from: preferredPort, to: httpPort }));
         }
         this.port = httpPort;
         this.shutdownPort = shutdownPort;
@@ -827,7 +827,7 @@ export class Tomcat {
             }
             await new Promise(resolve => setTimeout(resolve, step));
         }
-        logger.warn(t('tomcat.portReleaseTimeout', { port }), false);
+        logger.warn(t('tomcat.portReleaseTimeout', { port }));
         return false;
     }
 
@@ -1063,7 +1063,7 @@ export class Tomcat {
 
             this.port = requestedPort;
         } catch (err) {
-            logger.warn(typeof err === 'string' ? err : (err as Error).message, true);
+            logger.warn(typeof err === 'string' ? err : (err as Error).message);
         }
 
     }
@@ -1415,7 +1415,7 @@ export class Tomcat {
                     stoppedByJavaCommand = true;
                 }
             } catch (cmdErr) {
-                logger.warn(t('tomcat.stopViaJavaFailed', { app: meta.appName ?? 'unknown', reason: String(cmdErr) }), false);
+                logger.warn(t('tomcat.stopViaJavaFailed', { app: meta.appName ?? 'unknown', reason: String(cmdErr) }));
             }
         }
 
@@ -1469,10 +1469,10 @@ export class Tomcat {
             }
 
             if (resolvedMeta.app && resolvedMeta.port) {
-                logger.success(t('tomcat.stoppedInstance', { app: resolvedMeta.app, port: resolvedMeta.port }), false);
+                logger.success(t('tomcat.stoppedInstance', { app: resolvedMeta.app, port: resolvedMeta.port }));
             } else {
                 const context = resolvedMeta.port ? ` on port ${resolvedMeta.port}` : ` on pid ${pid}`;
-                logger.success(t('tomcat.stoppedProcess', { context }), false);
+                logger.success(t('tomcat.stoppedProcess', { context }));
             }
         } catch (err) {
             const message = String(err);
@@ -1483,7 +1483,7 @@ export class Tomcat {
                     this.persistedByPort.delete(meta.port);
                     await this.persistInstances();
                 }
-                logger.info(t('tomcat.processAlreadyExited'), false);
+                logger.info(t('tomcat.processAlreadyExited'));
                 return;
             } else {
                 logger.error(t('tomcat.stopFailed'), false, message);

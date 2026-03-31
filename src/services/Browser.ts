@@ -153,9 +153,9 @@ export class Browser {
 
         if (finalChoice !== choice) {
             if (previous && finalChoice === previous) {
-                logger.info(`Browser ${choice} not found. Reverted to previous: ${previous}.`, false);
+                logger.info(t('browser.revertToPrevious', { choice, previous }), false);
             } else if (finalChoice === 'Disable') {
-                logger.info(`Browser ${choice} not found. Reverted to Disable.`, false);
+                logger.info(t('browser.revertToDisable', { choice }), false);
             }
         }
 

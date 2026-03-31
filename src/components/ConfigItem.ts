@@ -18,5 +18,7 @@ export class ConfigItem extends vscode.TreeItem {
             title: t('action.configure'),
             arguments: [field]
         };
+        const descKey = `config.${field}.description` as const;
+        this.tooltip = t(descKey as any) || t('config.itemTooltip', { label, value });
     }
 }

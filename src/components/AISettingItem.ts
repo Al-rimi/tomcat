@@ -9,7 +9,7 @@ export class AISettingItem extends vscode.TreeItem {
         super(title, vscode.TreeItemCollapsibleState.None);
         this.contextValue = 'tomcatAISetting';
         this.description = value;
-        this.tooltip = `${title}: ${value}`;
+        this.tooltip = t('ai.settingTooltip', { title, value });
 
         // For boolean status fields, use check/circle icons to indicate on/off.
         if (_active === true || _active === false) {
@@ -23,5 +23,13 @@ export class AISettingItem extends vscode.TreeItem {
             title: t('action.configure'),
             arguments: [{ setting, action, value: valueArg }]
         };
+
+        const configAiKey = `config.ai.${setting}.description` as const;
+        const configKey = `config.${setting}.description` as const;
+        const descAi = t(configAiKey as any);
+        const descFallback = descAi !== configAiKey ? descAi : t(configKey as any);
+        this.tooltip = descFallback && descFallback !== configKey
+            ? descFallback
+            : t('ai.settingTooltip', { title, value });
     }
 }

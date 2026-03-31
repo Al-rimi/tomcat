@@ -16,7 +16,9 @@ export class AppItem extends vscode.TreeItem {
         // No status text in the tree view; icon indicates running state.
         const portHint = port ? `${t('label.port')} ${port}` : '';
         this.description = portHint;
-        this.tooltip = `${t('app.tooltip')}: ${appPath}`;
+        const statusText = isRunning ? t('app.status.running') : t('app.status.stopped');
+        const portText = port ? `\n${t('label.port')}: ${port}` : '';
+        this.tooltip = `${t('app.tooltip')}: ${appPath}\n${t('app.status')}: ${statusText}${portText}`;
 
         if (isDeploying) {
             this.contextValue = 'tomcatApp.deploying';

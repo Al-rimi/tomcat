@@ -8,7 +8,7 @@ import { Browser } from './Browser';
 import { Logger } from './Logger';
 import { Builder } from './Builder';
 import { AI } from './AI';
-import { t } from '../utils/i18n';
+import { t, refreshLocalization } from '../utils/i18n';
 import { getAppTemplates, getTemplateById } from '../data/appTemplates';
 import { InstanceInfo } from '../types/InstanceInfo';
 import { InstanceItem } from '../components/InstanceItem';
@@ -103,25 +103,37 @@ export class View implements vscode.TreeDataProvider<
         if (element instanceof SettingsGroup) {
             const homeLabel = mergedHomes.length === 0 ? t('instance.noTomcatHomes') : activeVersion ? `v${activeVersion}` : t('instance.tomcatHomeNotSet');
             const homeGroup = new HomeGroup(homeLabel);
+            homeGroup.tooltip = t('config.home.description');
             const javaHomeLabel = mergedJavaHomes.length === 0 ? t('instance.noJavaHomes') : activeJavaHome ? path.basename(activeJavaHome) : t('instance.javaHomeNotSet');
             const javaHomeGroup = new JavaHomeGroup(javaHomeLabel);
+            javaHomeGroup.tooltip = t('config.javaHome.description');
             const browserGroup = new BrowserGroup(currentBrowser);
+            browserGroup.tooltip = t('config.browser.description');
             const autoDeployGroup = new vscode.TreeItem(t('group.buildType'), vscode.TreeItemCollapsibleState.Collapsed);
             autoDeployGroup.contextValue = 'tomcatAutoDeployGroup';
             autoDeployGroup.iconPath = new vscode.ThemeIcon('cloud-upload');
             autoDeployGroup.description = currentAutoDeploy;
+            autoDeployGroup.tooltip = t('config.buildType.description');
 
             const logLevelGroup = new vscode.TreeItem(t('group.logLevel'), vscode.TreeItemCollapsibleState.Collapsed);
             logLevelGroup.contextValue = 'tomcatLogLevelGroup';
             logLevelGroup.iconPath = new vscode.ThemeIcon('megaphone');
             logLevelGroup.description = currentLogLevel;
+            logLevelGroup.tooltip = t('config.logLevel.description');
+
+            const language = config.get<string>('language', 'auto');
+            const languageGroup = new vscode.TreeItem(t('group.language'), vscode.TreeItemCollapsibleState.Collapsed);
+            languageGroup.contextValue = 'tomcatLanguageGroup';
+            languageGroup.iconPath = new vscode.ThemeIcon('globe');
+            languageGroup.description = language;
+            languageGroup.tooltip = t('config.language.description');
 
             const provider = config.get<string>('ai.provider', 'none');
             const model = config.get<string>('ai.model', '');
             const aiGroup = new AIGroup(provider === 'none' ? '' : provider, model);
             const additionalGroup = new AdditionalGroup();
 
-            return [autoDeployGroup, browserGroup, portGroup, homeGroup, javaHomeGroup, logLevelGroup, aiGroup, additionalGroup, ...configItems];
+            return [autoDeployGroup, browserGroup, portGroup, homeGroup, javaHomeGroup, logLevelGroup, languageGroup, aiGroup, additionalGroup, ...configItems];
         }
 
         if (element instanceof HomeGroup) {
@@ -142,6 +154,12 @@ export class View implements vscode.TreeDataProvider<
 
         if (element?.contextValue === 'tomcatLogLevelGroup') {
             return logLevelItems;
+        }
+
+        if (element?.contextValue === 'tomcatLanguageGroup') {
+            const languageOptions = ['auto', 'en', 'zh-CN'];
+            const currentLanguage = vscode.workspace.getConfiguration('tomcat').get<string>('language', 'auto');
+            return languageOptions.map((choice) => new OptionItem(choice, choice === currentLanguage, 'tomcat.instances.setLanguage', 'tomcatLanguageOption'));
         }
 
         if (element instanceof PortGroup) {
@@ -249,7 +267,11 @@ export class View implements vscode.TreeDataProvider<
 
             const label = `${t('group.instances')} (${instances.length})`;
             const instancesGroup = new InstancesGroup(label);
+            instancesGroup.tooltip = t('group.instancesTooltip');
+
             const appsGroup = new AppsGroup(`${t('group.apps')} (${apps.length})`);
+            appsGroup.tooltip = t('group.appsTooltip');
+
             const settingsGroup = new SettingsGroup();
             return [instancesGroup, appsGroup, settingsGroup];
         }
@@ -784,6 +806,15 @@ export class View implements vscode.TreeDataProvider<
         await config.update('logLevel', choice, true);
         Logger.getInstance().updateConfig();
         Logger.getInstance().info(t('instance.logLevelSet', { level: choice }), false);
+        this.refresh();
+    }
+
+    async setLanguage(choice: string): Promise<void> {
+        const config = vscode.workspace.getConfiguration('tomcat');
+        await config.update('language', choice, true);
+        refreshLocalization();
+        Logger.getInstance().defaultStatusBar();
+        Logger.getInstance().info(t('instance.languageSet', { language: choice }), false);
         this.refresh();
     }
 

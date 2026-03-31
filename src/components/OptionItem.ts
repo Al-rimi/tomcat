@@ -23,9 +23,14 @@ export class OptionItem extends vscode.TreeItem {
             'WARN': 'logLevel.WARN',
             'ERROR': 'logLevel.ERROR'
         };
+        const languageMap: Record<string, string> = {
+            'auto': 'config.language.enum.auto',
+            'en': 'config.language.enum.en',
+            'zh-CN': 'config.language.enum.zh'
+        };
         const display = buildTypeMap[choice]
             ? t(buildTypeMap[choice] as any)
-            : (logLevelMap[choice] ? t(logLevelMap[choice] as any) : choice);
+            : (logLevelMap[choice] ? t(logLevelMap[choice] as any) : (languageMap[choice] ? t(languageMap[choice] as any) : choice));
         super(display, vscode.TreeItemCollapsibleState.None);
         this.contextValue = context;
         this.iconPath = new vscode.ThemeIcon(isCurrent ? 'check' : 'circle-large-outline');
@@ -35,5 +40,24 @@ export class OptionItem extends vscode.TreeItem {
             arguments: [choice]
         };
         this.description = isCurrent ? t('instance.activeLabel') : undefined;
+        const buildTooltip = t('config.buildType.description');
+        const logTooltip = t('config.logLevel.description');
+        const languageTooltip = t('config.language.description');
+        const languageTooltipMap: Record<string, string> = {
+            auto: 'config.language.tooltip.auto',
+            en: 'config.language.tooltip.en',
+            'zh-CN': 'config.language.tooltip.zh'
+        };
+
+        if (buildTypeMap[choice]) {
+            this.tooltip = buildTooltip;
+        } else if (logLevelMap[choice]) {
+            this.tooltip = logTooltip;
+        } else if (languageMap[choice]) {
+            const special = t(languageTooltipMap[choice] as any);
+            this.tooltip = special !== languageTooltipMap[choice] ? special : languageTooltip;
+        } else {
+            this.tooltip = t('optionItem.tooltip', { value: display });
+        }
     }
 }

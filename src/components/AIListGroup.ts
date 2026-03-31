@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { t } from '../utils/i18n';
 
 export class AIListGroup extends vscode.TreeItem {
     constructor(public readonly setting: string, label: string, selectedValue?: string) {
@@ -13,6 +14,11 @@ export class AIListGroup extends vscode.TreeItem {
         this.contextValue = contextValue;
 
         this.description = selectedValue || '';
+        const descKeyAi = `config.ai.${setting}.description` as const;
+        const descKey = `config.${setting}.description` as const;
+        const descAi = t(descKeyAi as any);
+        const descFallback = descAi !== descKeyAi ? descAi : t(descKey as any);
+        this.tooltip = descFallback && descFallback !== descKey ? descFallback : t('ai.listGroupTooltip', { setting });
 
         const iconMap: Record<string, string> = {
             endpoint: 'link',

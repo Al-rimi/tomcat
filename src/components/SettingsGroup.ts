@@ -12,5 +12,6 @@ export class SettingsGroup extends vscode.TreeItem {
         super(t('group.settings'), vscode.TreeItemCollapsibleState.Collapsed);
         this.contextValue = 'tomcatSettingsGroup';
         this.iconPath = new vscode.ThemeIcon('settings-gear');
+        this.tooltip = t('group.settingsTooltip');
     }
 }

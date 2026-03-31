@@ -142,12 +142,12 @@ export class AI {
         this.onStart?.();
         try {
             const explainStart = Date.now();
-            this.debugLog(`explain start: level=${sev}`);
+            this.debugLog(t('ai.debugExplainStart', { level: sev }));
             const ready = await this.ensureReady();
             const readyElapsed = Date.now() - explainStart;
             if (ready) {
                 this.lastReadyMs = readyElapsed;
-                this.debugLog(`ready in ${readyElapsed}ms (provider=${this.provider}, bootMs=${this.lastBootMs ?? 'n/a'})`);
+                this.debugLog(t('ai.debugReady', { elapsed: readyElapsed, provider: this.provider, bootMs: this.lastBootMs ?? 'n/a' }));
             }
             if (!ready) {
                 this.logSink?.(t('ai.endpointUnreachable'));
@@ -157,12 +157,12 @@ export class AI {
                 ? `${message.slice(0, this.MAX_PROMPT_CHARS)}... (truncated)`
                 : message;
             const prompt = this.buildPrompt(level, clipped);
-            this.debugLog(`sending to ${this.endpoint} (tokens=${this.maxTokens}, timeout=${this.timeoutMs}ms, promptLen=${JSON.stringify(prompt).length})`);
+            this.debugLog(t('ai.debugSending', { endpoint: this.endpoint, tokens: this.maxTokens, timeout: this.timeoutMs, promptLen: JSON.stringify(prompt).length }));
             let streamed = false;
             try {
                 streamed = await this.streamAI(prompt);
             } catch (streamErr) {
-                this.debugLog(`stream failed: ${streamErr}`);
+                this.debugLog(t('ai.debugStreamFailed', { error: String(streamErr) }));
             }
 
             if (!streamed) {
@@ -175,11 +175,15 @@ export class AI {
             }
         } catch (err) {
             this.logSink?.(t('ai.explainFailed', { error: String(err) }));
-            this.debugLog(`exception: ${err}`);
+            this.debugLog(t('ai.debugException', { error: String(err) }));
         } finally {
-            this.debugLog(
-                `timers ready=${this.lastReadyMs ?? 'n/a'}ms boot=${this.lastBootMs ?? 'n/a'}ms firstToken=${this.lastFirstTokenMs ?? 'n/a'}ms totalStream=${this.lastTotalStreamMs ?? 'n/a'}ms call=${this.lastCallMs ?? 'n/a'}ms`
-            );
+            this.debugLog(t('ai.debugTimers', {
+                ready: this.lastReadyMs ?? 'n/a',
+                boot: this.lastBootMs ?? 'n/a',
+                firstToken: this.lastFirstTokenMs ?? 'n/a',
+                totalStream: this.lastTotalStreamMs ?? 'n/a',
+                call: this.lastCallMs ?? 'n/a'
+            }));
             this.inFlight = false;
             this.onDone?.();
         }
@@ -197,7 +201,7 @@ export class AI {
         const pingStart = Date.now();
         if (await this.pingEndpoint()) {
             const pingElapsed = Date.now() - pingStart;
-            this.debugLog(`reachability ok in ${pingElapsed}ms`);
+            this.debugLog(t('ai.debugReachabilityOk', { elapsed: pingElapsed }));
             return true;
         }
 
@@ -223,16 +227,16 @@ export class AI {
                 const elapsed = Date.now() - bootStart;
                 if (reachable) {
                     this.lastBootMs = elapsed;
-                    this.debugLog(`local AI became reachable in ${elapsed}ms after spawn attempt`);
+                    this.debugLog(t('ai.debugLocalReachable', { elapsed }));
                     return true;
                 }
             }
         } catch (err) {
             this.logSink?.(t('ai.failedLocalStart', { error: String(err) }));
-            this.debugLog(`spawn failed: ${err}`);
+            this.debugLog(t('ai.debugSpawnFailed', { error: String(err) }));
         }
         const totalBoot = Date.now() - bootStart;
-        this.debugLog(`local AI not reachable after ${totalBoot}ms of retries`);
+        this.debugLog(t('ai.debugLocalNotReachable', { elapsed: totalBoot }));
         return false;
     }
 
@@ -280,7 +284,7 @@ export class AI {
             return;
         }
 
-        this.debugLog(`spawning local AI: ${cmd}`);
+        this.debugLog(t('ai.debugSpawningLocal', { cmd }));
         try {
             spawn(executable, parts, {
                 shell: false,
@@ -289,7 +293,7 @@ export class AI {
                 windowsHide: true
             }).unref();
         } catch (err) {
-            this.debugLog(`non-shell spawn failed, retrying with shell: ${err}`);
+            this.debugLog(t('ai.debugNonShellSpawnFailed', { error: String(err) }));
             spawn(cmd, {
                 shell: true,
                 detached: true,
@@ -424,11 +428,21 @@ export class AI {
                             || null;
                         if (this.logLevelDebug) {
                             const snippet = data.slice(0, 300);
-                            this.debugLog(`resp status=${res.statusCode} len=${data.length} text=${text ? text.slice(0, 120) : '<null>'} body=${snippet}`);
+                            this.debugLog(t('ai.debugResponseStatus', {
+                                status: res.statusCode ?? 'unknown',
+                                len: data.length,
+                                text: text ? text.slice(0, 120) : '<null>',
+                                body: snippet
+                            }));
                         }
                         resolve(text);
                     } catch (err) {
-                        this.debugLog(`resp parse fail status=${res.statusCode} len=${data.length} err=${err} body=${data.slice(0, 300)}`);
+                        this.debugLog(t('ai.debugResponseParseFail', {
+                            status: res.statusCode ?? 'unknown',
+                            len: data.length,
+                            error: String(err),
+                            body: data.slice(0, 300)
+                        }));
                         resolve(null);
                     }
                 });
@@ -492,7 +506,7 @@ export class AI {
 
             const client = url.protocol === 'https:' ? https : http;
             const req = client.request(options, (res) => {
-                this.logSink?.('AI_STREAM_START:');
+                this.logSink?.(t('ai.streamStart'));
                 let buffer = '';
                 let gotChunk = false;
 
@@ -501,15 +515,15 @@ export class AI {
                     buffer = lines.pop() || '';
                     for (const lineRaw of lines) {
                         const line = lineRaw.trim();
-                        if (!line) {continue;}
+                        if (!line) { continue; }
                         const content = this.extractStreamContent(line);
                         if (content) {
                             if (!firstTokenAt) {
                                 firstTokenAt = Date.now();
                                 this.lastFirstTokenMs = firstTokenAt - streamStart;
-                                this.debugLog(`first stream token in ${this.lastFirstTokenMs}ms`);
+                                this.debugLog(t('ai.debugFirstStreamToken', { ms: this.lastFirstTokenMs }));
                             }
-                            this.logSink?.(`AI_STREAM_CHUNK:${content}`);
+                            this.logSink?.(t('ai.streamChunk', { chunk: content }));
                             gotChunk = true;
                         }
                     }
@@ -527,20 +541,20 @@ export class AI {
                             if (!firstTokenAt) {
                                 firstTokenAt = Date.now();
                                 this.lastFirstTokenMs = firstTokenAt - streamStart;
-                                this.debugLog(`first stream token in ${this.lastFirstTokenMs}ms (end-of-stream)`);
+                                this.debugLog(t('ai.debugFirstStreamTokenEndOfStream', { ms: this.lastFirstTokenMs }));
                             }
-                            this.logSink?.(`AI_STREAM_CHUNK:${content}`);
+                            this.logSink?.(t('ai.streamChunk', { chunk: content }));
                             gotChunk = true;
                         }
                     }
-                    this.logSink?.('AI_STREAM_END');
+                    this.logSink?.(t('ai.streamEnd'));
                     this.lastTotalStreamMs = Date.now() - streamStart;
-                    this.debugLog(`stream finished in ${this.lastTotalStreamMs}ms`);
+                    this.debugLog(t('ai.debugStreamFinished', { ms: this.lastTotalStreamMs }));
                     resolve(gotChunk);
                 });
 
                 res.on('error', (err) => {
-                    this.logSink?.('AI_STREAM_END');
+                    this.logSink?.(t('ai.streamEnd'));
                     reject(err.message || err.toString());
                 });
             });
@@ -550,7 +564,7 @@ export class AI {
             });
             req.on('timeout', () => {
                 req.destroy();
-                reject('Request timed out');
+                reject(new Error(t('ai.requestTimedOut')));
             });
 
             req.write(payload);
@@ -600,7 +614,7 @@ export class AI {
      */
     private debugLog(message: string): void {
         if (this.logLevelDebug) {
-            this.logSink?.(`AI_DEBUG: ${message}`);
+            this.logSink?.(t('ai.debugPrefix', { message }));
         }
     }
 

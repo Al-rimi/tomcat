@@ -18,5 +18,6 @@ export class PortItem extends vscode.TreeItem {
             arguments: [String(port)]
         };
         this.description = isCurrent ? t('instance.activeLabel') : undefined;
+        this.tooltip = t('instance.portTooltip', { port: String(port), status: isCurrent ? t('instance.activeLabel') : t('app.status.stopped') });
     }
 }

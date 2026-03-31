@@ -119,6 +119,7 @@ const translations = {
         'builder.deployQueuedRestart': 'Re-running queued deployment for app {app}.',
         'builder.deployAlreadyRunning': 'App {app} is already running after previous deployment, skipping queued restart.',
         'builder.autoDeployError': 'Auto deploy failed: {error}',
+        'builder.autoDeploySuppressed': 'AutoDeploy suppressed due to recent configuration change.',
         'builder.selectBuildType': 'Select build type',
         'builder.webAppMissing': 'WebApp directory not found: {path}',
         'builder.invalidDeployType': 'Invalid deployment type: {type}',
@@ -134,6 +135,8 @@ const translations = {
         'buildType.gradle': 'Gradle',
         'browser.noAppName': 'No application name provided',
         'browser.noAppNameDetails': 'Please provide a valid application name',
+        'browser.revertToPrevious': 'Browser {choice} not found. Reverted to previous: {previous}.',
+        'browser.revertToDisable': 'Browser {choice} not found. Reverted to Disable.',
         'browser.accessUrl': 'Access your app at: {url}',
         'browser.unsupportedPlatform': '{browser} is not supported on this platform.',
         'browser.unsupportedPlatformDetails': 'Please use a different browser',
@@ -159,18 +162,68 @@ const translations = {
         'instance.noTomcatInstances': 'No Tomcat instances',
         'group.instances': 'Instances',
         'group.apps': 'Apps',
+        'group.appsTooltip': 'Detected Java web applications in your workspace. Expand to view deployment status and controls.',
         'group.additional': 'Additional Settings',
-
+        'group.settingsTooltip': 'Configure Tomcat workspace settings and defaults.',
+        'group.aiTooltip': 'View and manage AI provider settings.',
+        'group.portTooltip': 'List of configured HTTP ports for deployments.',
+        'group.additionalTooltip': 'Additional deployment and Tomcat settings for advanced configuration.',
+        'ai.providerTooltip': 'Select the AI provider source for log explain features.',
         'config.logEncoding': 'Log Encoding',
+        'config.logEncoding.description': 'Encoding used to read Tomcat log files (e.g., utf8, utf16le). Set this to match the Tomcat log file encoding to avoid garbled characters.',
         'config.showTimestamp': 'Show Timestamp',
+        'config.showTimestamp.description': 'Enable this to show a timestamp prefix on each log line in the extension output pane, useful for correlating events over time.',
         'config.autoReloadBrowser': 'Auto-Reload Browser',
-        'config.base': 'CATALINA_BASE',
+        'config.autoReloadBrowser.description': 'When enabled, the extension will automatically refresh the browser tab after a successful deployment, saving manual reload actions.',
+        'config.base': 'Tomcat Base',
+        'config.base.description': 'Path to Tomcat base directory (CATALINA_BASE). Contains conf, logs, webapps. If empty, the default tomcat home is used.',
         'config.javaHome': 'Java Home',
+        'config.javaHome.description': 'Path to JDK home used to start Tomcat. If empty, extension attempts to auto-detect a JDK.',
+        'config.home': 'Tomcat Home',
+        'config.home.description': 'Path to Tomcat installation directory. If empty, extension will search for valid Tomcat locations.',
+        'config.port': 'HTTP Port',
+        'config.port.description': 'Tomcat HTTP listening port (1024-49151).',
+        'config.browser': 'Browser',
+        'config.browser.description': 'Browser for Tomcat “Open in browser” actions and auto-reload behavior.',
+        'config.language': 'Language',
+        'config.language.description': 'Extension UI language (auto = follow VS Code language).',
+        'config.language.enum.auto': 'Auto (system language)',
+        'config.language.enum.en': 'English',
+        'config.language.enum.zh': '简体中文',
+        'config.language.tooltip.auto': 'Great power in the developer world: your tools adapt to you, not the other way around.',
+        'config.language.tooltip.en': 'English mode: ship to the world, align with most docs, and keep your console style sharp.',
+        'config.language.tooltip.zh': '中文模式：专注国内开发节奏，少些翻译脑洞，多些熟悉的写码韵味。',
+        'config.ai.provider.description': 'AI provider for log explanation. "local" launches a local agent; other values use configured endpoint.',
+        'config.ai.endpoint.description': 'Full HTTP endpoint for AI log explanation requests (e.g. http://localhost:11434/api/chat).',
+        'config.ai.model.description': 'Model name or identifier for AI conversations (e.g. qwen2.5:7b).',
+        'config.ai.apiKey.description': 'Bearer token/API key used for authenticated AI endpoint calls.',
+        'config.ai.localStartCommand.description': 'Command used to spawn a local AI service if endpoint is unavailable.',
+        'config.ai.maxTokens.description': 'Maximum token count per AI request; bigger values increase cost and response length.',
+        'config.ai.timeoutMs.description': 'AI request timeout in milliseconds; prevents hanging calls.',
+        'config.ai.autoStartLocal.description': 'Auto-start local AI service when endpoint is unreachable.',
+        'config.ai.base.description': 'Path to Tomcat base directory (CATALINA_BASE) for the AI environment configuration',
+        'config.ai.logEncoding.description': 'Character encoding for logs displayed in AI log explain output',
+        'config.ai.showTimestamp.description': 'Show timestamps in AI-generated log analysis output',
+        'config.ai.autoReloadBrowser.description': 'Auto-reload browser after AI context-aware deployment insights',
+        'config.logLevel': 'Log Level',
+        'config.logLevel.description': 'Minimum log severity to display (DEBUG/INFO/WARN/ERROR).',
+        'config.buildType': 'Build Type',
+        'config.buildType.description': 'Default build strategy used for app deployment.',
+        'instance.addTomcatHome': 'Add Tomcat home',
         'instance.addCatalinaBase': 'Add CATALINA_BASE',
         'instance.catalinaBaseSet': 'CATALINA_BASE set to {path}',
         'app.noAppsFound': 'No Java EE apps found',
+        'app.status': 'Status',
         'app.status.running': 'Running',
         'app.status.stopped': 'Stopped',
+        'home.version': 'Version',
+        'config.itemTooltip': '{label}: {value}',
+        'ai.settingTooltip': '{title}: {value}',
+        'optionItem.tooltip': '{value}',
+        'ai.optionSettingTooltip': '{title}: {value}',
+        'ai.listGroupTooltip': 'Set and manage {setting} options.',
+        'ai.listValueTooltip': 'Select {value} for {setting}.',
+        'instance.portTooltip': 'HTTP port {port} ({status}).',
         'app.create.template.javaee': 'Java EE Web App',
         'app.create.template.javaee.desc': 'Standard Java EE web application (servlet, JSP).',
         'app.create.template.springboot': 'Spring Boot Web App',
@@ -224,18 +277,23 @@ const translations = {
         'instance.removedPort': 'Removed saved port {port}.',
         'instance.buildTypeSet': 'Auto deploy build type set to {type}',
         'instance.logLevelSet': 'Log level set to {level}',
+        'instance.languageSet': 'Extension language set to {language}',
         'group.buildType': 'Build Type',
         'group.logLevel': 'Log Level',
+        'group.language': 'Language',
+        'group.languageTooltip': 'Set the extension display language for this workspace.',
         'group.ai': 'AI',
         'group.settings': 'Settings',
         'ai.selectProvider': 'Select AI provider',
         'ai.provider': 'Provider',
+        'ai.selectSettingValue': 'Select AI setting value',
         'ai.endpoint': 'Endpoint',
         'ai.model': 'Model',
         'ai.apiKey': 'API Key',
         'ai.localStartCommand': 'Local Start Command',
         'ai.maxTokens': 'Max Tokens',
         'ai.timeoutMs': 'Timeout (ms)',
+        'ai.debug': 'Debug',
         'ai.autoStartLocal': 'Auto Start Local',
         'ai.addOption': 'Add new value',
         'ai.removeOption': 'Remove selected value',
@@ -246,6 +304,21 @@ const translations = {
         'ai.endpoint.validation': 'AI endpoint cannot be empty when provider is enabled',
         'ai.model.prompt': 'AI model name',
         'ai.model.validation': 'AI model cannot be empty when provider is enabled',
+        'ai.debugExplainStart': 'Explain start: level={level}',
+        'ai.debugReady': 'Ready in {elapsed}ms (provider={provider}, bootMs={bootMs})',
+        'ai.debugSending': 'Sending to {endpoint} (tokens={tokens}, timeout={timeout}ms, promptLen={promptLen})',
+        'ai.debugStreamFailed': 'Stream failed: {error}',
+        'ai.debugException': 'Exception: {error}',
+        'ai.debugTimers': 'Timers ready={ready}ms boot={boot}ms firstToken={firstToken}ms totalStream={totalStream}ms call={call}ms',
+        'ai.debugReachabilityOk': 'Reachability ok in {elapsed}ms',
+        'ai.debugLocalReachable': 'Local AI became reachable in {elapsed}ms after spawn attempt',
+        'ai.debugSpawnFailed': 'Spawn failed: {error}',
+        'ai.debugLocalNotReachable': 'Local AI not reachable after {elapsed}ms of retries',
+        'ai.debugSpawningLocal': 'Spawning local AI: {cmd}',
+        'ai.debugNonShellSpawnFailed': 'Non-shell spawn failed, retrying with shell: {error}',
+        'ai.debugResponseStatus': 'Response status={status} len={len} text={text} body={body}',
+        'ai.debugResponseParseFail': 'Response parse fail status={status} len={len} err={error} body={body}',
+        'ai.debugPrefix': 'AI_DEBUG: {message}',
         'ai.apiKey.prompt': 'AI API key (optional)',
         'ai.localStartCommand.prompt': 'Local AI start command',
         'ai.localStartCommand.validation': 'Local start command cannot be empty',
@@ -256,8 +329,7 @@ const translations = {
         'ai.trueFalsePrompt': 'Choose true or false',
         'ai.settingUpdated': 'AI setting {key} updated to {value}',
         'ai.invalidConfigReverted': 'Invalid AI config detected and reverted to defaults.',
-        'group.home': 'Tomcat Home',
-        'group.browser': 'Browser',
+        'group.home': 'Tomcat Home', 'group.instancesTooltip': 'Running Tomcat server instances managed by the extension. Expand to view and control each instance.', 'group.browser': 'Browser',
         'group.javaHome': 'Java Home',
         'group.port': 'HTTP Port',
         'action.select': 'Select',
@@ -279,7 +351,6 @@ const translations = {
         'instance.noJavaHomes': 'No Java homes configured',
         'instance.tomcatHomeNotSet': 'Home not set',
         'instance.javaHomeNotSet': 'Java home not set',
-        'instance.addTomcatHome': 'Add Tomcat home',
         'instance.addJavaHome': 'Add Java home',
         'instance.invalidTomcatHome': 'Selected folder is not a valid Tomcat home.',
         'instance.invalidJavaHome': 'Selected folder is not a valid Java home.',
@@ -302,6 +373,12 @@ const translations = {
         'ai.systemPrompt': 'You are a concise Tomcat build/server log assistant. Explain the probable cause and a short fix in under 120 words. If the log is incomplete, say what to check next.',
         'ai.userPrompt': 'Log level: {level}\nLog: {log}',
         'ai.failedLocalStart': '[AI] failed to start local AI: {error}',
+        'ai.debugFirstStreamToken': 'First stream token in {ms}ms',
+        'ai.debugFirstStreamTokenEndOfStream': 'First stream token in {ms}ms (end-of-stream)',
+        'ai.debugStreamFinished': 'Stream finished in {ms}ms',
+        'ai.streamStart': 'AI stream started',
+        'ai.streamChunk': 'AI stream chunk: {chunk}',
+        'ai.streamEnd': 'AI stream ended',
         'logger.userSelected': 'User selected: {selection}',
         'logger.noErrorLocationParsed': 'No error location parsed from build output',
         'logger.failedOpenErrorLocation': 'Failed to open error location {path}: {error}',
@@ -399,6 +476,7 @@ const translations = {
         'builder.deployInProgress': '部署正在进行中。请稍候。',
         'builder.deployInProgressApp': '应用 {app} 的部署正在进行中。',
         'builder.autoDeployError': '自动部署失败：{error}',
+        'builder.autoDeploySuppressed': '由于最近的配置更改，自动部署已被抑制。',
         'builder.selectProject': '选择要部署的 Java EE 项目',
         'builder.selectBuildType': '选择构建类型',
         'builder.webAppMissing': '未找到 WebApp 目录：{path}',
@@ -414,6 +492,8 @@ const translations = {
         'buildType.gradle': 'Gradle',
         'browser.noAppName': '未提供应用名称',
         'browser.noAppNameDetails': '请提供有效的应用名称',
+        'browser.revertToPrevious': '未找到浏览器 {choice}。已恢复为之前：{previous}。',
+        'browser.revertToDisable': '未找到浏览器 {choice}。已恢复为“关闭”。',
         'browser.accessUrl': '可在此访问应用：{url}',
         'browser.unsupportedPlatform': '{browser} 在当前平台不受支持。',
         'browser.unsupportedPlatformDetails': '请使用其他浏览器',
@@ -436,17 +516,89 @@ const translations = {
         'instance.noTomcatHomes': '未配置 Tomcat 路径',
         'instance.noTomcatInstances': '未检测到 Tomcat 实例',
         'group.instances': '实例',
+        'group.instancesTooltip': '正在管理的 Tomcat 服务器实例。展开以查看每个实例的运行状态和操作。',
         'group.apps': '应用',
+        'group.appsTooltip': '工作区中检测到的 Java Web 应用。展开以查看部署状态和控制项。',
         'group.additional': '额外设置',
+        'group.settingsTooltip': '配置 Tomcat 工作区设置和默认值。',
+        'group.aiTooltip': '查看和管理 AI 提供商设置。',
+        'group.portTooltip': '部署使用的已配置 HTTP 端口列表。',
+        'group.additionalTooltip': '用于高级配置的附加部署和 Tomcat 设置。',
+        'ai.providerTooltip': '选择用于日志解释功能的 AI 提供商。',
 
         'config.logEncoding': '日志编码',
+        'config.logEncoding.description': '用于读取 Tomcat 日志文件的编码（例如 utf8、utf16le）。请设置与 Tomcat 日志文件编码一致，避免出现乱码。',
         'config.showTimestamp': '显示时间戳',
+        'config.showTimestamp.description': '启用后在输出面板中每条日志前显示时间戳，有助于分析事件时间线。',
         'config.autoReloadBrowser': '自动刷新浏览器',
-        'config.base': 'CATALINA_BASE',
+        'config.autoReloadBrowser.description': '启用后部署成功后自动刷新浏览器选项卡，避免手动刷新。',
+        'config.base': 'Tomcat 根目录',
+        'config.base.description': 'Tomcat 基目录路径（CATALINA_BASE）。包含 conf、logs、webapps。若为空，则使用默认 Tomcat 主目录。',
         'config.javaHome': 'Java 主目录',
+        'config.javaHome.description': '用于启动 Tomcat 的 JDK 安装路径。若为空，则尝试自动检测。',
+        'config.home': 'Tomcat 路径',
+        'config.home.description': 'Tomcat 安装路径。若为空，扩展会尝试查找有效路径。',
+        'config.port': 'HTTP 端口',
+        'config.port.description': 'Tomcat HTTP 监听端口（1024-49151）。',
+        'config.browser': '浏览器',
+        'config.browser.description': '打开应用或自动重载时使用的浏览器。',
+        'config.language': '扩展语言',
+        'config.language.description': '扩展界面语言（auto = 跟随 VS Code 语言）。',
+        'config.language.enum.auto': '自动（系统语言）',
+        'config.language.enum.en': 'English',
+        'config.language.enum.zh': '简体中文',
+        'config.language.tooltip.auto': '开发者的高级感：让工具跟你走，而不是你随它跑。',
+        'config.language.tooltip.en': 'English 模式：面向全球，文档兼容，控制台风格更犀利。',
+        'config.language.tooltip.zh': '中文模式：愿每一个汉字都成为你写码时的节奏和自豪。',
+        'config.ai.provider.description': 'AI 提供商，用于日志解释。“local”启动本地 AI；其他值使用配置的端点。',
+        'config.ai.endpoint.description': 'AI 日志解释请求的 HTTP 端点（例如 http://localhost:11434/api/chat）。',
+        'config.ai.model.description': 'AI 模型名称或标识（例如 qwen2.5:7b）。',
+        'config.ai.apiKey.description': '调用 AI 端点时的 Bearer 令牌/API 密钥。',
+        'config.ai.localStartCommand.description': '当端点不可用时启动本地 AI 服务的命令。',
+        'config.ai.maxTokens.description': 'AI 每次请求的最大 token 数，值越大可能成本越高。',
+        'config.ai.timeoutMs.description': 'AI 请求超时时间（毫秒），防止请求挂起。',
+        'config.ai.autoStartLocal.description': '端点不可用时是否自动启动本地 AI 服务。',
+        'config.ai.base.description': '指定 AI 相关的 Tomcat 基目录路径（CATALINA_BASE），用于日志上下文绑定。',
+        'config.ai.logEncoding.description': 'AI 日志解释功能使用的日志编码设置。',
+        'config.ai.showTimestamp.description': 'AI 日志分析中是否显示时间戳。',
+        'config.ai.autoReloadBrowser.description': 'AI 智能建议的自动刷新浏览器行为设置。',
+        'config.logLevel': '日志级别',
+        'config.logLevel.description': '显示最低日志级别（DEBUG/INFO/WARN/ERROR）。',
+        'config.buildType': '构建类型',
+        'config.buildType.description': '应用部署的默认构建策略。',
         'app.noAppsFound': '未找到 Java EE 应用',
+        'app.status': '状态',
         'app.status.running': '正在运行',
         'app.status.stopped': '已停止',
+        'home.version': '版本',
+        'app.create.projectOverview': '项目概览',
+        'app.create.templateLabel': '模板',
+        'app.create.frontendLabel': '前端框架',
+        'app.create.javaVersion': 'Java 版本',
+        'app.create.tomcatVersion': 'Tomcat 版本',
+        'app.create.nodeVersion': 'Node 版本',
+        'app.create.npmVersion': 'NPM 版本',
+        'app.create.platform': '平台',
+        'app.create.quickStart': '快速开始',
+        'app.create.quickStep1': '1. 使用 Maven/Gradle 构建项目',
+        'app.create.quickStep2': '2. 使用 mvn spring-boot:run 或 Tomcat 工作流运行项目',
+        'app.create.quickStep3': '3. 在浏览器打开 http://localhost:8080',
+        'app.create.layout': '项目结构',
+        'app.create.moreInfo': '更多信息',
+        'app.create.informationLine1': '此模板包含最佳实践目录和初始代码片段。',
+        'app.create.success': '已在 {path} 创建应用 {name}',
+        'app.create.frontend.none': '无前端',
+        'group.language': '语言',
+        'group.languageTooltip': '为此工作区设置扩展显示语言。',
+        'ai.debugResponseStatus': '响应状态：{status}，长度：{len}',
+        'ai.debugResponseParseFail': '响应解析失败：状态={status}，长度={len}，错误={error}，正文={body}',
+        'config.itemTooltip': '{label}：{value}',
+        'ai.settingTooltip': '{title}：{value}',
+        'optionItem.tooltip': '{value}',
+        'ai.optionSettingTooltip': '{title}：{value}',
+        'ai.listGroupTooltip': '设置并管理 {setting} 选项。',
+        'ai.listValueTooltip': '为 {setting} 选择 {value}。',
+        'instance.portTooltip': 'HTTP 端口 {port}（{status}）。',
         'app.create.template.javaee': 'Java EE Web 应用',
         'app.create.template.javaee.desc': '标准 Java EE Web 应用（servlet，JSP）。',
         'app.create.template.springboot': 'Spring Boot Web 应用',
@@ -459,7 +611,28 @@ const translations = {
         'app.create.pathExists': '路径已存在：{path}',
         'app.create.noValidJdk': '未找到有效 JAVA_HOME，生成应用可能无法编译。',
         'app.create.noValidTomcat': '未找到有效 Tomcat Home，请配置 Tomcat。',
+        'tomcat.stopMultipleInstancesNotSupported': '由于存在多个托管实例，无法执行停止命令；请从树中停止一个实例。',
+        'tomcat.noInstanceForApp': '未找到应用 {app} 的托管实例。',
+        'tomcat.appUndeployBusy': '应用 {app} 正在卸载中，正在停止 Tomcat 实例并重试。',
+        'tomcat.appUndeployForceCleanup': '应用 {app} 仍在卸载，停止后执行清理并刷新状态。',
+        'tomcat.exitedWithCodeInstance': 'Tomcat 实例 {app} 在端口 {port} 退出，代码 {code}。',
+        'builder.deployQueuedRestart': '正在重新运行队列中的部署（应用 {app}）。',
+        'builder.deployAlreadyRunning': '应用 {app} 在上一次部署后已在运行，跳过排队重启。',
+        'app.create.selectType': '选择 Java EE 应用模板',
+        'app.create.maven': 'Maven Web 应用',
+        'app.create.gradle': 'Gradle Web 应用',
+        'app.create.springBoot': 'Spring Boot Web 应用',
+        'app.create.custom': '自定义 Java EE 应用',
+        'app.create.enterName': '输入应用名称',
+        'app.create.selectLocation': '选择新应用的位置文件夹',
+        'app.create.selectFrontend': '选择前端框架',
+        'app.create.frontend.jsp': 'JSP',
+        'app.create.frontend.thymeleaf': 'Thymeleaf',
+        'app.create.frontend.react': 'React',
+        'app.create.frontend.vue': 'Vue',
+        'app.create.frontend.angular': 'Angular',
         'app.tooltip': 'Java EE 应用路径',
+
         'app.deploy': '部署应用',
         'app.openInBrowser': '在浏览器中打开应用',
         'instance.runningInstances': '运行中的实例（{count}）',
@@ -469,18 +642,19 @@ const translations = {
         'instance.removedPort': '已删除保存的端口 {port}。',
         'instance.buildTypeSet': '自动部署构建类型已设置为 {type}',
         'instance.logLevelSet': '日志级别已设置为 {level}',
+        'instance.languageSet': '扩展语言已设置为 {language}',
         'group.buildType': '构建类型',
         'group.logLevel': '日志级别',
         'group.ai': 'AI',
         'group.settings': '设置',
         'ai.provider': '提供商',
+        'ai.selectSettingValue': '选择 AI 设置值',
         'ai.endpoint': '端点',
         'ai.model': '模型',
         'ai.apiKey': 'API 密钥',
         'ai.localStartCommand': '本地启动命令',
         'ai.maxTokens': '最大 Tokens',
-        'ai.timeoutMs': '超时 (毫秒)',
-        'ai.autoStartLocal': '自动启动本地 AI',
+        'ai.timeoutMs': '超时 (毫秒)', 'ai.debug': '调试', 'ai.autoStartLocal': '自动启动本地 AI',
         'ai.addOption': '添加新值',
         'ai.removeOption': '删除当前值',
         'ai.providerReadOnly': '提供商列表固定，无法扩展。',
@@ -493,6 +667,18 @@ const translations = {
         'ai.model.prompt': 'AI 模型名称',
         'ai.model.validation': '启用 AI 时模型不能为空',
         'ai.apiKey.prompt': 'AI API Key（可选）',
+        'ai.debugExplainStart': '开始解释：级别={level}',
+        'ai.debugReady': '就绪耗时 {elapsed} 毫秒（提供商={provider}，启动={bootMs} 毫秒）',
+        'ai.debugSending': '发送到 {endpoint}（tokens={tokens}, 超时={timeout}ms, promptLen={promptLen}）',
+        'ai.debugStreamFailed': '流式传输失败：{error}',
+        'ai.debugException': '异常：{error}',
+        'ai.debugTimers': '计时 ready={ready}ms boot={boot}ms firstToken={firstToken}ms totalStream={totalStream}ms call={call}ms',
+        'ai.debugReachabilityOk': '可访问性正常，耗时 {elapsed}ms',
+        'ai.debugLocalReachable': '本地 AI 在启动后 {elapsed}ms 可访问',
+        'ai.debugSpawnFailed': '启动失败：{error}',
+        'ai.debugLocalNotReachable': '本地 AI 在 {elapsed}ms 重试后仍不可访问',
+        'ai.debugSpawningLocal': '正在启动本地 AI：{cmd}',
+        'ai.debugNonShellSpawnFailed': '非 shell 启动失败，尝试使用 shell 重试：{error}',
         'ai.localStartCommand.prompt': '本地 AI 启动命令',
         'ai.localStartCommand.validation': '本地启动命令不能为空',
         'ai.maxTokens.prompt': 'AI 最大 token 数',
@@ -552,6 +738,14 @@ const translations = {
         'ai.systemPrompt': '你是简洁的 Tomcat 构建/服务器日志助手，用不超过 120 字说明可能原因和简短修复方案。如果日志不完整，请说明下一步应该检查什么。',
         'ai.userPrompt': '日志级别：{level}\n日志：{log}',
         'ai.failedLocalStart': '[AI] 启动本地 AI 失败：{error}',
+        'ai.debugFirstStreamToken': '首次流 token 用时 {ms}ms',
+        'ai.debugFirstStreamTokenEndOfStream': '首次流 token 用时 {ms}ms（流结束）',
+        'ai.debugStreamFinished': '流已完成，用时 {ms}ms',
+        'ai.debugPrefix': 'AI_DEBUG：{message}',
+        'ai.streamStart': 'AI 流开始',
+
+        'ai.streamChunk': 'AI 流内容：{chunk}',
+        'ai.streamEnd': 'AI 流结束',
         'browser.invalidDebugProtocolResponse': '无效的调试协议响应',
         'logger.userSelected': '用户选择：{selection}',
         'logger.noErrorLocationParsed': '未解析到错误位置',
@@ -566,6 +760,36 @@ const translations = {
 
 let currentLocale: Locale = 'en';
 let initialized = false;
+const reportedMissingKeys = new Set<string>();
+
+function getAllLocales(): Locale[] {
+    return ['en', 'zh-CN'];
+}
+
+function validateTranslationCoverage(): void {
+    const baseKeys = Object.keys(translations.en) as Array<TranslationKey>;
+    const missingList: Array<{ locale: Locale; key: string }> = [];
+
+    for (const locale of getAllLocales()) {
+        if (locale === 'en') { continue; }
+        const localeStrings = (translations as Record<string, any>)[locale] || {};
+        for (const key of baseKeys) {
+            if (!(key in localeStrings)) {
+                missingList.push({ locale, key });
+            }
+        }
+    }
+
+    if (missingList.length > 0) {
+        const firstBlank = missingList.slice(0, 20).map((m) => `${m.locale}:${m.key}`).join(', ');
+        const msg = `Tomcat i18n coverage error: missing keys (${missingList.length}) in other locales: ${firstBlank}${missingList.length > 20 ? ', ...' : ''}`;
+        console.error(msg);
+        vscode.window.showErrorMessage(msg);
+
+        // do not throw, to avoid extension activation failure during exercises and debugging;
+        // missing translations fallback to English at runtime.
+    }
+}
 
 /**
  * Initialize localization state once per extension activation.
@@ -575,6 +799,8 @@ let initialized = false;
  */
 export function initializeLocalization(context: vscode.ExtensionContext): void {
     if (initialized) { return; }
+
+    validateTranslationCoverage();
 
     const cfg = vscode.workspace.getConfiguration('tomcat');
     const configured = cfg.get<LanguageSetting>('language', 'auto');
@@ -632,7 +858,19 @@ export function getCurrentLocale(): Locale {
 export function t(key: TranslationKey, vars?: Record<string, string | number>): string {
     const locale = getCurrentLocale();
     const localeStrings = (translations as Record<string, any>)[locale] || {};
-    const template = localeStrings[key as string] ?? translations.en[key] ?? key;
+    const template = localeStrings[key as string] ?? translations.en[key];
+
+    if (template === undefined) {
+        const missingContext = `${locale}:${key}`;
+        if (!reportedMissingKeys.has(missingContext)) {
+            reportedMissingKeys.add(missingContext);
+            const msg = `Tomcat i18n missing key at runtime: ${missingContext}`;
+            console.error(msg);
+            vscode.window.showErrorMessage(msg);
+        }
+        return key;
+    }
+
     return format(template, vars);
 }
 
