@@ -4,18 +4,21 @@
 
 ### Added
 
-- New setting `tomcat.language` with selectable values `auto`, `en`, `zh-CN` and language picker in tree view (same UI model as log level selector).
-- New AI settings UI group tooltips for `base`, `logEncoding`, `showTimestamp`, `autoReloadBrowser` with description fallback and rich per-language option tooltips.
-- New `group.instancesTooltip` and `group.appsTooltip` for richer hover text on root tree items.
-- Added syntax highlighting support for Tomcat log files with custom grammar (`tomcat-log.tmLanguage.json`) and language configuration (`language-configuration.json`) in `resources/syntaxes/`.
+- **Complete Eclipse Build Type Implementation**: Added 'Eclipse' as a selectable build type in VS Code settings and view options. The Eclipse deployment strategy intelligently handles Eclipse Dynamic Web Projects by detecting output directories from `.classpath` files, copying compiled classes from Eclipse's build output, and providing fallback compilation when needed. Users can now select 'Eclipse' from the build type dropdown in the Tomcat view or set it as the default in VS Code settings.
+- Extension activation failure due to incorrect data file paths in compiled extension. Fixed webpack configuration and file loading paths for templates and translations.
 - Added localization consistency checker script (`tmp_check.js`) to validate i18n key synchronization across all locale files and package.json usage, ensuring no missing or extra keys.
+- **New centralized project detection system** (`src/utils/projectDetector.ts`) supporting Eclipse, Maven, Gradle, Spring Boot, Jakarta EE, and standard Java web projects with automatic build type detection and directory structure analysis.
 
 ### Changed
 
+- **Added dedicated Eclipse build type** with intelligent deployment strategy for Eclipse Dynamic Web Projects. Auto-detects Eclipse output directories from `.classpath` files, handles `WebContent/` structure, and provides fallback compilation for pure Eclipse projects without Maven/Gradle integration.
 - Enhanced i18n runtime coverage validator in `src/utils/i18n.ts` to detect missing keys and emit clear logs without completing activation failure.
 - Added per-language tooling and fallback handling in `AIListGroup`, `AIListValue`, `AISettingItem`, `OptionItem`.
 - Reorganized project structure: moved all resource files to `resources/` subdirectories (`images/`, `syntaxes/`) and updated all references in `package.json` for better organization and maintainability.
 - Reorganized runtime translations into `src/data/i18n/` folder and updated localization checker script (`i18n_check.js`) to validate runtime translations in the new location, ensuring consistency across all locale files.
+- **Enhanced Builder service** with auto-detection of project types (Eclipse, Maven, Gradle) and automatic build strategy selection, replacing manual build type configuration for better user experience.
+- **Added 'Auto' as the default build type** in VS Code settings, allowing automatic detection of project type (Maven, Gradle, or Local) for streamlined deployment without manual configuration.
+- **Improved project detection logic** centralized in `ProjectDetector` class with support for Eclipse `.project`/`.classpath` files, Maven `pom.xml` analysis, Gradle build files, and various Java EE frameworks.
 
 ### Fixed
 

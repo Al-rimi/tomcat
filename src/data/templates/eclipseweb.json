@@ -1,0 +1,40 @@
+{
+  "id": "eclipseweb",
+  "labelKey": "app.create.template.eclipseweb",
+  "descriptionKey": "app.create.template.eclipseweb.desc",
+  "pomFragment": "",
+  "artifacts": [
+    {
+      "path": ".project",
+      "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<projectDescription>\n    <name>{{appName}}</name>\n    <comment></comment>\n    <projects>\n    </projects>\n    <buildSpec>\n        <buildCommand>\n            <name>org.eclipse.jdt.core.javabuilder</name>\n            <arguments>\n            </arguments>\n        </buildCommand>\n        <buildCommand>\n            <name>org.eclipse.wst.common.project.facet.core.builder</name>\n            <arguments>\n            </arguments>\n        </buildCommand>\n        <buildCommand>\n            <name>org.eclipse.wst.validation.validationbuilder</name>\n            <arguments>\n            </arguments>\n        </buildCommand>\n    </buildSpec>\n    <natures>\n        <nature>org.eclipse.jem.workbench.JavaEMFNature</nature>\n        <nature>org.eclipse.wst.common.modulecore.ModuleCoreNature</nature>\n        <nature>org.eclipse.wst.common.project.facet.core.nature</nature>\n        <nature>org.eclipse.jdt.core.javanature</nature>\n        <nature>org.eclipse.wst.jsdt.web.nature</nature>\n    </natures>\n</projectDescription>"
+    },
+    {
+      "path": ".classpath",
+      "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<classpath>\n    <classpathentry kind=\"src\" path=\"src\"/>\n    <classpathentry kind=\"con\" path=\"org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11\">\n        <attributes>\n            <attribute name=\"module\" value=\"true\"/>\n        </attributes>\n    </classpathentry>\n    <classpathentry kind=\"con\" path=\"org.eclipse.jst.server.core.container/org.eclipse.jst.server.tomcat.runtimeTarget/Apache Tomcat v9.0\">\n        <attributes>\n            <attribute name=\"owner.project.facets\" value=\"jst.web\"/>\n        </attributes>\n    </classpathentry>\n    <classpathentry kind=\"con\" path=\"org.eclipse.jst.j2ee.internal.web.container\"/>\n    <classpathentry kind=\"con\" path=\"org.eclipse.jst.j2ee.internal.module.container\"/>\n    <classpathentry kind=\"output\" path=\"build/classes\"/>\n</classpath>"
+    },
+    {
+      "path": ".settings/org.eclipse.wst.common.project.facet.core.xml",
+      "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<faceted-project>\n  <fixed facet=\"jst.java\"/>\n  <fixed facet=\"jst.web\"/>\n  <installed facet=\"jst.java\" version=\"11\"/>\n  <installed facet=\"jst.web\" version=\"4.0\"/>\n</faceted-project>"
+    },
+    {
+      "path": ".settings/org.eclipse.wst.common.component",
+      "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<project-modules id=\"moduleCoreId\" project-version=\"1.5.0\">\n    <wb-module deploy-name=\"{{appName}}\">\n        <wb-resource deploy-path=\"/\" source-path=\"/WebContent\" tag=\"defaultRootSource\"/>\n        <wb-resource deploy-path=\"/WEB-INF/classes\" source-path=\"/src\"/>\n        <property name=\"context-root\" value=\"{{appName}}\"/>\n        <property name=\"java-output-path\" value=\"/build/classes\"/>\n    </wb-module>\n</project-modules>"
+    },
+    {
+      "path": "WebContent/WEB-INF/web.xml",
+      "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<web-app xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://java.sun.com/xml/ns/javaee\" xmlns:web=\"http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd\" xsi:schemaLocation=\"http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd\" id=\"WebApp_ID\" version=\"2.5\">\n  <display-name>{{appName}}</display-name>\n  <welcome-file-list>\n    <welcome-file>index.html</welcome-file>\n    <welcome-file>index.htm</welcome-file>\n    <welcome-file>index.jsp</welcome-file>\n    <welcome-file>default.html</welcome-file>\n    <welcome-file>default.htm</welcome-file>\n    <welcome-file>default.jsp</welcome-file>\n  </welcome-file-list>\n</web-app>"
+    },
+    {
+      "path": "WebContent/index.jsp",
+      "content": "<%@ page language=\"java\" contentType=\"text/html; charset=UTF-8\" pageEncoding=\"UTF-8\"%>\n<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"UTF-8\">\n<title>{{appName}}</title>\n</head>\n<body>\n<h1>Hello from {{appName}}!</h1>\n<p>This is an Eclipse Dynamic Web Project.</p>\n</body>\n</html>"
+    },
+    {
+      "path": "src/com/example/HelloServlet.java",
+      "content": "package com.example;\n\nimport java.io.IOException;\nimport javax.servlet.ServletException;\nimport javax.servlet.http.HttpServlet;\nimport javax.servlet.http.HttpServletRequest;\nimport javax.servlet.http.HttpServletResponse;\n\npublic class HelloServlet extends HttpServlet {\n    private static final long serialVersionUID = 1L;\n\n    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {\n        response.setContentType(\"text/plain;charset=UTF-8\");\n        response.getWriter().write(\"Hello from {{appName}}!\");\n    }\n}"
+    },
+    {
+      "path": "build/classes/.gitkeep",
+      "content": "# This directory will contain compiled Java classes"
+    }
+  ]
+}

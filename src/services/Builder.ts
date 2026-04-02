@@ -28,16 +28,17 @@ import { glob } from 'glob';
 import { Tomcat } from './Tomcat';
 import { Logger } from './Logger';
 import { BuildType, t, translateBuildType } from '../utils/i18n';
+import { ProjectDetector } from '../utils/projectDetector';
 
 const tomcat = Tomcat.getInstance();
 const logger = Logger.getInstance();
 
 export class Builder {
     private static instance: Builder;
-    private buildType: 'Local' | 'Maven' | 'Gradle';
+    private buildType: 'Auto' | 'Local' | 'Maven' | 'Gradle' | 'Eclipse';
     private autoDeployMode: 'On Save' | 'On Shortcut' | 'Disable';
     private deployingApps: Set<string> = new Set();
-    private pendingDeployRequests: Map<string, { type: 'Local' | 'Maven' | 'Gradle' | 'Choice'; projectDir?: string; preferActiveProject: boolean }> = new Map();
+    private pendingDeployRequests: Map<string, { type: 'Auto' | 'Local' | 'Maven' | 'Gradle' | 'Choice' | 'Eclipse'; projectDir?: string; preferActiveProject: boolean }> = new Map();
     private currentDeployingApp: string | null = null;
     private attempts = 0;
     private autoDeploySuppressedUntil = 0;
@@ -52,11 +53,11 @@ export class Builder {
      * - Prepares deployment triggers
      */
     private constructor() {
-        this.buildType = vscode.workspace.getConfiguration().get('tomcat.buildType', 'Local') as 'Local' | 'Maven' | 'Gradle';
+        this.buildType = vscode.workspace.getConfiguration().get('tomcat.buildType', 'Auto') as 'Auto' | 'Local' | 'Maven' | 'Gradle' | 'Eclipse';
         this.autoDeployMode = vscode.workspace.getConfiguration().get('tomcat.autoDeployMode', 'Disable') as 'On Save' | 'On Shortcut' | 'Disable';
     }
 
-    public getBuildType(): 'Local' | 'Maven' | 'Gradle' {
+    public getBuildType(): 'Auto' | 'Local' | 'Maven' | 'Gradle' | 'Eclipse' {
         return this.buildType;
     }
 
@@ -119,43 +120,18 @@ export class Builder {
      * - Updates dependent properties
      */
     public updateConfig(): void {
-        this.buildType = vscode.workspace.getConfiguration().get('tomcat.buildType', 'Local') as 'Local' | 'Maven' | 'Gradle';
+        this.buildType = vscode.workspace.getConfiguration().get('tomcat.buildType', 'Auto') as 'Auto' | 'Local' | 'Maven' | 'Gradle' | 'Eclipse';
         this.autoDeployMode = vscode.workspace.getConfiguration().get('tomcat.autoDeployMode', 'Disable') as 'On Save' | 'On Shortcut' | 'Disable';
     }
 
     /**
-     * Java EE Project Detection
-     * 
-     * Comprehensive project structure analysis implementing:
-     * 1. Standard directory layout verification
-     * 2. Web application descriptor detection
-     * 3. Build system configuration analysis
-     * 4. Existing artifact inspection
-     * 5. Framework signature detection
-     * 
-     * @returns Boolean indicating Java EE project validity
+     * Java Web Project Detection
+     *
+     * Uses centralized ProjectDetector for comprehensive project type analysis
+     * supporting Eclipse, Maven, Gradle, and various Java EE frameworks
      */
-    private static isJavaEEProjectRoot(rootPath: string): boolean {
-        const webInfPath = path.join(rootPath, 'src', 'main', 'webapp', 'WEB-INF');
-        if (fs.existsSync(webInfPath)) { return true; }
-        if (fs.existsSync(path.join(webInfPath, 'web.xml'))) { return true; }
-
-        const pomPath = path.join(rootPath, 'pom.xml');
-        if (fs.existsSync(pomPath) && fs.readFileSync(pomPath, 'utf-8').includes('<packaging>war</packaging>')) {
-            return true;
-        }
-
-        const gradlePath = path.join(rootPath, 'build.gradle');
-        if (fs.existsSync(gradlePath) && fs.readFileSync(gradlePath, 'utf-8').match(/(tomcat|jakarta|javax\.ee)/i)) {
-            return true;
-        }
-
-        const targetPath = path.join(rootPath, 'target');
-        if (fs.existsSync(targetPath) && fs.readdirSync(targetPath).some(file => file.endsWith('.war') || file.endsWith('.ear'))) {
-            return true;
-        }
-
-        return false;
+    private static isJavaWebProjectRoot(rootPath: string): boolean {
+        return ProjectDetector.isJavaWebProject(rootPath);
     }
 
     public static findJavaEEProjects(baseDir?: string): string[] {
@@ -169,7 +145,7 @@ export class Builder {
         const walk = (dir: string, depth = 0) => {
             if (depth > 5 || roots.has(dir)) { return; }
             if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) { return; }
-            if (Builder.isJavaEEProjectRoot(dir)) {
+            if (Builder.isJavaWebProjectRoot(dir)) {
                 roots.add(dir);
                 return;
             }
@@ -193,7 +169,7 @@ export class Builder {
     public static findProjectForFile(filePath: string): string | undefined {
         let dir = path.dirname(filePath);
         while (dir && dir !== path.dirname(dir)) {
-            if (Builder.isJavaEEProjectRoot(dir)) {
+            if (Builder.isJavaWebProjectRoot(dir)) {
                 return dir;
             }
             dir = path.dirname(dir);
@@ -217,7 +193,7 @@ export class Builder {
     private async selectProjectDirectory(projectDir?: string, preferActiveProject: boolean = false): Promise<string | undefined> {
         const projects = Builder.findJavaEEProjects();
 
-        if (projectDir && Builder.isJavaEEProjectRoot(projectDir)) {
+        if (projectDir && Builder.isJavaWebProjectRoot(projectDir)) {
             return projectDir;
         }
 
@@ -260,10 +236,10 @@ export class Builder {
      * 4. Build execution
      * 5. Post-deployment actions
      * 
-     * @param type Build strategy ('Local' | 'Maven' | 'Gradle' | 'Choice')
+     * @param type Build strategy ('Local' | 'Maven' | 'Gradle' | 'Choice' | 'Auto')
      * @log Deployment progress and errors
      */
-    public async deploy(type: 'Local' | 'Maven' | 'Gradle' | 'Choice', projectDir?: string, preferActiveProject: boolean = false): Promise<void> {
+    public async deploy(type: 'Local' | 'Maven' | 'Gradle' | 'Choice' | 'Auto' | 'Eclipse', projectDir?: string, preferActiveProject: boolean = false): Promise<void> {
         projectDir = await this.selectProjectDirectory(projectDir, preferActiveProject);
         if (!projectDir) { return; }
 
@@ -274,17 +250,40 @@ export class Builder {
             return;
         }
 
+        // Auto-detect project type if requested
+        if (type === 'Auto') {
+            const projectType = ProjectDetector.detectProjectType(projectDir);
+            switch (projectType) {
+                case 'maven':
+                case 'springboot':
+                case 'jakartaee':
+                    type = 'Maven';
+                    break;
+                case 'gradle':
+                    type = 'Gradle';
+                    break;
+                case 'eclipse':
+                case 'javaweb':
+                    type = 'Eclipse';
+                    break;
+                default:
+                    type = 'Local';
+                    break;
+            }
+            logger.info(t('builder.autoDetectedType', { type: projectType, buildType: type }));
+        }
+
         let isChoice;
 
         if (type === 'Choice') {
             isChoice = true;
-            const displayOptions = [t('buildType.local'), t('buildType.maven'), t('buildType.gradle')];
+            const displayOptions = [t('buildType.auto'), t('buildType.local'), t('buildType.maven'), t('buildType.gradle'), t('buildType.eclipse')];
             const subAction = await vscode.window.showQuickPick(displayOptions, {
                 placeHolder: t('builder.selectBuildType')
             });
             if (!subAction) { return; }
             const idx = displayOptions.indexOf(subAction);
-            type = ['Local', 'Maven', 'Gradle'][idx] as 'Local' | 'Maven' | 'Gradle';
+            type = ['Auto', 'Local', 'Maven', 'Gradle', 'Eclipse'][idx] as 'Auto' | 'Local' | 'Maven' | 'Gradle' | 'Eclipse';
             if (!type) { return; }
         }
 
@@ -309,7 +308,8 @@ export class Builder {
                 'Local': () => this.localDeploy(projectDir, targetDir, tomcatHome),
                 'Maven': () => this.mavenDeploy(projectDir, targetDir),
                 'Gradle': () => this.gradleDeploy(projectDir, targetDir, appName),
-            }[type];
+                'Eclipse': () => this.eclipseDeploy(projectDir, targetDir, tomcatHome),
+            }[type as 'Local' | 'Maven' | 'Gradle' | 'Eclipse'];
 
             if (!action) {
                 throw (t('builder.invalidDeployType', { type }));
@@ -364,7 +364,7 @@ export class Builder {
                 await tomcat.killManagedInstanceByPort(port);
                 await this.deploy(type, projectDir, preferActiveProject);
             } else {
-                const typeLabel = ['Local', 'Maven', 'Gradle'].includes(type as string)
+                const typeLabel = ['Local', 'Maven', 'Gradle', 'Eclipse'].includes(type as string)
                     ? translateBuildType(type as BuildType)
                     : translateBuildType(this.buildType as BuildType);
                 logger.error(t('builder.buildFailedWithApp', { type: typeLabel, app: appName, port }), isChoice, err as string);
@@ -636,6 +636,111 @@ export class Builder {
         fs.rmSync(targetDir, { recursive: true, force: true });
         fs.rmSync(`${targetDir}.war`, { recursive: true, force: true });
         fs.copyFileSync(warFile, `${targetDir}.war`);
+    }
+
+    /**
+     * Eclipse / Dynamic Web Project Deployment Strategy
+     * 
+     * Uses ProjectDetector helpers to respect Eclipse conventions:
+     * - Web resources from WebContent/ (or configured location)
+     * - Compiled classes from Eclipse output folder (or WebContent/WEB-INF/classes)
+     * - No forced javac compilation (Eclipse usually already built it)
+     */
+    private async eclipseDeploy(projectDir: string, targetDir: string, tomcatHome: string) {
+        const webAppRoot = ProjectDetector.getWebAppRoot(projectDir);
+        if (!webAppRoot || !fs.existsSync(webAppRoot)) {
+            throw new Error(t('builder.webAppMissing', { path: webAppRoot || 'WebContent' }));
+        }
+
+        // 1. Sync web resources (JSPs, HTML, CSS, WEB-INF/web.xml, etc.)
+        // Use restricted sync so it doesn't touch classes/lib aggressively
+        this.brutalSync(webAppRoot, targetDir, true);
+
+        // 2. Handle compiled classes
+        const classesDir = path.join(targetDir, 'WEB-INF', 'classes');
+        fs.rmSync(classesDir, { force: true, recursive: true });
+        fs.mkdirSync(classesDir, { recursive: true });
+
+        // Try to find Eclipse's output folder from .classpath
+        const outputDir = this.findEclipseOutputDir(projectDir);
+        if (outputDir && fs.existsSync(outputDir)) {
+            this.brutalSync(outputDir, classesDir);
+            logger.info(t('builder.eclipseOutputDirUsed', { dir: outputDir }));
+        } else {
+            // Fallback: look inside WebContent/WEB-INF/classes (common in Eclipse)
+            const eclipseClasses = path.join(webAppRoot, 'WEB-INF', 'classes');
+            if (fs.existsSync(eclipseClasses)) {
+                this.brutalSync(eclipseClasses, classesDir);
+                logger.info(t('builder.eclipseClassesFallbackUsed', { dir: eclipseClasses }));
+            } else {
+                // Last resort: try to compile ourselves (reuse existing logic)
+                const sourceDir = ProjectDetector.getSourceDir(projectDir);
+                if (sourceDir && fs.existsSync(sourceDir)) {
+                    await this.compileJavaSources(sourceDir, classesDir, tomcatHome);
+                    logger.info(t('builder.eclipseCompilationFallback', { dir: sourceDir }));
+                } else {
+                    logger.warn(t('builder.eclipseNoClassesFound'));
+                }
+            }
+        }
+
+        // 3. Sync libraries (WEB-INF/lib)
+        const webInfLib = path.join(webAppRoot, 'WEB-INF', 'lib');
+        if (fs.existsSync(webInfLib)) {
+            const targetLib = path.join(targetDir, 'WEB-INF', 'lib');
+            this.brutalSync(webInfLib, targetLib);
+        }
+
+        logger.info(t('builder.eclipseDeployCompleted'));
+    }
+
+    /**
+     * Find Eclipse Output Directory
+     * 
+     * Parses .classpath file to determine where Eclipse compiles classes
+     */
+    private findEclipseOutputDir(projectDir: string): string | null {
+        const classpathPath = path.join(projectDir, '.classpath');
+        if (!fs.existsSync(classpathPath)) {
+            return null;
+        }
+
+        try {
+            const content = fs.readFileSync(classpathPath, 'utf-8');
+            // Simple regex to find output path (kind="output")
+            const match = content.match(/kind="output"\s+path="([^"]+)"/);
+            if (match && match[1]) {
+                return path.join(projectDir, match[1]);
+            }
+        } catch (e) {
+            logger.debug(t('builder.eclipseClasspathParseError', { error: String(e) }));
+        }
+        return null;
+    }
+
+    /**
+     * Compile Java Sources
+     * 
+     * Fallback compilation for Eclipse projects when no pre-compiled classes found
+     */
+    private async compileJavaSources(sourceDir: string, classesDir: string, tomcatHome: string) {
+        const javaHome = await tomcat.findJavaHome();
+        if (!javaHome) {
+            logger.warn(t('builder.javaHomeNotFound'));
+            return;
+        }
+
+        const javacPath = path.join(javaHome, 'bin', 'javac');
+        const javaFiles = await this.findFiles(path.join(sourceDir, '**', '*.java'));
+
+        if (javaFiles.length > 0) {
+            const tomcatLibs = path.join(tomcatHome, 'lib', '*');
+            const cmd = `"${javacPath}" -d "${classesDir}" -cp "${tomcatLibs}" ${javaFiles.map(f => `"${f}"`).join(' ')}`;
+            await this.executeCommand(cmd, sourceDir);
+            logger.info(t('builder.javaCompilationCompleted', { count: javaFiles.length }));
+        } else {
+            logger.warn(t('builder.noJavaFilesFound', { dir: sourceDir }));
+        }
     }
 
     /**

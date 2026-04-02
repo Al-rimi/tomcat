@@ -85,8 +85,8 @@ export class View implements vscode.TreeDataProvider<
         const currentBrowser = config.get<string>('browser', 'Google Chrome');
         const browserItems = browserOptions.map((choice) => new BrowserOptionItem(choice, choice === currentBrowser));
 
-        const autoDeployOptions = ['Local', 'Maven', 'Gradle'];
-        const currentAutoDeploy = config.get<string>('buildType', 'Local');
+        const autoDeployOptions = ['Auto', 'Local', 'Maven', 'Gradle', 'Eclipse'];
+        const currentAutoDeploy = config.get<string>('buildType', 'Auto');
         const autoDeployItems = autoDeployOptions.map((choice) => new OptionItem(choice, choice === currentAutoDeploy, 'tomcat.instances.setBuildType', 'tomcatAutoDeployOption'));
 
         const logLevelOptions = ['DEBUG', 'INFO', 'SUCCESS', 'HTTP', 'APP', 'WARN', 'ERROR'];
@@ -305,7 +305,7 @@ export class View implements vscode.TreeDataProvider<
         if (!projectPath) { return; }
 
         const builder = Builder.getInstance();
-        await builder.deploy(builder.getBuildType(), projectPath);
+        await builder.deploy('Auto', projectPath);
         this.refresh();
     }
 

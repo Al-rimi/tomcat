@@ -4,16 +4,19 @@
 
 ### 新增
 
-- 新增设置 `tomcat.language`，可选值包括 `auto`、`en`、`zh-CN`，并在树视图中添加语言选择器（采用与日志级别选择器相同的 UI 模型）。
-- 为 AI 设置 UI 组新增工具提示，支持 `base`、`logEncoding`、`showTimestamp`、`autoReloadBrowser`，并实现描述回退机制以及丰富的多语言工具提示。
-- 新增 `group.instancesTooltip` 和 `group.appsTooltip`，为根树节点提供更丰富的悬停提示文本。
+- **完整的 Eclipse 构建类型实现**：在 VS Code 设置和视图选项中添加了 'Eclipse' 作为可选择的构建类型。Eclipse 部署策略智能处理 Eclipse 动态 Web 项目，通过从 `.classpath` 文件检测输出目录、从 Eclipse 构建输出复制已编译类，并在需要时提供回退编译。用户现在可以从 Tomcat 视图的构建类型下拉列表中选择 'Eclipse'，或在 VS Code 设置中将其设置为默认值。
+- 修复扩展激活失败问题，该问题由编译后扩展中的数据文件路径错误导致。修复了 webpack 配置和模板及翻译的文件加载路径。
 
 ### 变更
 
+- **添加专用 Eclipse 构建类型**，具有针对 Eclipse 动态 Web 项目的智能部署策略。从 `.classpath` 文件自动检测 Eclipse 输出目录，处理 `WebContent/` 结构，并为没有 Maven/Gradle 集成的纯 Eclipse 项目提供回退编译。
 - 增强了 `src/utils/i18n.ts` 中的 i18n 运行时覆盖率验证器，能够检测缺失的键并输出清晰日志，而不会导致激活失败。
 - 在 `AIListGroup`、`AIListValue`、`AISettingItem`、`OptionItem` 中添加了多语言工具支持和回退处理机制。
 - 重组项目结构：将所有资源文件移动到 `resources/` 子目录（`images/`、`syntaxes/`）中，并在 `package.json` 中更新所有引用，以提高组织性和可维护性。
 - 将运行时翻译重组到 `src/data/i18n/` 文件夹中，并更新本地化检查脚本（`i18n_check.js`）以在新位置验证运行时翻译，确保所有语言文件的一致性。
+- **增强构建器服务**，支持自动检测项目类型（Eclipse、Maven、Gradle），并自动选择构建策略，替代手动构建类型配置以提供更好的用户体验。
+- **将 'Auto' 添加为默认构建类型** 在 VS Code 设置中，允许自动检测项目类型（Maven、Gradle 或 Local），从而简化部署而无需手动配置。
+- **改进项目检测逻辑**，集中在 `ProjectDetector` 类中，支持 Eclipse `.project`/`.classpath` 文件、Maven `pom.xml` 分析、Gradle 构建文件以及各种 Java EE 框架。
 
 ### 修复
 

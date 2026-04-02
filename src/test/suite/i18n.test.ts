@@ -29,6 +29,7 @@ suite('i18n Tests', () => {
     });
 
     test('Translate build type strings', () => {
+        assert.strictEqual(translateBuildType('Auto'), 'Auto');
         assert.strictEqual(translateBuildType('Local'), 'Local');
         assert.strictEqual(translateBuildType('Maven'), 'Maven');
         assert.strictEqual(translateBuildType('Gradle'), 'Gradle');

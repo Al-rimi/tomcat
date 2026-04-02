@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { t } from './i18n';
 
-export type AppTemplateId = 'javaee' | 'springboot' | 'struts2' | 'jakartaee';
+export type AppTemplateId = 'javaee' | 'springboot' | 'struts2' | 'jakartaee' | 'javaweb' | 'mavenweb' | 'eclipseweb';
 
 export interface AppTemplate {
     id: AppTemplateId;
@@ -21,7 +21,16 @@ function loadTemplates(): AppTemplate[] {
     }
 
     const templates: AppTemplate[] = [];
-    const templatesDir = path.join(__dirname, '..', 'data', 'templates');
+    
+    // Try bundled path first (production), then source path (development)
+    let templatesDir: string;
+    try {
+        templatesDir = path.join(__dirname, 'data', 'templates');
+        fs.readdirSync(templatesDir); // Test if path exists
+    } catch {
+        // Fallback to source path for development
+        templatesDir = path.join(__dirname, '..', '..', 'src', 'data', 'templates');
+    }
 
     try {
         const templateFiles = fs.readdirSync(templatesDir).filter(file => file.endsWith('.json'));
@@ -50,4 +59,15 @@ export function getAppTemplates(): AppTemplate[] {
 
 export function getTemplateById(id: AppTemplateId): AppTemplate | undefined {
     return loadTemplates().find((template) => template.id === id);
+}
+
+/**
+ * Detect project type based on project structure and files
+ * NOTE: This function is deprecated. Use ProjectDetector from projectDetector.ts for project detection.
+ * This function is only kept for template creation compatibility.
+ */
+export function detectProjectType(_projectPath: string): AppTemplateId | null {
+    // This is now handled by ProjectDetector - keeping for backward compatibility
+    // Template creation should not depend on existing project detection
+    return null;
 }

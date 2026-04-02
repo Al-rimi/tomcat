@@ -21,7 +21,7 @@ AI-assisted Tomcat control for VS Code: streaming log explanations, one-click de
 - EBUSY recovery now uses pre-build resolved port and avoids implicit bootstrapping side effects.
 
 - **Build Strategies**  
-  Three build strategies Local, Maven and Gradle to choose from
+  Four build strategies Local, Maven, Gradle, and Eclipse to choose from
 
 - **AI Explanations (Streaming)**  
   WARN/ERROR logs are auto-explained via your configured AI provider, with live streaming output, local-endpoint fallback, and automatic navigation to the offending file/line.
@@ -200,7 +200,7 @@ Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
 | **Setting**                   | **Default**                                               | **Description**                                                                                                                               |
 | ----------------------------- | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | `tomcat.language`             | `auto`                                                    | Extension UI language (`auto`, `en`, `zh-CN`). On first run, `auto` follows VS Code's display language.                                       |
-| `tomcat.buildType`            | `Local`                                                   | Default build strategy for deployments (`Local`, `Maven`, `Gradle`)                                                                           |
+| `tomcat.buildType`            | `Local`                                                   | Default build strategy for deployments (`Local`, `Maven`, `Gradle`, `Eclipse`)                                                                |
 | `tomcat.autoDeployMode`       | `Disable`                                                 | Auto-deploy triggers (`Disable`, `On Save`, `On Shortcut`)                                                                                    |
 | `tomcat.browser`              | `Google Chrome`                                           | Browser for app launch & debug (`Disable`, `Google Chrome`, `Microsoft Edge`, `Firefox`, `Safari`, `Brave`, `Opera`)                          |
 | `tomcat.port`                 | `8080`                                                    | Tomcat server listen port (valid range: `1024`-`49151`)                                                                                       |

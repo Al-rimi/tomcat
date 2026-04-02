@@ -1,0 +1,24 @@
+{
+  "id": "mavenweb",
+  "labelKey": "app.create.template.mavenweb",
+  "descriptionKey": "app.create.template.mavenweb.desc",
+  "pomFragment": "\n<project xmlns=\"http://maven.apache.org/POM/4.0.0\"\n         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd\">\n    <modelVersion>4.0.0</modelVersion>\n    <groupId>com.example</groupId>\n    <artifactId>{{appName}}</artifactId>\n    <version>1.0-SNAPSHOT</version>\n    <packaging>war</packaging>\n    <name>{{appName}}</name>\n\n    <properties>\n        <maven.compiler.source>11</maven.compiler.source>\n        <maven.compiler.target>11</maven.compiler.target>\n        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>\n    </properties>\n\n    <dependencies>\n        <dependency>\n            <groupId>javax.servlet</groupId>\n            <artifactId>javax.servlet-api</artifactId>\n            <version>4.0.2</version>\n            <scope>provided</scope>\n        </dependency>\n        <dependency>\n            <groupId>junit</groupId>\n            <artifactId>junit</artifactId>\n            <version>4.13.2</version>\n            <scope>test</scope>\n        </dependency>\n    </dependencies>\n\n    <build>\n        <plugins>\n            <plugin>\n                <groupId>org.apache.maven.plugins</groupId>\n                <artifactId>maven-war-plugin</artifactId>\n                <version>3.3.2</version>\n                <configuration>\n                    <webXml>src\\main\\webapp\\WEB-INF\\web.xml</webXml>\n                </configuration>\n            </plugin>\n            <plugin>\n                <groupId>org.apache.maven.plugins</groupId>\n                <artifactId>maven-compiler-plugin</artifactId>\n                <version>3.10.1</version>\n                <configuration>\n                    <source>11</source>\n                    <target>11</target>\n                </configuration>\n            </plugin>\n        </plugins>\n    </build>\n</project>\n",
+  "artifacts": [
+    {
+      "path": "src/main/webapp/WEB-INF/web.xml",
+      "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<web-app xmlns=\"http://xmlns.jcp.org/xml/ns/javaee\"\n         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n         xsi:schemaLocation=\"http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd\"\n         version=\"4.0\">\n    <display-name>{{appName}}</display-name>\n    <welcome-file-list>\n        <welcome-file>index.html</welcome-file>\n        <welcome-file>index.htm</welcome-file>\n        <welcome-file>index.jsp</welcome-file>\n    </welcome-file-list>\n</web-app>"
+    },
+    {
+      "path": "src/main/webapp/index.jsp",
+      "content": "<%@ page language=\"java\" contentType=\"text/html; charset=UTF-8\" pageEncoding=\"UTF-8\"%>\n<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"UTF-8\">\n<title>{{appName}}</title>\n</head>\n<body>\n<h1>Hello from {{appName}}!</h1>\n<p>This is a Maven-based Java web application.</p>\n</body>\n</html>"
+    },
+    {
+      "path": "src/main/java/com/example/HelloServlet.java",
+      "content": "package com.example;\n\nimport java.io.IOException;\nimport javax.servlet.ServletException;\nimport javax.servlet.annotation.WebServlet;\nimport javax.servlet.http.HttpServlet;\nimport javax.servlet.http.HttpServletRequest;\nimport javax.servlet.http.HttpServletResponse;\n\n@WebServlet(\"/hello\")\npublic class HelloServlet extends HttpServlet {\n    private static final long serialVersionUID = 1L;\n\n    @Override\n    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {\n        response.setContentType(\"text/plain;charset=UTF-8\");\n        response.getWriter().write(\"Hello from {{appName}}!\");\n    }\n}"
+    },
+    {
+      "path": "src/test/java/com/example/HelloServletTest.java",
+      "content": "package com.example;\n\nimport org.junit.Test;\nimport static org.junit.Assert.*;\n\npublic class HelloServletTest {\n    @Test\n    public void testServlet() {\n        // Basic test - extend as needed\n        assertTrue(true);\n    }\n}"
+    }
+  ]
+}

@@ -16,7 +16,7 @@
   检测并管理 Java EE/Tomcat Web 应用，支持多根工作区应用发现和部署。
 
 - **多种构建策略**  
-  提供 Local、Maven、Gradle 三种部署方式。
+  提供 Local、Maven、Gradle、Eclipse 四种部署方式。
 
 - **AI 解释（流式）**  
   WARN/ERROR 日志自动送至已配置的 AI 提供商，支持流式输出、在本地端点不可达时的回退策略，并自动跳转到出错文件/行。
@@ -182,7 +182,7 @@ public static isJavaEEProject(): boolean {
 | **设置项**                    | **默认值**        | **说明**                                                                                |
 |------------------------------|-------------------|------------------------------------------------------------------------------------------|
 | `tomcat.language`            | `auto`            | 扩展界面语言（`auto`、`en`、`zh-CN`），首次运行 `auto` 将跟随 VS Code 显示语言。            |
-| `tomcat.buildType`           | `Local`           | 默认部署策略（`Local`、`Maven`、`Gradle`）                                                |
+| `tomcat.buildType`           | `Local`           | 默认部署策略（`Local`、`Maven`、`Gradle`、`Eclipse`）                                      |
 | `tomcat.autoDeployMode`      | `Disable`         | 自动部署触发方式（`Disable`、`On Save`、`On Shortcut`）                                   |
 | `tomcat.browser`             | `Google Chrome`   | 浏览器自动打开/调试（`Disable`、`Google Chrome`、`Microsoft Edge`、`Firefox`、`Safari`、`Brave`、`Opera`） |
 | `tomcat.port`                | `8080`            | Tomcat 监听端口（有效范围：`1024`-`49151`）                                               |

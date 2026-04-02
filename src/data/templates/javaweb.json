@@ -1,0 +1,24 @@
+{
+  "id": "javaweb",
+  "labelKey": "app.create.template.javaweb",
+  "descriptionKey": "app.create.template.javaweb.desc",
+  "pomFragment": "",
+  "artifacts": [
+    {
+      "path": "WebContent/WEB-INF/web.xml",
+      "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<web-app xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://java.sun.com/xml/ns/javaee\" xmlns:web=\"http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd\" xsi:schemaLocation=\"http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd\" id=\"WebApp_ID\" version=\"2.5\">\n  <display-name>{{appName}}</display-name>\n  <welcome-file-list>\n    <welcome-file>index.html</welcome-file>\n    <welcome-file>index.htm</welcome-file>\n    <welcome-file>index.jsp</welcome-file>\n    <welcome-file>default.html</welcome-file>\n    <welcome-file>default.htm</welcome-file>\n    <welcome-file>default.jsp</welcome-file>\n  </welcome-file-list>\n</web-app>"
+    },
+    {
+      "path": "WebContent/index.jsp",
+      "content": "<%@ page language=\"java\" contentType=\"text/html; charset=UTF-8\" pageEncoding=\"UTF-8\"%>\n<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"UTF-8\">\n<title>{{appName}}</title>\n</head>\n<body>\n<h1>Hello from {{appName}}!</h1>\n<p>This is a basic Java web application.</p>\n</body>\n</html>"
+    },
+    {
+      "path": "src/com/example/HelloServlet.java",
+      "content": "package com.example;\n\nimport java.io.IOException;\nimport javax.servlet.ServletException;\nimport javax.servlet.http.HttpServlet;\nimport javax.servlet.http.HttpServletRequest;\nimport javax.servlet.http.HttpServletResponse;\n\npublic class HelloServlet extends HttpServlet {\n    private static final long serialVersionUID = 1L;\n\n    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {\n        response.setContentType(\"text/plain;charset=UTF-8\");\n        response.getWriter().write(\"Hello from {{appName}}!\");\n    }\n}"
+    },
+    {
+      "path": "WebContent/WEB-INF/lib/README.txt",
+      "content": "Place your JAR dependencies in this directory.\n\nFor servlet API, you can download servlet-api.jar from your servlet container\nand place it here for compilation."
+    }
+  ]
+}

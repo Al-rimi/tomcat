@@ -30,7 +30,7 @@ export class Logger {
     private static instance: Logger;
     private tomcatHome: string;
     private autoDeployMode: DeployMode;
-    private outputChannel: vscode.OutputChannel;
+    private outputChannel: vscode.OutputChannel | null = null;
     private statusBarItem?: vscode.StatusBarItem;
     private statusBarIdleText = '';
     private statusBarIdleTooltip?: string | vscode.MarkdownString;
@@ -128,7 +128,7 @@ export class Logger {
             this.logLevel = 'INFO';
         }
         this.showTimestamp = vscode.workspace.getConfiguration().get<boolean>('tomcat.showTimestamp', true);
-        this.outputChannel = vscode.window.createOutputChannel(t('output.channelName'), 'tomcat-log');
+        // this.outputChannel is created lazily via getOutputChannel()
         this.logEncoding = vscode.workspace.getConfiguration().get<string>('tomcat.logEncoding', 'utf8');
         this.diagnostics = vscode.languages.createDiagnosticCollection('tomcat-ai');
 
@@ -155,6 +155,21 @@ export class Logger {
             Logger.instance = new Logger();
         }
         return Logger.instance;
+    }
+
+    /**
+     * Lazy output channel getter
+     * 
+     * Creates the output channel on first access to avoid initialization order issues
+     * with the i18n system.
+     * 
+     * @returns VS Code output channel for Tomcat logs
+     */
+    private getOutputChannel(): vscode.OutputChannel {
+        if (!this.outputChannel) {
+            this.outputChannel = vscode.window.createOutputChannel(t('output.channelName'), 'tomcat-log');
+        }
+        return this.outputChannel;
     }
 
     /**
@@ -202,7 +217,7 @@ export class Logger {
      * - Unexpected errors
      */
     public deactivate(): void {
-        this.outputChannel.dispose();
+        this.getOutputChannel().dispose();
         this.statusBarItem?.dispose();
         this.diagnostics.clear();
         this.diagnostics.dispose();
@@ -356,14 +371,14 @@ export class Logger {
             if (!this.aiStreamingLineStarted) {
                 const timestamp = this.showTimestamp ? `[${new Date().toLocaleString()}] ` : '';
                 if (this.aiStreamingInterrupted) {
-                    this.outputChannel.append(`${timestamp}[AI] ${newTotal}`);
+                    this.getOutputChannel().append(`${timestamp}[AI] ${newTotal}`);
                     this.aiStreamingInterrupted = false;
                 } else {
-                    this.outputChannel.append(`${timestamp}[AI] ${body}`);
+                    this.getOutputChannel().append(`${timestamp}[AI] ${body}`);
                 }
                 this.aiStreamingLineStarted = true;
             } else {
-                this.outputChannel.append(body);
+                this.getOutputChannel().append(body);
             }
 
             this.aiStreamingTotal = newTotal;
@@ -374,7 +389,7 @@ export class Logger {
             if (!this.aiStreaming) { return; }
 
             if (this.aiStreamingLineStarted) {
-                this.outputChannel.appendLine('');
+                this.getOutputChannel().appendLine('');
                 this.aiStreamingLineStarted = false;
             }
 
@@ -391,14 +406,14 @@ export class Logger {
         if (this.aiStreaming) {
             if (this.aiStreamingLineStarted) {
                 // Close current streaming line before logging non-stream AI messages
-                this.outputChannel.appendLine('');
+                this.getOutputChannel().appendLine('');
                 this.aiStreamingLineStarted = false;
                 this.aiStreamingInterrupted = true;
             }
 
             const body = isDebug ? message.replace('AI_DEBUG:', '').trim() : message;
             const levelTag = isDebug ? '[debug] [AI]' : '[AI]';
-            this.outputChannel.appendLine(`${timestamp}${levelTag} ${body}`);
+            this.getOutputChannel().appendLine(`${timestamp}${levelTag} ${body}`);
             return;
         }
 
@@ -408,7 +423,7 @@ export class Logger {
 
         const body = isDebug ? message.replace('AI_DEBUG:', '').trim() : message;
         const levelTag = isDebug ? '[debug] [AI]' : '[AI]';
-        this.outputChannel.appendLine(`${timestamp}${levelTag} ${body}`);
+        this.getOutputChannel().appendLine(`${timestamp}${levelTag} ${body}`);
     }
 
     public showAIStatus(message: string = t('status.aiTyping')): void {
@@ -865,25 +880,25 @@ export class Logger {
 
         if (this.aiStreaming && this.aiStreamingLineStarted && !this.aiStreamingInterrupted) {
             // Close current AI typing line once when another log appears during stream.
-            this.outputChannel.appendLine('');
+            this.getOutputChannel().appendLine('');
             this.aiStreamingLineStarted = false;
             this.aiStreamingInterrupted = true;
         }
 
         const formattedMessage = `${timestamp}[${level}] ${message}`;
 
-        this.outputChannel.appendLine(formattedMessage);
+        this.getOutputChannel().appendLine(formattedMessage);
 
         if (showUI) {
             showUI(message).then(selection => {
                 if (selection) {
-                    this.outputChannel.appendLine(t('logger.userSelected', { selection }));
+                    this.getOutputChannel().appendLine(t('logger.userSelected', { selection }));
                 }
             });
         }
 
         if (level === 'ERROR' || level === 'WARN' || level === 'APP') {
-            this.outputChannel.show(true);
+            this.getOutputChannel().show(true);
         }
 
         if (messageLevel === 'SUCCESS' || /build completed/i.test(message)) {
@@ -922,7 +937,7 @@ export class Logger {
             editor.selection = new vscode.Selection(pos, pos);
             editor.revealRange(highlight, vscode.TextEditorRevealType.InCenter);
         } catch (err) {
-            this.outputChannel.appendLine(t('logger.failedOpenErrorLocation', { path: location.uri.fsPath, error: String(err) }));
+            this.getOutputChannel().appendLine(t('logger.failedOpenErrorLocation', { path: location.uri.fsPath, error: String(err) }));
         }
     }
 
