@@ -15,6 +15,7 @@
 - Enhanced i18n runtime coverage validator in `src/utils/i18n.ts` to detect missing keys and emit clear logs without completing activation failure.
 - Added per-language tooling and fallback handling in `AIListGroup`, `AIListValue`, `AISettingItem`, `OptionItem`.
 - Reorganized project structure: moved all resource files to `resources/` subdirectories (`images/`, `syntaxes/`) and updated all references in `package.json` for better organization and maintainability.
+- Reorganized runtime translations into `src/data/i18n/` folder and updated localization checker script (`i18n_check.js`) to validate runtime translations in the new location, ensuring consistency across all locale files.
 
 ### Fixed
 

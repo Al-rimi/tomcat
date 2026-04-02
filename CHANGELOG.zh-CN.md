@@ -13,6 +13,7 @@
 - 增强了 `src/utils/i18n.ts` 中的 i18n 运行时覆盖率验证器，能够检测缺失的键并输出清晰日志，而不会导致激活失败。
 - 在 `AIListGroup`、`AIListValue`、`AISettingItem`、`OptionItem` 中添加了多语言工具支持和回退处理机制。
 - 重组项目结构：将所有资源文件移动到 `resources/` 子目录（`images/`、`syntaxes/`）中，并在 `package.json` 中更新所有引用，以提高组织性和可维护性。
+- 将运行时翻译重组到 `src/data/i18n/` 文件夹中，并更新本地化检查脚本（`i18n_check.js`）以在新位置验证运行时翻译，确保所有语言文件的一致性。
 
 ### 修复
 

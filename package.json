@@ -626,7 +626,7 @@
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext .ts",
     "test": "node ./node_modules/@vscode/test-electron/out/runTest --extensionDevelopmentPath=. --extensionTestsPath=out/test/suite",
-    "check-localization": "node tmp_check.js",
+    "check-localization": "node i18n_check.js",
     "coverage": "nyc --reporter=lcov npm test"
   },
   "devDependencies": {

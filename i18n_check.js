@@ -51,6 +51,85 @@ if (packageKeysNotInBase.length > 0) console.log('  keys:', packageKeysNotInBase
 console.log('package.nls keys not referenced by package.json:', unusedBaseKeys.length);
 if (unusedBaseKeys.length > 0) console.log('  keys:', unusedBaseKeys.join(', '));
 
+// Check runtime translations in src/data/i18n/
+const runtimeDir = path.join(__dirname, 'src', 'data', 'i18n');
+let runtimeFiles = [];
+if (fs.existsSync(runtimeDir)) {
+  runtimeFiles = fs.readdirSync(runtimeDir).filter(f => f.endsWith('.json'));
+}
+
+if (runtimeFiles.length > 0) {
+  console.log('');
+  console.log('Runtime translations (src/data/i18n/)');
+  console.log('----------------------------------');
+  const runtimeBaseKey = 'en.json';
+  const runtimeBaseFile = runtimeFiles.includes(runtimeBaseKey) ? runtimeBaseKey : runtimeFiles[0];
+  const runtimeBasePath = path.join(runtimeDir, runtimeBaseFile);
+  let runtimeBaseData;
+  try {
+    runtimeBaseData = JSON.parse(fs.readFileSync(runtimeBasePath, 'utf-8'));
+  } catch (err) {
+    console.error(`Error parsing runtime base JSON ${runtimeBaseFile}:`, err.message);
+    hasMismatch = true;
+    runtimeBaseData = {};
+  }
+  const runtimeBaseKeys = Object.keys(runtimeBaseData).sort();
+  console.log('Runtime base file:', runtimeBaseFile);
+  console.log('Runtime base key count:', runtimeBaseKeys.length);
+
+  console.log('Runtime locale files found:', runtimeFiles.join(', '));
+  console.log('');
+
+  // Check each runtime locale file
+  runtimeFiles.forEach(file => {
+    const filePath = path.join(runtimeDir, file);
+    let data;
+    try {
+      data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    } catch (err) {
+      console.error(`Error parsing JSON for runtime ${file}:`, err.message);
+      hasMismatch = true;
+      return;
+    }
+
+    const keys = Object.keys(data).sort();
+    const missingFromBase = runtimeBaseKeys.filter(k => !keys.includes(k));
+    const extraInFile = keys.filter(k => !runtimeBaseKeys.includes(k));
+    const lang = file === runtimeBaseKey ? 'base' : file.replace(/\.json$/, '');
+
+    const sameCount = keys.length === runtimeBaseKeys.length;
+    const sameKeys = missingFromBase.length === 0 && extraInFile.length === 0;
+
+    if (!sameCount || !sameKeys) {
+      hasMismatch = true;
+    }
+
+    console.log(`file: ${file}`);
+    console.log(` locale: ${lang}`);
+    console.log(` key count: ${keys.length}`);
+    console.log(` key consistency with base: ${sameKeys ? 'OK' : 'MISMATCH'}`);
+    console.log(` count consistency with base: ${sameCount ? 'OK' : 'MISMATCH'}`);
+    console.log(` missing keys from base: ${missingFromBase.length}`);
+    console.log(` extra keys in file: ${extraInFile.length}`);
+
+    if (missingFromBase.length > 0) {
+      console.log(`  missing from base keys: ${missingFromBase.join(', ')}`);
+    }
+    if (extraInFile.length > 0) {
+      console.log(`  extra keys: ${extraInFile.join(', ')}`);
+    }
+
+    if (!sameKeys || !sameCount) {
+      const common = runtimeBaseKeys.filter(k => keys.includes(k));
+      const diff = runtimeBaseKeys.filter(k => !keys.includes(k)).concat(keys.filter(k => !runtimeBaseKeys.includes(k))).sort();
+      console.log(`  diff keys: ${diff.join(', ')}`);
+      console.log(`  common keys with base: ${common.length}`);
+    }
+
+    console.log('');
+  });
+}
+
 console.log('Locale files found:', i18nFiles.join(', '));
 console.log('');
 
