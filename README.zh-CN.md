@@ -6,7 +6,6 @@
 
 ![](resources/images/tomcat-video-showcase.gif)
 
-
 ## 功能特性
 
 - **全量服务器日志监控**  
@@ -41,12 +40,13 @@
 
 ## 安装
 
-1. 打开 VS Code  
-2. 进入扩展视图（`Ctrl+Shift+X`）  
-3. 搜索 `Al-rimi.tomcat`  
+1. 打开 VS Code
+2. 进入扩展视图（`Ctrl+Shift+X`）
+3. 搜索 `Al-rimi.tomcat`
 4. 点击 <kbd>Install</kbd>
 
 命令行：
+
 ```bash
 code --install-extension Al-rimi.tomcat
 ```
@@ -116,12 +116,12 @@ public static isJavaEEProject(): boolean {
 
 </details>
 
-
 ### ![](resources/images/tomcat-icon-dark.png) 实例与应用视图
 
 实例与应用视图是实例和应用的统一管理中心。它实时展示所有运行中和已保存的 Tomcat 实例，并在树中显示应用项，支持一键部署、运行、刷新和删除。
 
 你可以：
+
 - 启动/停止/终止 Tomcat 实例
 - 管理 Tomcat/Java 路径、HTTP 端口和实例级设置
 - 通过 `+` 操作创建新应用并生成脚手架模板
@@ -149,57 +149,57 @@ public static isJavaEEProject(): boolean {
 
 在命令面板（`Ctrl+Shift+P`）快速访问核心命令：
 
-| 命令                    | 描述                                               |
-|------------------------|----------------------------------------------------|
-| `Tomcat: 启动`        | 启动 Tomcat 服务器                                  |
-| `Tomcat: 停止`         | 停止正在运行的服务器                                |
-| `Tomcat: 清理`        | 清理 Tomcat `webapps`、`temp`、`work` 目录          |
-| `Tomcat: 部署`       | 部署当前 Java EE 项目                               |
-| `Tomcat: 刷新实例列表` | 刷新所有运行和已保存 Tomcat 实例的列表 |
-| `Tomcat: 终止实例`     | 强制终止选中的 Tomcat 实例            |
-| `Tomcat: 在浏览器中打开`   | 在浏览器中打开实例已部署的应用         |
-| `Tomcat: 新建实例`      | 启动一个新的 Tomcat 实例               |
-| `Tomcat: 配置字段`   | 编辑实例的 Tomcat Home、Java Home、端口或浏览器 |
-| `Tomcat: 添加 Tomcat 路径`   | 添加新的 Tomcat 安装路径               |
-| `Tomcat: 移除 Tomcat 路径`| 移除已保存的 Tomcat 安装路径           |
-| `Tomcat: 刷新版本`  | 刷新可用的 Tomcat 版本                 |
-| `Tomcat: 设为当前 Tomcat`   | 设为当前激活的 Tomcat Home             |
-| `Tomcat: 添加 Java 路径`     | 添加新的 Java 安装路径                 |
-| `Tomcat: 移除 Java 路径`  | 移除已保存的 Java 安装路径             |
-| `Tomcat: 设为当前 Java`     | 设为当前激活的 Java Home               |
-| `Tomcat: 设置 HTTP 端口`     | 更改实例的 HTTP 端口                   |
-| `Tomcat: 添加 HTTP 端口`     | 向快捷选择列表添加新的 HTTP 端口        |
-| `Tomcat: 移除 HTTP 端口`  | 移除已保存的 HTTP 端口                 |
-| `Tomcat: 设置构建类型`    | 更改实例的构建策略                     |
-| `Tomcat: 设置日志级别`     | 更改实例的日志级别                     |
-| `Tomcat: 创建应用`        | 通过模板快速生成新的 Web 应用                         |
-| `Tomcat: 刷新应用列表`      | 刷新树视图中的应用列表                               |
+| 命令                       | 描述                                            |
+| -------------------------- | ----------------------------------------------- |
+| `Tomcat: 启动`             | 启动 Tomcat 服务器                              |
+| `Tomcat: 停止`             | 停止正在运行的服务器                            |
+| `Tomcat: 清理`             | 清理 Tomcat `webapps`、`temp`、`work` 目录      |
+| `Tomcat: 部署`             | 部署当前 Java EE 项目                           |
+| `Tomcat: 刷新实例列表`     | 刷新所有运行和已保存 Tomcat 实例的列表          |
+| `Tomcat: 终止实例`         | 强制终止选中的 Tomcat 实例                      |
+| `Tomcat: 在浏览器中打开`   | 在浏览器中打开实例已部署的应用                  |
+| `Tomcat: 新建实例`         | 启动一个新的 Tomcat 实例                        |
+| `Tomcat: 配置字段`         | 编辑实例的 Tomcat Home、Java Home、端口或浏览器 |
+| `Tomcat: 添加 Tomcat 路径` | 添加新的 Tomcat 安装路径                        |
+| `Tomcat: 移除 Tomcat 路径` | 移除已保存的 Tomcat 安装路径                    |
+| `Tomcat: 刷新版本`         | 刷新可用的 Tomcat 版本                          |
+| `Tomcat: 设为当前 Tomcat`  | 设为当前激活的 Tomcat Home                      |
+| `Tomcat: 添加 Java 路径`   | 添加新的 Java 安装路径                          |
+| `Tomcat: 移除 Java 路径`   | 移除已保存的 Java 安装路径                      |
+| `Tomcat: 设为当前 Java`    | 设为当前激活的 Java Home                        |
+| `Tomcat: 设置 HTTP 端口`   | 更改实例的 HTTP 端口                            |
+| `Tomcat: 添加 HTTP 端口`   | 向快捷选择列表添加新的 HTTP 端口                |
+| `Tomcat: 移除 HTTP 端口`   | 移除已保存的 HTTP 端口                          |
+| `Tomcat: 设置构建类型`     | 更改实例的构建策略                              |
+| `Tomcat: 设置日志级别`     | 更改实例的日志级别                              |
+| `Tomcat: 创建应用`         | 通过模板快速生成新的 Web 应用                   |
+| `Tomcat: 刷新应用列表`     | 刷新树视图中的应用列表                          |
 
 ## 配置
 
 在 <kbd>Ctrl+,</kbd> 中搜索 “Tomcat” 即可配置：
 
-| **设置项**                    | **默认值**        | **说明**                                                                                |
-|------------------------------|-------------------|------------------------------------------------------------------------------------------|
-| `tomcat.language`            | `auto`            | 扩展界面语言（`auto`、`en`、`zh-CN`），首次运行 `auto` 将跟随 VS Code 显示语言。            |
-| `tomcat.buildType`           | `Local`           | 默认部署策略（`Local`、`Maven`、`Gradle`、`Eclipse`）                                      |
-| `tomcat.autoDeployMode`      | `Disable`         | 自动部署触发方式（`Disable`、`On Save`、`On Shortcut`）                                   |
-| `tomcat.browser`             | `Google Chrome`   | 浏览器自动打开/调试（`Disable`、`Google Chrome`、`Microsoft Edge`、`Firefox`、`Safari`、`Brave`、`Opera`） |
-| `tomcat.port`                | `8080`            | Tomcat 监听端口（有效范围：`1024`-`49151`）                                               |
-| `tomcat.ports`               | `[]`              | 常用 HTTP 端口列表，便于快速选择（数字数组，按工作区保存）                                 |
-| `tomcat.homes`               | `[]`              | 多版本 Tomcat 安装路径列表，用于管理多个 Tomcat 版本                                      |
-| `tomcat.javaHomes`           | `[]`              | 已配置的 Java Home 列表（字符串数组）；`tomcat.javaHome` 为当前激活项                        |
-| `tomcat.base`                | ``                | CATALINA_BASE 路径（conf/webapps/logs）；未设置时默认使用 `tomcat.home`                     |
-| `tomcat.protectedWebApps`    | `['ROOT', 'docs', 'examples', 'manager', 'host-manager']` | 清理时保留的应用列表 |
-| `tomcat.logLevel`            | `INFO`            | 最低日志级别（`DEBUG`、`INFO`、`SUCCESS`、`HTTP`、`APP`、`WARN`、`ERROR`）                 |
-| `tomcat.showTimestamp`       | `true`            | 是否在日志中显示时间戳                                                                   |
-| `tomcat.autoReloadBrowser`   | `true`            | 部署后自动刷新浏览器；如遇问题可关闭                                                     |
-| `tomcat.logEncoding`         | `utf8`            | 日志编码（`utf8`、`ascii`、`utf-8`、`utf16le`、`utf-16le`、`ucs2`、`ucs-2`、`base64`、`base64url`、`latin1`、`binary`、`hex`） |
-| `tomcat.ai.provider`         | `none`           | AI 提供商（`none`、`local`、`aliyun-dashscope`、`baichuan`、`zhipu`、`deepseek`、`custom`） |
-| `tomcat.ai.endpoint`         | `http://127.0.0.1:11434/api/chat` | AI 聊天/补全接口地址 |
-| `tomcat.ai.model`            | `qwen2.5:7b`      | 发送给 AI 的模型标识                                                                      |
-| `tomcat.ai.apiKey`           | ``                | 托管提供商的可选 Bearer Token                                                             |
-| `tomcat.ai.localStartCommand`| `ollama serve`    | 当本地端点不可达时，用于启动本地 AI 服务的命令                                            |
+| **设置项**                    | **默认值**                                                | **说明**                                                                                                                       |
+| ----------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `tomcat.language`             | `auto`                                                    | 扩展界面语言（`auto`、`en`、`zh-CN`），首次运行 `auto` 将跟随 VS Code 显示语言。                                               |
+| `tomcat.buildType`            | `Local`                                                   | 默认部署策略（`Local`、`Maven`、`Gradle`、`Eclipse`）                                                                          |
+| `tomcat.autoDeployMode`       | `Disable`                                                 | 自动部署触发方式（`Disable`、`On Save`、`On Shortcut`）                                                                        |
+| `tomcat.browser`              | `Google Chrome`                                           | 浏览器自动打开/调试（`Disable`、`Google Chrome`、`Microsoft Edge`、`Firefox`、`Safari`、`Brave`、`Opera`）                     |
+| `tomcat.port`                 | `8080`                                                    | Tomcat 监听端口（有效范围：`1024`-`49151`）                                                                                    |
+| `tomcat.ports`                | `[]`                                                      | 常用 HTTP 端口列表，便于快速选择（数字数组，按工作区保存）                                                                     |
+| `tomcat.homes`                | `[]`                                                      | 多版本 Tomcat 安装路径列表，用于管理多个 Tomcat 版本                                                                           |
+| `tomcat.javaHomes`            | `[]`                                                      | 已配置的 Java Home 列表（字符串数组）；`tomcat.javaHome` 为当前激活项                                                          |
+| `tomcat.base`                 | ``                                                        | CATALINA_BASE 路径（conf/webapps/logs）；未设置时默认使用 `tomcat.home`                                                        |
+| `tomcat.protectedWebApps`     | `['ROOT', 'docs', 'examples', 'manager', 'host-manager']` | 清理时保留的应用列表                                                                                                           |
+| `tomcat.logLevel`             | `INFO`                                                    | 最低日志级别（`DEBUG`、`INFO`、`SUCCESS`、`HTTP`、`APP`、`WARN`、`ERROR`）                                                     |
+| `tomcat.showTimestamp`        | `true`                                                    | 是否在日志中显示时间戳                                                                                                         |
+| `tomcat.autoReloadBrowser`    | `true`                                                    | 部署后自动刷新浏览器；如遇问题可关闭                                                                                           |
+| `tomcat.logEncoding`          | `utf8`                                                    | 日志编码（`utf8`、`ascii`、`utf-8`、`utf16le`、`utf-16le`、`ucs2`、`ucs-2`、`base64`、`base64url`、`latin1`、`binary`、`hex`） |
+| `tomcat.ai.provider`          | `none`                                                    | AI 提供商（`none`、`local`、`aliyun-dashscope`、`baichuan`、`zhipu`、`deepseek`、`custom`）                                    |
+| `tomcat.ai.endpoint`          | `http://127.0.0.1:11434/api/chat`                         | AI 聊天/补全接口地址                                                                                                           |
+| `tomcat.ai.model`             | `qwen2.5:7b`                                              | 发送给 AI 的模型标识                                                                                                           |
+| `tomcat.ai.apiKey`            | ``                                                        | 托管提供商的可选 Bearer Token                                                                                                  |
+| `tomcat.ai.localStartCommand` | `ollama serve`                                            | 当本地端点不可达时，用于启动本地 AI 服务的命令                                                                                 |
 
 > `tomcat.home` 和 `tomcat.javaHome` 已自动检测并从设置中隐藏。  
 > WARN/ERROR 日志自动触发 AI 解释；仅当端点是 localhost 且不可达时才自动尝试启动本地 AI。
@@ -207,58 +207,58 @@ public static isJavaEEProject(): boolean {
 ## 环境要求
 
 - **运行时**：
-	- JDK 11+
-	- Apache Tomcat 9+
-  
+  - JDK 11+
+  - Apache Tomcat 9+
 - **构建工具**（可选）：
-	- `Maven` 3.6+ *或* `Gradle` 6.8+（当选择对应构建类型时）
+  - `Maven` 3.6+ _或_ `Gradle` 6.8+（当选择对应构建类型时）
 
 ## 开发者文档
 
 技术实现与贡献指南：
+
 - [系统架构](https://github.com/Al-rimi/tomcat/tree/main/docs/ARCHITECTURE.md)
 - [开发指南](https://github.com/Al-rimi/tomcat/tree/main/docs/DEVELOPMENT.md)
 - [测试策略](https://github.com/Al-rimi/tomcat/tree/main/docs/TESTING.md)
 
 ## 已知问题
 
-- **浏览器自动刷新兼容性**  
-	<details>
-	<summary>部分浏览器可能不支持自动刷新（点击展开）</summary>
+- **浏览器自动刷新兼容性**
+  <details>
+  <summary>部分浏览器可能不支持自动刷新（点击展开）</summary>
 
-	扩展使用 Chrome Debug Protocol（CDP）在部署后刷新页面，当前支持：
-	- Google Chrome
-	- Microsoft Edge
-	- Brave
-	- Opera
+  扩展使用 Chrome Debug Protocol（CDP）在部署后刷新页面，当前支持：
+  - Google Chrome
+  - Microsoft Edge
+  - Brave
+  - Opera
 
-	**不支持**：
-	- Firefox
-	- Safari
-  
-	以上浏览器缺少 CDP，无法自动刷新。
-	</details>
+  **不支持**：
+  - Firefox
+  - Safari
 
-- **调试模式启动失败**  
-	<details>
-	<summary>在某些系统配置下浏览器调试模式可能启动失败（点击展开）</summary>
+  以上浏览器缺少 CDP，无法自动刷新。
+  </details>
 
-	扩展使用的命令模板：
-	```bash
-	start chrome.exe --remote-debugging-port=9222 http://localhost:8080/app-name
-	```
-	**常见解决方案**：
-	1. 确认浏览器可执行文件已在 PATH 中
-	2. 确认端口 9222 未被占用
-	3. 升级浏览器到最新版本
+- **调试模式启动失败**
+  <details>
+  <summary>在某些系统配置下浏览器调试模式可能启动失败（点击展开）</summary>
 
-	如问题仍在，可关闭设置 `tomcat.autoReloadBrowser`。
-	</details>
+  扩展使用的命令模板：
+
+  ```bash
+  start chrome.exe --remote-debugging-port=9222 http://localhost:8080/app-name
+  ```
+
+  **常见解决方案**：
+  1.  确认浏览器可执行文件已在 PATH 中
+  2.  确认端口 9222 未被占用
+  3.  升级浏览器到最新版本
+
+  如问题仍在，可关闭设置 `tomcat.autoReloadBrowser`。
+  </details>
 
 [![反馈问题](https://img.shields.io/badge/-反馈问题-red?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/issues/new)  
 [![提交修复](https://img.shields.io/badge/-提交修复-green?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/pulls)
-
-
 
 ## 4.2.0 更新要点
 

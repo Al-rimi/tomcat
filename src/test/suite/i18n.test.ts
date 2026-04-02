@@ -11,7 +11,7 @@ suite('i18n Tests', () => {
     setup(() => {
         configStub = sinon.stub(vscode.workspace, 'getConfiguration').returns({
             get: (key: string, def?: any) => {
-                if (key === 'tomcat.language') {return 'en';}
+                if (key === 'tomcat.language') { return 'en'; }
                 return def;
             },
             update: () => Promise.resolve()

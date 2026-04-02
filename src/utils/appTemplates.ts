@@ -21,7 +21,7 @@ function loadTemplates(): AppTemplate[] {
     }
 
     const templates: AppTemplate[] = [];
-    
+
     // Try bundled path first (production), then source path (development)
     let templatesDir: string;
     try {
