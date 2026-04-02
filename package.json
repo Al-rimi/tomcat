@@ -7,17 +7,17 @@
   "author": {
     "email": "alrimi@zjnu.edu.cn",
     "name": "Al raimi Abdullah",
-    "url": "https://github.com/Al-rimi"
+    "url": "https://owared.com"
   },
-  "icon": "resources/tomcat-logo.png",
+  "icon": "resources/images/tomcat-logo.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/Al-rimi/tomcat"
   },
   "bugs": {
-    "url": "https://github.com/Al-rimi/tomcat-extension/issues"
+    "url": "https://github.com/Al-rimi/tomcat/issues"
   },
-  "homepage": "https://github.com/Al-rimi/tomcat#readme",
+  "homepage": "https://github.com/Al-rimi/tomcat",
   "keywords": [
     "apache tomcat",
     "tomcat",
@@ -33,9 +33,9 @@
     "theme": "dark"
   },
   "categories": [
-    "SCM Providers",
+    "Other",
     "Programming Languages",
-    "Other"
+    "Debuggers"
   ],
   "activationEvents": [
     "onStartupFinished",
@@ -47,18 +47,28 @@
   },
   "files": [
     "out/**/*",
-    "syntaxes/**/*",
     "resources/**/*",
-    "language-configuration.json",
-    "package.nls.json",
-    "package.nls.zh-CN.json",
     "package.json",
+    "package.nls.json",
+    "package.nls.zh-cn.json",
     "README.md",
+    "README.zh-cn.md",
     "CHANGELOG.md",
     "LICENSE**"
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "localizations": [
+      {
+        "languageId": "zh-cn",
+        "translations": [
+          {
+            "id": "vscode",
+            "path": "./package.nls.zh-cn.json"
+          }
+        ]
+      }
+    ],
     "languages": [
       {
         "id": "tomcat-log",
@@ -68,14 +78,14 @@
         "extensions": [
           ".log"
         ],
-        "configuration": "./language-configuration.json"
+        "configuration": "./resources/syntaxes/language-configuration.json"
       }
     ],
     "grammars": [
       {
         "language": "tomcat-log",
         "scopeName": "source.tomcat-log",
-        "path": "./syntaxes/tomcat-log.tmLanguage.json"
+        "path": "./resources/syntaxes/tomcat-log.tmLanguage.json"
       }
     ],
     "commands": [
@@ -84,8 +94,8 @@
         "title": "%command.deploy.title%",
         "category": "%command.category%",
         "icon": {
-          "light": "resources/tomcat-icon-light.svg",
-          "dark": "resources/tomcat-icon-dark.svg"
+          "light": "resources/images/tomcat-icon-light.svg",
+          "dark": "resources/images/tomcat-icon-dark.svg"
         }
       },
       {
@@ -188,12 +198,12 @@
       },
       {
         "command": "tomcat.ai.addListValue",
-        "title": "AI: Add list entry",
+        "title": "%command.ai.addListValue.title%",
         "icon": "$(add)"
       },
       {
         "command": "tomcat.ai.removeListValue",
-        "title": "AI: Remove list entry",
+        "title": "%command.ai.removeListValue.title%",
         "icon": "$(trash)"
       },
       {
@@ -219,8 +229,8 @@
       "activitybar": [
         {
           "id": "tomcat",
-          "title": "Tomcat",
-          "icon": "resources/tomcat-icon-dark.svg"
+          "title": "%view.container.title%",
+          "icon": "resources/images/tomcat-icon-dark.svg"
         }
       ]
     },
@@ -228,8 +238,8 @@
       "tomcat": [
         {
           "id": "tomcat.instancesView",
-          "name": "Tomcat",
-          "icon": "resources/tomcat-icon-dark.svg"
+          "name": "%view.container.title%",
+          "icon": "resources/images/tomcat-icon-dark.svg"
         }
       ]
     },
@@ -340,18 +350,6 @@
           "when": "view == tomcat.instancesView && viewItem == tomcatApp.running",
           "group": "inline",
           "icon": "$(debug-stop)"
-        },
-        {
-          "command": "tomcat.ai.addListValue",
-          "when": "view == tomcat.instancesView && (viewItem == tomcatAIListGroup || viewItem == tomcatBaseGroup)",
-          "group": "inline",
-          "icon": "$(add)"
-        },
-        {
-          "command": "tomcat.ai.removeListValue",
-          "when": "view == tomcat.instancesView && viewItem == tomcatAIListValue",
-          "group": "inline",
-          "icon": "$(trash)"
         }
       ]
     },
@@ -588,7 +586,7 @@
           },
           "default": [],
           "scope": "machine",
-          "description": "List of configured CATALINA_BASE paths"
+          "description": "%config.bases.description%"
         },
         "tomcat.homes": {
           "type": "array",
@@ -628,6 +626,7 @@
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext .ts",
     "test": "node ./node_modules/@vscode/test-electron/out/runTest --extensionDevelopmentPath=. --extensionTestsPath=out/test/suite",
+    "check-localization": "node tmp_check.js",
     "coverage": "nyc --reporter=lcov npm test"
   },
   "devDependencies": {
@@ -643,6 +642,7 @@
     "@typescript-eslint/parser": "^8.29.0",
     "@vscode/test-electron": "^2.4.1",
     "@vscode/vsce": "^2.15.0",
+    "vscode-nls": "^5.2.0",
     "chai": "^4.5.0",
     "eslint": "^10.1.0",
     "mocha": "^11.7.5",

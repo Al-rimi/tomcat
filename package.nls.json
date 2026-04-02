@@ -53,6 +53,7 @@
         "config.port.description": "The port number for the Tomcat server, allowed range is 1024-49151.",
         "config.autoReloadBrowser.description": "Whether to automatically reload the browser after deployment. Disable this option if having issues with the browser reloading.",
         "config.base.description": "Path to CATALINA_BASE (conf/webapps/logs). If not set, falls back to tomcat.home.",
+        "config.bases.description": "List of configured CATALINA_BASE paths",
         "config.home.description": "The path to the Apache Tomcat installation. If not set, the extension will try to find the Tomcat installation automatically.",
         "config.javaHome.description": "The path to the JDK installation. If not set, the extension will try to find the JDK automatically.",
         "config.ports.description": "Saved HTTP ports for quick selection",
@@ -80,5 +81,8 @@
         "command.apps.deploy.title": "Deploy App",
         "command.apps.openInBrowser.title": "Open App in Browser",
         "command.apps.create.title": "Create New App",
-        "command.apps.undeploy.title": "Undeploy App"
+        "command.apps.undeploy.title": "Undeploy App",
+        "command.ai.addListValue.title": "AI: Add list entry",
+        "command.ai.removeListValue.title": "AI: Remove list entry",
+        "view.container.title": "Tomcat"
     }

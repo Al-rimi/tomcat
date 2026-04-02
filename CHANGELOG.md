@@ -7,11 +7,14 @@
 - New setting `tomcat.language` with selectable values `auto`, `en`, `zh-CN` and language picker in tree view (same UI model as log level selector).
 - New AI settings UI group tooltips for `base`, `logEncoding`, `showTimestamp`, `autoReloadBrowser` with description fallback and rich per-language option tooltips.
 - New `group.instancesTooltip` and `group.appsTooltip` for richer hover text on root tree items.
+- Added syntax highlighting support for Tomcat log files with custom grammar (`tomcat-log.tmLanguage.json`) and language configuration (`language-configuration.json`) in `resources/syntaxes/`.
+- Added localization consistency checker script (`tmp_check.js`) to validate i18n key synchronization across all locale files and package.json usage, ensuring no missing or extra keys.
 
 ### Changed
 
 - Enhanced i18n runtime coverage validator in `src/utils/i18n.ts` to detect missing keys and emit clear logs without completing activation failure.
 - Added per-language tooling and fallback handling in `AIListGroup`, `AIListValue`, `AISettingItem`, `OptionItem`.
+- Reorganized project structure: moved all resource files to `resources/` subdirectories (`images/`, `syntaxes/`) and updated all references in `package.json` for better organization and maintainability.
 
 ### Fixed
 

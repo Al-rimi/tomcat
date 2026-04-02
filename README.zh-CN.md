@@ -4,7 +4,7 @@
 
 面向 VS Code 的 AI 驱动 Tomcat 管理：流式日志解释、一键部署、浏览器自动刷新。
 
-![](resources/tomcat-video-showcase.gif)
+![](resources/images/tomcat-video-showcase.gif)
 
 
 ## 功能特性
@@ -117,7 +117,7 @@ public static isJavaEEProject(): boolean {
 </details>
 
 
-### ![](resources/tomcat-icon-dark.png) 实例与应用视图
+### ![](resources/images/tomcat-icon-dark.png) 实例与应用视图
 
 实例与应用视图是实例和应用的统一管理中心。它实时展示所有运行中和已保存的 Tomcat 实例，并在树中显示应用项，支持一键部署、运行、刷新和删除。
 
@@ -131,19 +131,19 @@ public static isJavaEEProject(): boolean {
 
 所有操作均可在一个视图中完成，树和右键菜单提供快捷操作，极大提升工作流效率。
 
-![](resources/tomcat-view-showcase.png)
+![](resources/images/tomcat-view-showcase.png)
 
-### ![](resources/tomcat-icon-dark.png) 编辑器按钮
+### ![](resources/images/tomcat-icon-dark.png) 编辑器按钮
 
 点击编辑器标题栏中的 Tomcat 图标即可部署项目。
 
-![](resources/tomcat-editor-showcase.png)
+![](resources/images/tomcat-editor-showcase.png)
 
-### ![](resources/server.png) 状态栏
+### ![](resources/images/server.png) 状态栏
 
 点击底部状态栏的 Tomcat 状态切换自动部署模式。
 
-![](resources/tomcat-status-showcase.png)
+![](resources/images/tomcat-status-showcase.png)
 
 ### 命令面板
 

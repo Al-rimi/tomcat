@@ -53,6 +53,7 @@
         "config.port.description": "Tomcat 服务器端口，允许范围 1024-49151。",
         "config.autoReloadBrowser.description": "部署后是否自动重新加载浏览器。如有重载问题可关闭。",
         "config.base.description": "CATALINA_BASE 路径(conf/webapps/logs)。未设置则回退到 tomcat.home。",
+        "config.bases.description": "已配置的 CATALINA_BASE 路径列表",
         "config.home.description": "Apache Tomcat 安装路径。未设置时扩展将尝试自动查找。",
         "config.javaHome.description": "JDK 安装路径。未设置时扩展将尝试自动查找。",
         "config.ports.description": "已保存的 HTTP 端口，便于快速选择",
@@ -80,5 +81,8 @@
         "command.apps.create.title": "Tomcat: 创建应用",
         "command.apps.deploy.title": "Tomcat: 部署应用",
         "command.apps.openInBrowser.title": "Tomcat: 在浏览器中打开应用",
-        "command.apps.undeploy.title": "Tomcat: 卸载应用"
+        "command.apps.undeploy.title": "Tomcat: 卸载应用",
+        "command.ai.addListValue.title": "AI: 添加列表项",
+        "command.ai.removeListValue.title": "AI: 移除列表项",
+        "view.container.title": "Tomcat"
     }

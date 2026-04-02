@@ -4,7 +4,7 @@
 
 AI-assisted Tomcat control for VS Code: streaming log explanations, one-click deploys, and browser reloads.
 
-![](resources/tomcat-video-showcase.gif)
+![](resources/images/tomcat-video-showcase.gif)
 
 ## Features
 
@@ -134,7 +134,7 @@ public static isJavaEEProject(): boolean {
 
 </details>
 
-### ![](resources/tomcat-icon-dark.png) Instances & Apps View
+### ![](resources/images/tomcat-icon-dark.png) Instances & Apps View
 
 The Instances View is now a full management center for instances and apps. It provides a real-time tree of running and saved Tomcat instances, plus app entries for deploy, run, refresh, and delete.
 
@@ -149,19 +149,19 @@ You can:
 
 All controls are accessible from one place, with quick actions in the tree and context menu commands to keep workflow fast.
 
-![](resources/tomcat-view-showcase.png)
+![](resources/images/tomcat-view-showcase.png)
 
-### ![](resources/tomcat-icon-dark.png) Editor Button
+### ![](resources/images/tomcat-icon-dark.png) Editor Button
 
 Click the Tomcat icon in the editor title bar to deploy your project.
 
-![](resources/tomcat-editor-showcase.png)
+![](resources/images/tomcat-editor-showcase.png)
 
-### ![](resources/server.png) Status Bar
+### ![](resources/images/server.png) Status Bar
 
 Click the Tomcat status in the bottom bar to toggle auto deploy modes.
 
-![](resources/tomcat-status-showcase.png)
+![](resources/images/tomcat-status-showcase.png)
 
 ### Command Palette
 
