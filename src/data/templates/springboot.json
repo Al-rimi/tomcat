@@ -1,0 +1,12 @@
+{
+  "id": "springboot",
+  "labelKey": "app.create.template.springboot",
+  "descriptionKey": "app.create.template.springboot.desc",
+  "pomFragment": "\n<project xmlns=\"http://maven.apache.org/POM/4.0.0\"\n         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd\">\n    <modelVersion>4.0.0</modelVersion>\n    <groupId>com.example</groupId>\n    <artifactId>{{appName}}</artifactId>\n    <version>1.0.0</version>\n    <packaging>jar</packaging>\n    <parent>\n        <groupId>org.springframework.boot</groupId>\n        <artifactId>spring-boot-starter-parent</artifactId>\n        <version>2.6.8</version>\n        <relativePath/> <!-- lookup parent from repository -->\n    </parent>\n    <dependencies>\n      <dependency>\n        <groupId>org.springframework.boot</groupId>\n        <artifactId>spring-boot-starter-web</artifactId>\n      </dependency>\n    </dependencies>\n    <build>\n      <plugins>\n        <plugin>\n          <groupId>org.springframework.boot</groupId>\n          <artifactId>spring-boot-maven-plugin</artifactId>\n        </plugin>\n      </plugins>\n    </build>\n</project>\n",
+  "artifacts": [
+    {
+      "path": "src/main/java/com/example/Application.java",
+      "content": "package com.example;\n\nimport org.springframework.boot.SpringApplication;\nimport org.springframework.boot.autoconfigure.SpringBootApplication;\n\n@SpringBootApplication\npublic class Application {\n    public static void main(String[] args) {\n        SpringApplication.run(Application.class, args);\n    }\n}"
+    }
+  ]
+}

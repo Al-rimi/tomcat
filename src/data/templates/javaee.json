@@ -1,0 +1,16 @@
+{
+  "id": "javaee",
+  "labelKey": "app.create.template.javaee",
+  "descriptionKey": "app.create.template.javaee.desc",
+  "pomFragment": "\n<project xmlns=\"http://maven.apache.org/POM/4.0.0\"\n         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd\">\n    <modelVersion>4.0.0</modelVersion>\n    <groupId>com.example</groupId>\n    <artifactId>{{appName}}</artifactId>\n    <version>1.0-SNAPSHOT</version>\n    <packaging>war</packaging>\n    <name>{{appName}}</name>\n    <dependencies>\n      <dependency>\n        <groupId>javax</groupId>\n        <artifactId>javaee-api</artifactId>\n        <version>8.0</version>\n        <scope>provided</scope>\n      </dependency>\n    </dependencies>\n</project>\n",
+  "artifacts": [
+    {
+      "path": "src/main/webapp/WEB-INF/web.xml",
+      "content": "<web-app xmlns=\"http://xmlns.jcp.org/xml/ns/javaee\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd\" version=\"3.1\">\n    <display-name>{{appName}}</display-name>\n</web-app>"
+    },
+    {
+      "path": "src/main/java/com/example/HelloServlet.java",
+      "content": "package com.example;\n\nimport javax.servlet.ServletException;\nimport javax.servlet.annotation.WebServlet;\nimport javax.servlet.http.HttpServlet;\nimport javax.servlet.http.HttpServletRequest;\nimport javax.servlet.http.HttpServletResponse;\nimport java.io.IOException;\n\n@WebServlet(\"/hello\")\npublic class HelloServlet extends HttpServlet {\n    @Override\n    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {\n        resp.setContentType(\"text/plain;charset=UTF-8\");\n        resp.getWriter().write(\"Hello from {{appName}}!\");\n    }\n}"
+    }
+  ]
+}

@@ -815,7 +815,7 @@ export class Tomcat {
                 return { httpPort: httpCandidate, shutdownPort: shutdownCandidate };
             }
         }
-        throw new Error('No available HTTP/shutdown port pair found');
+        throw new Error(t('tomcat.noAvailablePortPair'));
     }
 
     private async waitForPortFree(port: number, timeoutMs: number = 5000): Promise<boolean> {

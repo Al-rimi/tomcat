@@ -84,7 +84,7 @@ export class Builder {
             try {
                 cb();
             } catch (err) {
-                console.error('Builder stateChange listener failed', err);
+                console.error(t('error.builderStateChangeFailed'), err);
             }
         }
     }

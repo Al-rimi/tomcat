@@ -1,0 +1,12 @@
+{
+  "id": "jakartaee",
+  "labelKey": "app.create.template.jakartaee",
+  "descriptionKey": "app.create.template.jakartaee.desc",
+  "pomFragment": "\n<project xmlns=\"http://maven.apache.org/POM/4.0.0\"\n         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd\">\n    <modelVersion>4.0.0</modelVersion>\n    <groupId>com.example</groupId>\n    <artifactId>{{appName}}</artifactId>\n    <version>1.0.0</version>\n    <packaging>war</packaging>\n    <dependencies>\n      <dependency>\n        <groupId>jakarta.platform</groupId>\n        <artifactId>jakarta.jakartaee-web-api</artifactId>\n        <version>9.1.0</version>\n        <scope>provided</scope>\n      </dependency>\n    </dependencies>\n</project>\n",
+  "artifacts": [
+    {
+      "path": "src/main/webapp/WEB-INF/web.xml",
+      "content": "<web-app xmlns=\"https://jakarta.ee/xml/ns/jakartaee\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd\" version=\"5.0\">\n    <display-name>{{appName}}</display-name>\n</web-app>"
+    }
+  ]
+}

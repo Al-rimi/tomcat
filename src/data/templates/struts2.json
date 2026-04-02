@@ -1,0 +1,12 @@
+{
+  "id": "struts2",
+  "labelKey": "app.create.template.struts2",
+  "descriptionKey": "app.create.template.struts2.desc",
+  "pomFragment": "\n<project xmlns=\"http://maven.apache.org/POM/4.0.0\"\n         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd\">\n    <modelVersion>4.0.0</modelVersion>\n    <groupId>com.example</groupId>\n    <artifactId>{{appName}}</artifactId>\n    <version>1.0.0</version>\n    <packaging>war</packaging>\n    <dependencies>\n      <dependency>\n        <groupId>org.apache.struts</groupId>\n        <artifactId>struts2-core</artifactId>\n        <version>2.5.26</version>\n      </dependency>\n    </dependencies>\n</project>\n",
+  "artifacts": [
+    {
+      "path": "src/main/webapp/WEB-INF/web.xml",
+      "content": "<web-app xmlns=\"http://java.sun.com/xml/ns/javaee\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd\" version=\"2.5\">\n    <filter>\n        <filter-name>struts2</filter-name>\n        <filter-class>org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter</filter-class>\n    </filter>\n    <filter-mapping>\n        <filter-name>struts2</filter-name>\n        <url-pattern>/*</url-pattern>\n    </filter-mapping>\n</web-app>"
+    }
+  ]
+}

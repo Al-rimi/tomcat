@@ -9,7 +9,7 @@ import { Logger } from './Logger';
 import { Builder } from './Builder';
 import { AI } from './AI';
 import { t, refreshLocalization } from '../utils/i18n';
-import { getAppTemplates, getTemplateById } from '../data/appTemplates';
+import { getAppTemplates, getTemplateById } from '../utils/appTemplates';
 import { InstanceInfo } from '../types/InstanceInfo';
 import { InstanceItem } from '../components/InstanceItem';
 import { PlaceholderItem } from '../components/PlaceholderItem';

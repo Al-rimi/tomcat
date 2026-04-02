@@ -60,6 +60,7 @@
     "tomcat.portBelowMin": "Ports below {min} require admin privileges",
     "tomcat.portAboveMax": "Maximum allowed port is {max}",
     "tomcat.portInUse": "Port {port} is already in use",
+    "tomcat.noAvailablePortPair": "No available HTTP/shutdown port pair found",
     "tomcat.noAvailableInstance": "No available Tomcat instance for deployment",
     "tomcat.processAlreadyExited": "Process already exited.",
     "tomcat.addedAdminUser": "Added admin user to tomcat-users.xml",
@@ -361,5 +362,9 @@
     "logger.successLabel": "SUCCESS",
     "logger.debugLabel": "DEBUG",
     "logger.aiLabel": "AI",
-    "ai.requestTimedOut": "AI request timed out"
+    "ai.requestTimedOut": "AI request timed out",
+    "error.templatesDirectoryLoadFailed": "Failed to load templates directory:",
+    "error.templateLoadFailed": "Failed to load template from {file}:",
+    "error.syntaxColoringUpdateFailed": "Failed to update syntax coloring:",
+    "error.builderStateChangeFailed": "Builder stateChange listener failed"
 }

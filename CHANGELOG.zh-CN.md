@@ -17,6 +17,8 @@
 
 ### 修复
 
+- **完整的错误消息本地化**：所有控制台错误消息和面向开发者的字符串现在都使用运行时 i18n 系统进行完全本地化。为模板加载错误、语法着色失败和构建器状态变更错误添加了英文和中文的翻译键。
+
 - 修复了 `en` 和 `zh-CN` 两种语言中缺失的 i18n 条目（包括 AI 和应用创建相关字符串），消除了运行时缺失键错误。
 - 修复了 `package.nls.zh-CN.json` 中缺失的市场place 本地化键：`command.apps.create.title`、`command.apps.deploy.title`、`command.apps.openInBrowser.title`、`command.apps.undeploy.title`。
 

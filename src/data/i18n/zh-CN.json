@@ -63,6 +63,7 @@
     "tomcat.portInUse": "端口 {port} 已被占用",
     "logger.failedOpenErrorLocation": "无法打开错误位置 {path}：{error}",
     "tomcat.noAvailableInstance": "没有可用的 Tomcat 实例用于部署",
+    "tomcat.noAvailablePortPair": "未找到可用的 HTTP/关闭端口对",
     "tomcat.processAlreadyExited": "进程已退出。",
     "tomcat.addedAdminUser": "已在 tomcat-users.xml 中添加管理员账号",
     "builder.libDirCreated": "未找到 lib 源目录，已创建 {path}",
@@ -361,5 +362,9 @@
     "logger.errorLabel": "错误",
     "logger.successLabel": "成功",
     "logger.debugLabel": "调试",
-    "logger.aiLabel": "AI"
+    "logger.aiLabel": "AI",
+    "error.templatesDirectoryLoadFailed": "加载模板目录失败：",
+    "error.templateLoadFailed": "从文件加载模板失败 {file}：",
+    "error.syntaxColoringUpdateFailed": "更新语法着色失败：",
+    "error.builderStateChangeFailed": "构建器状态变更监听器失败"
 }

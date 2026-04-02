@@ -52,6 +52,7 @@ console.log('package.nls keys not referenced by package.json:', unusedBaseKeys.l
 if (unusedBaseKeys.length > 0) console.log('  keys:', unusedBaseKeys.join(', '));
 
 // Check runtime translations in src/data/i18n/
+let runtimeHasMismatch = false;
 const runtimeDir = path.join(__dirname, 'src', 'data', 'i18n');
 let runtimeFiles = [];
 if (fs.existsSync(runtimeDir)) {
@@ -70,7 +71,7 @@ if (runtimeFiles.length > 0) {
     runtimeBaseData = JSON.parse(fs.readFileSync(runtimeBasePath, 'utf-8'));
   } catch (err) {
     console.error(`Error parsing runtime base JSON ${runtimeBaseFile}:`, err.message);
-    hasMismatch = true;
+    runtimeHasMismatch = true;
     runtimeBaseData = {};
   }
   const runtimeBaseKeys = Object.keys(runtimeBaseData).sort();
@@ -88,7 +89,7 @@ if (runtimeFiles.length > 0) {
       data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
     } catch (err) {
       console.error(`Error parsing JSON for runtime ${file}:`, err.message);
-      hasMismatch = true;
+      runtimeHasMismatch = true;
       return;
     }
 
@@ -101,7 +102,7 @@ if (runtimeFiles.length > 0) {
     const sameKeys = missingFromBase.length === 0 && extraInFile.length === 0;
 
     if (!sameCount || !sameKeys) {
-      hasMismatch = true;
+      runtimeHasMismatch = true;
     }
 
     console.log(`file: ${file}`);
@@ -190,7 +191,7 @@ i18nFiles.forEach(file => {
   console.log('');
 });
 
-if (hasMismatch) {
+if (hasMismatch || runtimeHasMismatch) {
   console.log('Result: Localization inconsistencies found.');
   process.exitCode = 1;
 } else {

@@ -19,8 +19,13 @@
 
 ### Fixed
 
+- **Complete Error Message Localization**: All console error messages and developer-facing strings are now fully localized using the runtime i18n system. Added translation keys for template loading errors, syntax coloring failures, and builder state change errors in both English and Chinese locales.
+
+### Fixed
+
 - Fixed missing i18n entries for both `en` and `zh-CN`, including AI and app creation strings, eliminating runtime missing-key errors.
 - Resolved missing marketplace localization keys in `package.nls.zh-CN.json`: `command.apps.create.title`, `command.apps.deploy.title`, `command.apps.openInBrowser.title`, `command.apps.undeploy.title`.
+- Localized previously hardcoded error message "No available HTTP/shutdown port pair found" in `Tomcat.ts` with new key `tomcat.noAvailablePortPair` for proper internationalization support.
 
 ## [4.2.1] - 2026-03-30
 

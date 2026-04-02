@@ -22,6 +22,7 @@
  */
 
 import * as vscode from 'vscode';
+import { t } from './i18n';
 
 /**
  * Applies advanced syntax highlighting rules to the editor
@@ -46,274 +47,274 @@ export function addSyntaxColoringRules() {
      */
     const colorRules = [
         // Timestamp - subtle gray (log file metadata)
-        { 
-            "scope": "meta.timestamp.tomcat", 
-            "settings": { 
-                "foreground": "#858585", 
-                "fontStyle": "" 
-            } 
+        {
+            "scope": "meta.timestamp.tomcat",
+            "settings": {
+                "foreground": "#858585",
+                "fontStyle": ""
+            }
         },
 
         // Log level hierarchy - semantic coloring
-        { 
-            "scope": "support.type.log-level.info.tomcat", 
-            "settings": { 
+        {
+            "scope": "support.type.log-level.info.tomcat",
+            "settings": {
                 "foreground": "#4FC1FF",  // Informational blue
-                "fontStyle": "" 
-            } 
+                "fontStyle": ""
+            }
         },
-        { 
-            "scope": "support.type.log-level.debug.tomcat", 
-            "settings": { 
+        {
+            "scope": "support.type.log-level.debug.tomcat",
+            "settings": {
                 "foreground": "#888888",  // Secondary gray
                 "fontStyle": "bold"     // High visibility
-            } 
+            }
         },
-        { 
-            "scope": "support.type.log-level.error.tomcat", 
-            "settings": { 
+        {
+            "scope": "support.type.log-level.error.tomcat",
+            "settings": {
                 "foreground": "#D32F2F",  // Error dark red
                 "fontStyle": "bold"       // High visibility
-            } 
+            }
         },
-        { 
-            "scope": "support.type.log-level.success.tomcat", 
-            "settings": { 
+        {
+            "scope": "support.type.log-level.success.tomcat",
+            "settings": {
                 "foreground": "#73C991",  // Success green
-                "fontStyle": "" 
-            } 
+                "fontStyle": ""
+            }
         },
-        { 
-            "scope": "support.type.log-level.warn.tomcat", 
-            "settings": { 
+        {
+            "scope": "support.type.log-level.warn.tomcat",
+            "settings": {
                 "foreground": "#FF6B6B",  // Warning red
-                "fontStyle": "" 
-            } 
+                "fontStyle": ""
+            }
         },
-        { 
-            "scope": "entity.name.log-level.brackets.tomcat", 
-            "settings": { 
+        {
+            "scope": "entity.name.log-level.brackets.tomcat",
+            "settings": {
                 "foreground": "#FFD700", // Gold for emphasis
-                "fontStyle": "" 
-            } 
+                "fontStyle": ""
+            }
         },
 
 
         // Hyperlink elements - distinct link color
-        { 
-            "scope": "markup.underline.link.tomcat", 
-            "settings": { 
+        {
+            "scope": "markup.underline.link.tomcat",
+            "settings": {
                 "foreground": "#61AFEF",  // Link blue
                 "fontStyle": "underline"  // Emphasize link nature
-            } 
+            }
         },
-        
+
         // File system elements - path visualization
-        { 
-            "scope": "entity.name.filename.java.tomcat", 
-            "settings": { 
+        {
+            "scope": "entity.name.filename.java.tomcat",
+            "settings": {
                 "foreground": "#9CDCFE",  // Light blue
                 "fontStyle": "underline"  // File path indicator
-            } 
+            }
         },
 
         // Build metrics - numeric values
-        { 
-            "scope": "constant.numeric.build-duration.tomcat", 
-            "settings": { 
+        {
+            "scope": "constant.numeric.build-duration.tomcat",
+            "settings": {
                 "foreground": "#B5CEA8"  // Soft green
-            } 
+            }
         },
-        { 
-            "scope": "constant.numeric.integer.tomcat", 
-            "settings": { 
+        {
+            "scope": "constant.numeric.integer.tomcat",
+            "settings": {
                 "foreground": "#B5CEA8"  // Consistent numeric styling
-            } 
+            }
         },
 
         // Java syntax hierarchy - semantic coloring
-        { 
-            "scope": "entity.name.class.java.tomcat", 
-            "settings": { 
+        {
+            "scope": "entity.name.class.java.tomcat",
+            "settings": {
                 "foreground": "#4EC9B0",  // Teal for classes
-                "fontStyle": "" 
-            } 
+                "fontStyle": ""
+            }
         },
-        { 
-            "scope": "entity.name.function.java.tomcat", 
-            "settings": { 
+        {
+            "scope": "entity.name.function.java.tomcat",
+            "settings": {
                 "foreground": "#DCDCAA",  // Light yellow for methods
-                "fontStyle": "" 
-            } 
+                "fontStyle": ""
+            }
         },
-        { 
-            "scope": "variable.parameter.java.tomcat", 
-            "settings": { 
+        {
+            "scope": "variable.parameter.java.tomcat",
+            "settings": {
                 "foreground": "#9CDCFE",  // Light blue for params
-                "fontStyle": "" 
-            } 
+                "fontStyle": ""
+            }
         },
-        { 
-            "scope": "variable.other.object.java.tomcat", 
-            "settings": { 
+        {
+            "scope": "variable.other.object.java.tomcat",
+            "settings": {
                 "foreground": "#DCDCAA",  // Consistent object refs
-                "fontStyle": "" 
-            } 
+                "fontStyle": ""
+            }
         },
-        { 
-            "scope": "storage.modifier.java.tomcat", 
-            "settings": { 
+        {
+            "scope": "storage.modifier.java.tomcat",
+            "settings": {
                 "foreground": "#569CD6",  // Blue for modifiers
-                "fontStyle": "" 
-            } 
+                "fontStyle": ""
+            }
         },
-        { 
-            "scope": "storage.type.java.tomcat", 
-            "settings": { 
+        {
+            "scope": "storage.type.java.tomcat",
+            "settings": {
                 "foreground": "#4EC9B0",  // Teal for types
-                "fontStyle": "" 
-            } 
+                "fontStyle": ""
+            }
         },
-        { 
-            "scope": "keyword.control.java.tomcat", 
-            "settings": { 
+        {
+            "scope": "keyword.control.java.tomcat",
+            "settings": {
                 "foreground": "#C586C0",  // Purple for keywords
-                "fontStyle": "" 
-            } 
+                "fontStyle": ""
+            }
         },
-        { 
-            "scope": "invalid.illegal.java.tomcat", 
-            "settings": { 
+        {
+            "scope": "invalid.illegal.java.tomcat",
+            "settings": {
                 "foreground": "#FF6B6B",  // Error red
-                "fontStyle": "bold" 
-            } 
+                "fontStyle": "bold"
+            }
         },
-        { 
-            "scope": "markup.error.tomcat", 
-            "settings": { 
+        {
+            "scope": "markup.error.tomcat",
+            "settings": {
                 "foreground": "#FF6B6B",  // Consistent error styling
-                "fontStyle": "bold" 
-            } 
+                "fontStyle": "bold"
+            }
         },
-        { 
-            "scope": "string.quoted.double.java.tomcat", 
-            "settings": { 
+        {
+            "scope": "string.quoted.double.java.tomcat",
+            "settings": {
                 "foreground": "#CE9178",  // Warm brown for strings
-                "fontStyle": "" 
-            } 
+                "fontStyle": ""
+            }
         },
-        { 
-            "scope": "keyword.operator.java.tomcat", 
-            "settings": { 
+        {
+            "scope": "keyword.operator.java.tomcat",
+            "settings": {
                 "foreground": "#D4D4D4",  // Light gray for operators
-                "fontStyle": "" 
-            } 
+                "fontStyle": ""
+            }
         },
-        { 
-            "scope": "storage.type.annotation.java.tomcat", 
-            "settings": { 
+        {
+            "scope": "storage.type.annotation.java.tomcat",
+            "settings": {
                 "foreground": "#569CD6",  // Blue for annotations
-                "fontStyle": "" 
-            } 
+                "fontStyle": ""
+            }
         },
-        { 
-            "scope": "meta.annotation.parameters.java.tomcat", 
-            "settings": { 
+        {
+            "scope": "meta.annotation.parameters.java.tomcat",
+            "settings": {
                 "foreground": "#9CDCFE",  // Light blue for params
-                "fontStyle": "" 
-            } 
+                "fontStyle": ""
+            }
         },
 
         // Punctuation - subtle differentiation
-        { 
-            "scope": "punctuation.terminator.java.tomcat", 
-            "settings": { 
+        {
+            "scope": "punctuation.terminator.java.tomcat",
+            "settings": {
                 "foreground": "#D4D4D4"  // Standard punctuation
-            } 
+            }
         },
-        { 
-            "scope": "punctuation.separator.comma.java.tomcat", 
-            "settings": { 
+        {
+            "scope": "punctuation.separator.comma.java.tomcat",
+            "settings": {
                 "foreground": "#D4D4D4"  // Consistent punctuation
-            } 
+            }
         },
-        { 
-            "scope": "punctuation.bracket.square.java.tomcat", 
-            "settings": { 
+        {
+            "scope": "punctuation.bracket.square.java.tomcat",
+            "settings": {
                 "foreground": "#D4D4D4"  // Array/Index brackets
-            } 
+            }
         },
-        { 
-            "scope": "punctuation.bracket.round.java.tomcat", 
-            "settings": { 
+        {
+            "scope": "punctuation.bracket.round.java.tomcat",
+            "settings": {
                 "foreground": "#D4D4D4"  // Method/Grouping parens
-            } 
+            }
         },
-        { 
-            "scope": "punctuation.bracket.angle.java.tomcat", 
-            "settings": { 
+        {
+            "scope": "punctuation.bracket.angle.java.tomcat",
+            "settings": {
                 "foreground": "#D4D4D4"  // Generics brackets
-            } 
+            }
         },
 
         // Package/Import hierarchy
-        { 
-            "scope": "entity.name.package.java.tomcat", 
-            "settings": { 
+        {
+            "scope": "entity.name.package.java.tomcat",
+            "settings": {
                 "foreground": "#858585",  // Gray for packages
-                "fontStyle": "" 
-            } 
+                "fontStyle": ""
+            }
         },
-        { 
-            "scope": "keyword.control.import.java.tomcat", 
-            "settings": { 
+        {
+            "scope": "keyword.control.import.java.tomcat",
+            "settings": {
                 "foreground": "#569CD6",  // Blue for imports
-                "fontStyle": "" 
-            } 
+                "fontStyle": ""
+            }
         },
 
         // HTTP Log coloring rules
-        { 
-            "scope": "support.type.log-level.http.tomcat", 
-            "settings": { 
+        {
+            "scope": "support.type.log-level.http.tomcat",
+            "settings": {
                 "foreground": "#4EC9B0",  // VS Code default teal
                 "fontStyle": "bold"
-            } 
+            }
         },
-        { 
-            "scope": "http.method.tomcat", 
-            "settings": { 
+        {
+            "scope": "http.method.tomcat",
+            "settings": {
                 "foreground": "#C586C0",  // Purple for methods
                 "fontStyle": "bold"
-            } 
+            }
         },
-        { 
-            "scope": "http.status.success.tomcat", 
-            "settings": { 
+        {
+            "scope": "http.status.success.tomcat",
+            "settings": {
                 "foreground": "#73C991",  // Green for 2xx
                 "fontStyle": "bold"
-            } 
+            }
         },
-        { 
-            "scope": "http.status.redirect.tomcat", 
-            "settings": { 
+        {
+            "scope": "http.status.redirect.tomcat",
+            "settings": {
                 "foreground": "#4FC1FF",  // Blue for 3xx
                 "fontStyle": "bold"
-            } 
+            }
         },
-        { 
-            "scope": "http.status.client-error.tomcat", 
-            "settings": { 
+        {
+            "scope": "http.status.client-error.tomcat",
+            "settings": {
                 "foreground": "#FFCC66",  // Amber for 4xx
                 "fontStyle": "bold"
-            } 
+            }
         },
-        { 
-            "scope": "http.response.size.tomcat", 
-            "settings": { 
+        {
+            "scope": "http.response.size.tomcat",
+            "settings": {
                 "foreground": "#B5CEA8",  // Soft green for sizes
-                "fontStyle": "" 
-            } 
+                "fontStyle": ""
+            }
         },
         {
             "scope": "entity.name.user.admin.tomcat",
@@ -343,7 +344,7 @@ export function addSyntaxColoringRules() {
         { ...existingColors, textMateRules: updatedRules },
         vscode.ConfigurationTarget.Global
     ).then(
-        () => {/* Success handler */},
-        (err) => console.error('Failed to update syntax coloring:', err)
+        () => {/* Success handler */ },
+        (err) => console.error(t('error.syntaxColoringUpdateFailed'), err)
     );
 }
