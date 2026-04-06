@@ -50,9 +50,9 @@
     "resources/**/*",
     "package.json",
     "package.nls.json",
-    "package.nls.zh-cn.json",
+    "package.nls.zh-CN.json",
     "README.md",
-    "README.zh-cn.md",
+    "README.zh-CN.md",
     "CHANGELOG.md",
     "LICENSE**"
   ],
@@ -64,7 +64,7 @@
         "translations": [
           {
             "id": "vscode",
-            "path": "./package.nls.zh-cn.json"
+            "path": "./package.nls.zh-CN.json"
           }
         ]
       }
