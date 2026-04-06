@@ -67,8 +67,13 @@ export class View implements vscode.TreeDataProvider<
         const javaHomes = config.get<string[]>('javaHomes', []) || [];
         const mergedJavaHomes = Array.from(new Set([...javaHomes, activeJavaHome].filter(Boolean)));
 
-        await config.update('homes', mergedHomes, true);
-        await config.update('javaHomes', mergedJavaHomes, true);
+        // Only update config if there are actual changes
+        if (mergedHomes.length !== homes.length || !mergedHomes.every(h => homes.includes(h))) {
+            await config.update('homes', mergedHomes, true);
+        }
+        if (mergedJavaHomes.length !== javaHomes.length || !mergedJavaHomes.every(h => javaHomes.includes(h))) {
+            await config.update('javaHomes', mergedJavaHomes, true);
+        }
 
         const activeVersion = activeHome ? await this.tomcat.getTomcatVersion(activeHome) : undefined;
         const configItems: ConfigItem[] = [];

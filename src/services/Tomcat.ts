@@ -1682,16 +1682,21 @@ export class Tomcat {
         const classpath = [
             path.join(tomcatHome, 'bin', 'bootstrap.jar'),
             path.join(tomcatHome, 'bin', 'tomcat-juli.jar')
-        ].join(path.delimiter);
+        ].map(p => p.includes(' ') ? `"${p}"` : p).join(path.delimiter);
+
+        const quotedJavaExecutable = javaExecutable.includes(' ') ? `"${javaExecutable}"` : javaExecutable;
+        const quotedTomcatBase = tomcatBase.includes(' ') ? `"${tomcatBase}"` : tomcatBase;
+        const quotedTomcatHome = tomcatHome.includes(' ') ? `"${tomcatHome}"` : tomcatHome;
+        const quotedTempDir = path.join(tomcatBase, 'temp').includes(' ') ? `"${path.join(tomcatBase, 'temp')}"` : path.join(tomcatBase, 'temp');
 
         return {
-            command: javaExecutable,
+            command: quotedJavaExecutable,
             args: [
                 '-cp',
                 classpath,
-                `-Dcatalina.base=${tomcatBase}`,
-                `-Dcatalina.home=${tomcatHome}`,
-                `-Djava.io.tmpdir=${path.join(tomcatBase, 'temp')}`,
+                `-Dcatalina.base=${quotedTomcatBase}`,
+                `-Dcatalina.home=${quotedTomcatHome}`,
+                `-Djava.io.tmpdir=${quotedTempDir}`,
                 'org.apache.catalina.startup.Bootstrap',
                 action
             ]

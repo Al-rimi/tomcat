@@ -781,6 +781,14 @@ export class Builder {
     private async executeCommand(command: string, cwd: string): Promise<void> {
         return new Promise((resolve, reject) => {
             exec(command, { cwd }, (err, stdout, stderr) => {
+                // Log stdout and stderr to make them accessible
+                if (stdout) {
+                    logger.info(stdout.trim());
+                }
+                if (stderr) {
+                    logger.warn(stderr.trim());
+                }
+
                 if (err) {
                     reject(stdout || stderr || err.message || t('builder.unknownError'));
                 }
