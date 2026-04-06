@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [4.2.2] - 2026-04-07
+
 ### 新增
 
 - 新增构建期本地化打包：`webpack.config.js` 现在会提取所有 `package.nls*.json` 到 `out/data/i18n/<locale>.json`，运行时翻译直接来源于 Marketplace 本地化源文件。
@@ -18,6 +20,10 @@
 - 修复打包后因 i18n 数据路径缺失或不一致导致的扩展激活与运行时错误。
 - 修复英文文案回退为原始 key 的问题（如 logger 标签），避免出现 `[logger.infoLabel]` 这类输出。
 - 补齐并校验运行时缺失翻译键（含 `builder.autoDetectedType`），同步英文与中文 key 集。
+- 修复 Java/Tomcat 路径包含空格时导致扩展命令失败的问题（如 "C:\Program Files\Java\jdk17"）。
+- 使 Maven 构建日志可在输出面板中查看，便于调试。
+- 通过优化不必要的配置更新来改善扩展性能。
+- 修复 Java 主目录移除功能以正确更新树视图。
 
 ## [4.2.1] - 2026-03-30
 

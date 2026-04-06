@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [4.2.2] - 2026-04-07
+
 ### Added
 
 - Build-time localization bundling: `webpack.config.js` now extracts every `package.nls*.json` file into `out/data/i18n/<locale>.json`, so runtime translations are generated from marketplace localization sources.
@@ -18,6 +20,10 @@
 - Fixed extension activation/runtime failures caused by missing or mismatched i18n data paths in bundled builds.
 - Restored English translation values that accidentally fell back to raw keys (for example logger labels), preventing UI output like `[logger.infoLabel]`.
 - Added and verified missing runtime translation keys (including `builder.autoDetectedType`) and aligned English/Chinese keysets.
+- Fixed Java/Tomcat paths with spaces breaking extension commands (e.g., "C:\Program Files\Java\jdk17").
+- Made Maven build logs accessible in the output panel for better debugging.
+- Improved extension performance by optimizing unnecessary configuration updates.
+- Fixed Java home removal functionality to properly update the tree view.
 
 ## [4.2.1] - 2026-03-30
 

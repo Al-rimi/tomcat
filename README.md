@@ -14,12 +14,6 @@ AI-assisted Tomcat control for VS Code: streaming log explanations, one-click de
 - **Java Web Apps Support**  
   Detect and manage Java EE/Tomcat webapp projects, including multi-root workspace app discovery and deployment.
 
-## Latest Release (4.2.1)
-
-- Build failures no longer start or reload Tomcat automatically.
-- Tomcat deploy guard strengthened to resolve instance target with `startIfMissing=false` before compile step.
-- EBUSY recovery now uses pre-build resolved port and avoids implicit bootstrapping side effects.
-
 - **Build Strategies**  
   Four build strategies Local, Maven, Gradle, and Eclipse to choose from
 
@@ -278,15 +272,16 @@ For technical implementation details and contribution guidelines, see:
 [![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/issues/new)  
 [![Suggest Fix](https://img.shields.io/badge/-Suggest_Fix-green?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/pulls)
 
-## What's New in 4.2.1
+## What's New in 4.2.2
 
-This release focuses on reliability and usability for multi-app workflows, safer instance management, smarter deploy behavior, and clearer AI integration.
+This release focuses on path handling, logging visibility, performance improvements, and localization enhancements.
 
-- Better context & persistence: output messages now include app+port context and persisted instance mappings are reliably restored on extension startup.
-- Safer instance controls: per-instance stop/kill avoids global termination and the extension reuses existing instances to prevent duplicates.
-- Smarter deployments: the Builder coalesces repeated deploy requests, auto-restarts the last deploy, and fixes auto-deploy trigger edge cases.
-- Improved AI UX: AI settings are clearer in the tree view (provider/model shown), boolean toggles work inline, and AI stream duplication is reduced.
-- Cleaner logging: process exit logs include instance context and Tomcat startup messages are quieter (moved to DEBUG).
+- **Path Handling**: Fixed issues with Java/Tomcat installations in paths containing spaces (e.g., Program Files).
+- **Build Logging**: Maven and other build tool output is now properly displayed in the VS Code output panel.
+- **Performance**: Optimized configuration updates and tree view operations for better responsiveness.
+- **Java Home Management**: Fixed removal of Java home entries to properly refresh the UI.
+- **Localization**: Improved i18n system with build-time bundling, runtime fallback handling, and validation scripts.
+- **Reliability**: Fixed extension activation issues caused by missing translation data in bundled builds.
 
 See the full [changelog](https://github.com/Al-rimi/tomcat/blob/main/CHANGELOG.md) for details.
 

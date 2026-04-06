@@ -260,15 +260,16 @@ public static isJavaEEProject(): boolean {
 [![反馈问题](https://img.shields.io/badge/-反馈问题-red?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/issues/new)  
 [![提交修复](https://img.shields.io/badge/-提交修复-green?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/pulls)
 
-## 4.2.0 更新要点
+## 4.2.2 更新要点
 
-本次发布聚焦多应用场景的可靠性与可用性：更安全的实例管理、更智能的部署流程，以及更清晰的 AI 集成体验。
+本次发布聚焦路径处理、日志可见性、性能改进和本地化增强。
 
-- 更好的上下文与持久化：输出中包含应用+端口信息，扩展启动时能可靠恢复已保存的实例映射。
-- 更安全的实例控制：按实例停止/终止避免了全局结束，扩展会复用已有实例以防重复启动。
-- 更智能的部署：Builder 会合并重复部署请求，自动重启最新部署，并修复自动部署触发的边缘问题。
-- AI 使用体验提升：AI 设置在树视图中更直观（展示 provider/model），布尔切换可内联操作，减少了流复制问题。
-- 日志更清晰：进程退出日志包含实例上下文，Tomcat 启动信息降为 DEBUG 以减少噪音。
+- **路径处理**：修复了 Java/Tomcat 安装路径包含空格时导致扩展命令失败的问题（如 Program Files）。
+- **构建日志**：Maven 等构建工具的输出现在会在 VS Code 输出面板中正确显示。
+- **性能**：优化了配置更新和树视图操作，提升响应速度。
+- **Java 主目录管理**：修复了 Java 主目录移除功能以正确更新界面。
+- **本地化**：改进了 i18n 系统，支持构建时打包、运行时回退处理和验证脚本。
+- **可靠性**：修复了打包后因缺少翻译数据导致的扩展激活问题。
 
 [查看完整更新日志](https://github.com/Al-rimi/tomcat/blob/main/CHANGELOG.md)
 
