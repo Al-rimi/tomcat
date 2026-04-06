@@ -4,26 +4,20 @@
 
 ### 新增
 
-- **完整的 Eclipse 构建类型实现**：在 VS Code 设置和视图选项中添加了 'Eclipse' 作为可选择的构建类型。Eclipse 部署策略智能处理 Eclipse 动态 Web 项目，通过从 `.classpath` 文件检测输出目录、从 Eclipse 构建输出复制已编译类，并在需要时提供回退编译。用户现在可以从 Tomcat 视图的构建类型下拉列表中选择 'Eclipse'，或在 VS Code 设置中将其设置为默认值。
-- 修复扩展激活失败问题，该问题由编译后扩展中的数据文件路径错误导致。修复了 webpack 配置和模板及翻译的文件加载路径。
+- 新增构建期本地化打包：`webpack.config.js` 现在会提取所有 `package.nls*.json` 到 `out/data/i18n/<locale>.json`，运行时翻译直接来源于 Marketplace 本地化源文件。
+- 新增本地化校验脚本（`i18n_check.js`），可检查多语言 key 集一致性、运行时 `t(...)` 引用覆盖率及占位符式值。
 
 ### 变更
 
-- **添加专用 Eclipse 构建类型**，具有针对 Eclipse 动态 Web 项目的智能部署策略。从 `.classpath` 文件自动检测 Eclipse 输出目录，处理 `WebContent/` 结构，并为没有 Maven/Gradle 集成的纯 Eclipse 项目提供回退编译。
-- 增强了 `src/utils/i18n.ts` 中的 i18n 运行时覆盖率验证器，能够检测缺失的键并输出清晰日志，而不会导致激活失败。
-- 在 `AIListGroup`、`AIListValue`、`AISettingItem`、`OptionItem` 中添加了多语言工具支持和回退处理机制。
-- 重组项目结构：将所有资源文件移动到 `resources/` 子目录（`images/`、`syntaxes/`）中，并在 `package.json` 中更新所有引用，以提高组织性和可维护性。
-- 将运行时翻译重组到 `src/data/i18n/` 文件夹中，并更新本地化检查脚本（`i18n_check.js`）以在新位置验证运行时翻译，确保所有语言文件的一致性。
-- **增强构建器服务**，支持自动检测项目类型（Eclipse、Maven、Gradle），并自动选择构建策略，替代手动构建类型配置以提供更好的用户体验。
-- **将 'Auto' 添加为默认构建类型** 在 VS Code 设置中，允许自动检测项目类型（Maven、Gradle 或 Local），从而简化部署而无需手动配置。
-- **改进项目检测逻辑**，集中在 `ProjectDetector` 类中，支持 Eclipse `.project`/`.classpath` 文件、Maven `pom.xml` 分析、Gradle 构建文件以及各种 Java EE 框架。
+- 重构运行时 i18n 加载器（`src/utils/i18n.ts`）：动态发现语言包、规范化 locale（`zh`、`zh-CN`、大小写变体）并执行确定性回退策略。
+- 将运行时翻译源切换为根目录 `package.nls*.json`，移除重复的 `src/data/i18n/*.json` 字典文件。
+- 统一扩展清单中的 `zh-CN` 文件名大小写及翻译贡献路径，避免打包和加载不一致。
 
 ### 修复
 
-- **完整的错误消息本地化**：所有控制台错误消息和面向开发者的字符串现在都使用运行时 i18n 系统进行完全本地化。为模板加载错误、语法着色失败和构建器状态变更错误添加了英文和中文的翻译键。
-
-- 修复了 `en` 和 `zh-CN` 两种语言中缺失的 i18n 条目（包括 AI 和应用创建相关字符串），消除了运行时缺失键错误。
-- 修复了 `package.nls.zh-CN.json` 中缺失的市场place 本地化键：`command.apps.create.title`、`command.apps.deploy.title`、`command.apps.openInBrowser.title`、`command.apps.undeploy.title`。
+- 修复打包后因 i18n 数据路径缺失或不一致导致的扩展激活与运行时错误。
+- 修复英文文案回退为原始 key 的问题（如 logger 标签），避免出现 `[logger.infoLabel]` 这类输出。
+- 补齐并校验运行时缺失翻译键（含 `builder.autoDetectedType`），同步英文与中文 key 集。
 
 ## [4.2.1] - 2026-03-30
 
