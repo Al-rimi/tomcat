@@ -2,7 +2,7 @@
   "name": "tomcat",
   "displayName": "%ext.displayName%",
   "description": "%ext.description%",
-  "version": "4.2.2",
+  "version": "4.2.3",
   "publisher": "Al-rimi",
   "author": {
     "email": "alrimi@zjnu.edu.cn",
@@ -38,8 +38,40 @@
     "Debuggers"
   ],
   "activationEvents": [
-    "onStartupFinished",
-    "workspaceContains:**/*"
+    "onCommand:tomcat.start",
+    "onCommand:tomcat.stop",
+    "onCommand:tomcat.clean",
+    "onCommand:tomcat.deploy",
+    "onCommand:tomcat.manageInstances",
+    "onCommand:tomcat.apps.deploy",
+    "onCommand:tomcat.apps.openInBrowser",
+    "onCommand:tomcat.apps.undeploy",
+    "onCommand:tomcat.instances.refresh",
+    "onCommand:tomcat.instances.stop",
+    "onCommand:tomcat.instances.kill",
+    "onCommand:tomcat.instances.startNew",
+    "onCommand:tomcat.instances.configureField",
+    "onCommand:tomcat.instances.addHome",
+    "onCommand:tomcat.instances.addJavaHome",
+    "onCommand:tomcat.instances.removeHome",
+    "onCommand:tomcat.instances.removeJavaHome",
+    "onCommand:tomcat.instances.refreshVersions",
+    "onCommand:tomcat.instances.setActiveHome",
+    "onCommand:tomcat.instances.setActiveJavaHome",
+    "onCommand:tomcat.instances.setBrowser",
+    "onCommand:tomcat.instances.setPort",
+    "onCommand:tomcat.instances.addPort",
+    "onCommand:tomcat.instances.removePort",
+    "onCommand:tomcat.instances.setBuildType",
+    "onCommand:tomcat.instances.setLogLevel",
+    "onCommand:tomcat.instances.setLanguage",
+    "onCommand:tomcat.ai.updateSetting",
+    "onCommand:tomcat.ai.addListValue",
+    "onCommand:tomcat.ai.removeListValue",
+    "onCommand:tomcat.ai.setProvider",
+    "onCommand:tomcat.instances.openInBrowser",
+    "onCommand:tomcat.apps.create",
+    "onView:tomcat.instancesView"
   ],
   "engines": {
     "vscode": "^1.56.0",
@@ -59,17 +91,6 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
-    "localizations": [
-      {
-        "languageId": "zh-cn",
-        "translations": [
-          {
-            "id": "vscode",
-            "path": "./package.nls.zh-CN.json"
-          }
-        ]
-      }
-    ],
     "languages": [
       {
         "id": "tomcat-log",
@@ -660,9 +681,9 @@
   "overrides": {
     "mocha": {
       "diff": "8.0.3",
-      "serialize-javascript": "7.0.4"
+      "serialize-javascript": "7.0.5"
     },
-    "serialize-javascript": "7.0.4",
+    "serialize-javascript": "7.0.5",
     "brace-expansion": "^5.0.5",
     "minimist": "^1.2.7"
   },

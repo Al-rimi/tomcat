@@ -260,7 +260,7 @@ public static isJavaEEProject(): boolean {
 [![反馈问题](https://img.shields.io/badge/-反馈问题-red?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/issues/new)  
 [![提交修复](https://img.shields.io/badge/-提交修复-green?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/pulls)
 
-## 4.2.2 更新要点
+## 4.2.3 更新要点
 
 本次发布聚焦路径处理、日志可见性、性能改进和本地化增强。
 

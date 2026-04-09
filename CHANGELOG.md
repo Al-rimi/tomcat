@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [4.2.3] - 2026-04-09
+
+### Fixed
+
+- Fixed extension disable and uninstall issues by changing activation events to lazy activation, allowing proper management of the extension state.
+- Fixed security vulnerabilities by updating serialize-javascript override to version 7.0.5.
+
 ## [4.2.2] - 2026-04-07
 
 ### Added
