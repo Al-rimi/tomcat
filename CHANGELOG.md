@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [4.2.4] - 2026-04-10
+
+### Fixed
+
+- Made the extension workspace-specific by setting extensionKind to workspace, allowing independent installation per workspace.
+
 ## [4.2.3] - 2026-04-09
 
 ### Fixed

@@ -272,7 +272,7 @@ For technical implementation details and contribution guidelines, see:
 [![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/issues/new)  
 [![Suggest Fix](https://img.shields.io/badge/-Suggest_Fix-green?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/pulls)
 
-## What's New in 4.2.3
+## What's New in 4.2.4
 
 This release focuses on path handling, logging visibility, performance improvements, and localization enhancements.
 

@@ -2,7 +2,7 @@
   "name": "tomcat",
   "displayName": "%ext.displayName%",
   "description": "%ext.description%",
-  "version": "4.2.3",
+  "version": "4.2.4",
   "publisher": "Al-rimi",
   "author": {
     "email": "alrimi@zjnu.edu.cn",
@@ -36,6 +36,9 @@
     "Other",
     "Programming Languages",
     "Debuggers"
+  ],
+  "extensionKind": [
+    "workspace"
   ],
   "activationEvents": [
     "onCommand:tomcat.start",
