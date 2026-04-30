@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [4.2.5] - 2026-04-30
+
+### Fixed
+
+- Fixed AI streaming responses to display word by word as a single continuous message instead of fragmented chunk messages.
+
 ## [4.2.4] - 2026-04-10
 
 ### Fixed

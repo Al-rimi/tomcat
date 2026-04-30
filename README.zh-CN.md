@@ -145,36 +145,6 @@ public static isJavaEEProject(): boolean {
 
 ![](resources/images/tomcat-status-showcase.png)
 
-### 命令面板
-
-在命令面板（`Ctrl+Shift+P`）快速访问核心命令：
-
-| 命令                       | 描述                                            |
-| -------------------------- | ----------------------------------------------- |
-| `Tomcat: 启动`             | 启动 Tomcat 服务器                              |
-| `Tomcat: 停止`             | 停止正在运行的服务器                            |
-| `Tomcat: 清理`             | 清理 Tomcat `webapps`、`temp`、`work` 目录      |
-| `Tomcat: 部署`             | 部署当前 Java EE 项目                           |
-| `Tomcat: 刷新实例列表`     | 刷新所有运行和已保存 Tomcat 实例的列表          |
-| `Tomcat: 终止实例`         | 强制终止选中的 Tomcat 实例                      |
-| `Tomcat: 在浏览器中打开`   | 在浏览器中打开实例已部署的应用                  |
-| `Tomcat: 新建实例`         | 启动一个新的 Tomcat 实例                        |
-| `Tomcat: 配置字段`         | 编辑实例的 Tomcat Home、Java Home、端口或浏览器 |
-| `Tomcat: 添加 Tomcat 路径` | 添加新的 Tomcat 安装路径                        |
-| `Tomcat: 移除 Tomcat 路径` | 移除已保存的 Tomcat 安装路径                    |
-| `Tomcat: 刷新版本`         | 刷新可用的 Tomcat 版本                          |
-| `Tomcat: 设为当前 Tomcat`  | 设为当前激活的 Tomcat Home                      |
-| `Tomcat: 添加 Java 路径`   | 添加新的 Java 安装路径                          |
-| `Tomcat: 移除 Java 路径`   | 移除已保存的 Java 安装路径                      |
-| `Tomcat: 设为当前 Java`    | 设为当前激活的 Java Home                        |
-| `Tomcat: 设置 HTTP 端口`   | 更改实例的 HTTP 端口                            |
-| `Tomcat: 添加 HTTP 端口`   | 向快捷选择列表添加新的 HTTP 端口                |
-| `Tomcat: 移除 HTTP 端口`   | 移除已保存的 HTTP 端口                          |
-| `Tomcat: 设置构建类型`     | 更改实例的构建策略                              |
-| `Tomcat: 设置日志级别`     | 更改实例的日志级别                              |
-| `Tomcat: 创建应用`         | 通过模板快速生成新的 Web 应用                   |
-| `Tomcat: 刷新应用列表`     | 刷新树视图中的应用列表                          |
-
 ## 配置
 
 在 <kbd>Ctrl+,</kbd> 中搜索 “Tomcat” 即可配置：
@@ -260,7 +230,7 @@ public static isJavaEEProject(): boolean {
 [![反馈问题](https://img.shields.io/badge/-反馈问题-red?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/issues/new)  
 [![提交修复](https://img.shields.io/badge/-提交修复-green?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/pulls)
 
-## 4.2.4 更新要点
+## 4.2.5 更新要点
 
 本次发布聚焦路径处理、日志可见性、性能改进和本地化增强。
 

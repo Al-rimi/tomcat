@@ -157,36 +157,6 @@ Click the Tomcat status in the bottom bar to toggle auto deploy modes.
 
 ![](resources/images/tomcat-status-showcase.png)
 
-### Command Palette
-
-Use the Command Palette (`Ctrl+Shift+P`) to quickly access core commands:
-
-| Command                      | Description                                                   |
-| ---------------------------- | ------------------------------------------------------------- |
-| `Tomcat: Start`              | Launch the Tomcat server                                      |
-| `Tomcat: Stop`               | Stop the running server                                       |
-| `Tomcat: Clean`              | Clean Tomcat `webapps`, `temp`, and `work` folders            |
-| `Tomcat: Deploy`             | Deploy the current Java EE project                            |
-| `Tomcat: Refresh Instances`  | Refresh the list of running and saved Tomcat instances        |
-| `Tomcat: Kill Instance`      | Force-stop a selected Tomcat instance                         |
-| `Tomcat: Open in Browser`    | Open the deployed app for an instance in your browser         |
-| `Tomcat: New Instance`       | Start a new Tomcat instance                                   |
-| `Tomcat: Configure Field`    | Edit Tomcat Home, Java Home, Port, or Browser for an instance |
-| `Tomcat: Add Tomcat Home`    | Add a new Tomcat installation path                            |
-| `Tomcat: Remove Tomcat Home` | Remove a saved Tomcat installation path                       |
-| `Tomcat: Refresh Versions`   | Refresh available Tomcat versions                             |
-| `Tomcat: Use This Tomcat`    | Set a Tomcat home as the active one                           |
-| `Tomcat: Add Java Home`      | Add a new Java installation path                              |
-| `Tomcat: Remove Java Home`   | Remove a saved Java installation path                         |
-| `Tomcat: Use This Java`      | Set a Java home as the active one                             |
-| `Tomcat: Set HTTP Port`      | Change the HTTP port for an instance                          |
-| `Tomcat: Add HTTP Port`      | Add a new HTTP port to the quick selection list               |
-| `Tomcat: Remove HTTP Port`   | Remove a saved HTTP port                                      |
-| `Tomcat: Create App`         | Scaffold a new web app from templates                         |
-| `Tomcat: Refresh Apps`       | Reload the apps list in the tree view                         |
-| `Tomcat: Set Build Type`     | Change the build strategy for an instance                     |
-| `Tomcat: Set Log Level`      | Change the log level for an instance                          |
-
 ## Configuration
 
 Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
@@ -272,7 +242,7 @@ For technical implementation details and contribution guidelines, see:
 [![Report Issue](https://img.shields.io/badge/-Report_Issue-red?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/issues/new)  
 [![Suggest Fix](https://img.shields.io/badge/-Suggest_Fix-green?style=flat-square&logo=github)](https://github.com/Al-rimi/tomcat/pulls)
 
-## What's New in 4.2.4
+## What's New in 4.2.5
 
 This release focuses on path handling, logging visibility, performance improvements, and localization enhancements.
 

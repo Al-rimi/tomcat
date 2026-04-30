@@ -506,7 +506,7 @@ export class AI {
 
             const client = url.protocol === 'https:' ? https : http;
             const req = client.request(options, (res) => {
-                this.logSink?.(t('ai.streamStart'));
+                this.logSink?.('AI_STREAM_START:');
                 let buffer = '';
                 let gotChunk = false;
 
@@ -523,7 +523,7 @@ export class AI {
                                 this.lastFirstTokenMs = firstTokenAt - streamStart;
                                 this.debugLog(t('ai.debugFirstStreamToken', { ms: this.lastFirstTokenMs }));
                             }
-                            this.logSink?.(t('ai.streamChunk', { chunk: content }));
+                            this.logSink?.(`AI_STREAM_CHUNK:${content}`);
                             gotChunk = true;
                         }
                     }
@@ -543,11 +543,11 @@ export class AI {
                                 this.lastFirstTokenMs = firstTokenAt - streamStart;
                                 this.debugLog(t('ai.debugFirstStreamTokenEndOfStream', { ms: this.lastFirstTokenMs }));
                             }
-                            this.logSink?.(t('ai.streamChunk', { chunk: content }));
+                            this.logSink?.(`AI_STREAM_CHUNK:${content}`);
                             gotChunk = true;
                         }
                     }
-                    this.logSink?.(t('ai.streamEnd'));
+                    this.logSink?.('AI_STREAM_END');
                     this.lastTotalStreamMs = Date.now() - streamStart;
                     this.debugLog(t('ai.debugStreamFinished', { ms: this.lastTotalStreamMs }));
                     resolve(gotChunk);
