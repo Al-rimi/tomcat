@@ -192,7 +192,7 @@ Access via <kbd>Ctrl+,</kbd> → Search "Tomcat"
   - JDK 11+
   - Apache Tomcat 9+
 - **Build Tools** (optional):
-  - `Maven` 3.6+ _or_ `Gradle` 6.8+ (if using `Maven` or `Gradle` build types)
+  - `Maven` 3.61+ _or_ `Gradle` 6.8+ (if using `Maven` or `Gradle` build types)
 
 ## Developer Documentation
 

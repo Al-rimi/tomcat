@@ -180,7 +180,7 @@ public static isJavaEEProject(): boolean {
   - JDK 11+
   - Apache Tomcat 9+
 - **构建工具**（可选）：
-  - `Maven` 3.6+ _或_ `Gradle` 6.8+（当选择对应构建类型时）
+  - `Maven` 3.61+ _或_ `Gradle` 6.8+（当选择对应构建类型时）
 
 ## 开发者文档
 
